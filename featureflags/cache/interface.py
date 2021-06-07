@@ -11,7 +11,9 @@ class Interface(metaclass=abc.ABCMeta):
                 hasattr(subclass, 'set') and
                 callable(subclass.set) and
                 hasattr(subclass, 'remove') and
-                callable(subclass.remove) or
+                callable(subclass.remove) and
+                hasattr(subclass, 'keys') and
+                callable(subclass.keys) or
                 NotImplemented)
 
     @abc.abstractmethod
@@ -24,4 +26,8 @@ class Interface(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def remove(self, keys: typing.List[str]) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def keys(self) -> typing.List[str]:
         raise NotImplementedError

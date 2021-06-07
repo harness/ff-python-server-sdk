@@ -5,7 +5,7 @@ Credits
 Development Lead
 ----------------
 
-* Enver Bisevac <enver@bisevac.com>
+* Enver Bisevac <enver.bisevac@harness.io>
 
 Contributors
 ------------

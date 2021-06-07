@@ -15,7 +15,8 @@ requirements = [
     "httpx~=0.16.1",
     "pyjwt~=2.0.1",
     "attrs~=20.3.0",
-    "mmh3~=3.0.0"
+    "mmh3~=3.0.0",
+    "sseclient~=0.0.27"
 ]
 
 setup_requirements = [
@@ -28,7 +29,7 @@ test_requirements = [
 
 setup(
     author="Enver Bisevac",
-    author_email="enver@bisevac.com",
+    author_email="enver.bisevac@harness.io",
     python_requires=">=3.5",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",

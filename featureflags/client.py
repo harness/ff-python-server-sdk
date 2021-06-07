@@ -12,6 +12,9 @@ from .rest.api.default.authenticate import asyncio as authenticate, \
 from .rest.api.default.get_feature_config import asyncio as retrieve_flags
 
 
+VERSION: str = '1.0'
+
+
 class CfClient(object):
 
     def __init__(self, sdk_key: str, *options: Callable,
@@ -58,6 +61,7 @@ class CfClient(object):
             self.__environment_id = decoded["environment"]
             self.__client = AuthenticatedClient(base_url=self.__config.base_url,
                                                 token=self.__auth_token)
+            self.__client.with_headers({'User-Agent': 'PythonSDK/' + VERSION})
             self.__event.set()
 
     async def retrieve_flags(self):

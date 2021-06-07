@@ -15,7 +15,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/enverbisevac/ff_python_server_sdk/issues.
+Report bugs at https://github.com/drone/ff_python_server_sdk/issues.
 
 If you are reporting a bug, please include:
 
