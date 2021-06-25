@@ -3,6 +3,7 @@ import typing
 import attr
 
 from featureflags.ftypes.interface import Interface
+
 from .utils import get_int_value
 
 

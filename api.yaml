@@ -169,15 +169,17 @@ paths:
           description: Unique identifier for the target object in the API.
           schema:
             type: string
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: OK
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/Pagination'
-                  - $ref: '#/components/schemas/Evaluations'
+          # content:
+          #   application/json:
+          #     schema:
+          #       allOf:
+          #         - $ref: '#/components/schemas/Pagination'
+          #         - $ref: '#/components/schemas/Evaluations'
   '/client/env/{environmentUUID}/target/{target}/evaluations/{feature}':
     get:
       summary: Get feature evaluations for target
@@ -201,6 +203,8 @@ paths:
           description: Unique identifier for the target object in the API.
           schema:
             type: string
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: OK
@@ -495,10 +499,10 @@ components:
         createdAt:
           type: integer
           format: int64
-        segments:
-          type: array
-          items:
-            $ref: '#/components/schemas/Segment'
+        # segments:
+        #   type: array
+        #   items:
+        #     $ref: '#/components/schemas/Segment'
       required:
         - identifier
         - name
@@ -564,7 +568,6 @@ components:
         - pageCount
         - itemCount
         - pageSize
-        - pageIndex
         - pageIndex
     Evaluation:
       type: object

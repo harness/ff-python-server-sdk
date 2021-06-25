@@ -1,4 +1,5 @@
 from collections import namedtuple
+
 import pytest
 
 from featureflags.cache.lru import LRUCache
@@ -58,7 +59,6 @@ def test_cache_overflow_default(method):
     else:
         assert False
 
-    print(cache.keys())
     assert "one" not in cache.keys()
     assert "two" in cache.keys()
     assert "three" in cache.keys()

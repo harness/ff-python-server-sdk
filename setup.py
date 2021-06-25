@@ -11,12 +11,12 @@ with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
 requirements = [
-    "openapi-python-client~=0.8.0",
+    "openapi-python-client~=0.9.2",
     "httpx~=0.16.1",
     "pyjwt~=2.0.1",
     "attrs~=20.3.0",
     "mmh3~=3.0.0",
-    "sseclient~=0.0.27"
+    "sseclient~=0.0.27",
 ]
 
 setup_requirements = [

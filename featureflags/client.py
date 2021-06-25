@@ -1,80 +1,94 @@
 """Client for interacting with Harness FF server"""
 
-import asyncio
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from jwt import decode
 
+from .api.client import AuthenticatedClient, Client
+from .api.default.authenticate import AuthenticationRequest
+from .api.default.authenticate import sync as authenticate
+from .api.default.get_feature_config import sync as retrieve_flags
+from .api.default.get_all_segments import sync as retrieve_segments
 from .config import Config, default_config
-from .rest.client import Client, AuthenticatedClient
-from .rest.api.default.authenticate import asyncio as authenticate, \
-    AuthenticationRequest
-from .rest.api.default.get_feature_config import asyncio as retrieve_flags
+from .evaluations.target import Target
+from .util import log
 
-
-VERSION: str = '1.0'
+VERSION: str = "1.0"
 
 
 class CfClient(object):
-
-    def __init__(self, sdk_key: str, *options: Callable,
-                 config: Optional[Config] = None):
-        self.__lock = asyncio.Lock()
+    def __init__(
+        self, sdk_key: str, *options: Callable, config: Optional[Config] = None
+    ):
+        
         self.__client = None
         self.__auth_token = None
         self.__environment_id = None
         self.__sdk_key = sdk_key
         self.__config = default_config
-        self.__event = asyncio.Event()
+
+        if config:
+            self.__config = config
 
         for option in options:
             if callable(option):
                 option(self.__config)
 
-        if config:
-            self.__config = config
+        log.debug("CfClient initialized")
+        self.concurrent()
 
-        asyncio.run(self.concurrent())
-
-    async def concurrent(self):
-        auth_task = asyncio.ensure_future(self.authenticate())
-        flags_task = asyncio.ensure_future(self.cron_flags())
-        await asyncio.gather(auth_task, flags_task)
+    def concurrent(self):
+        self.authenticate()
+        self.cron_flags()
+        self.cron_segments()
 
     def get_environment_id(self):
-        with self.__lock:
-            return self.__environment_id
+        return self.__environment_id
 
-    async def cron_flags(self):
-        while True:
-            await self.retrieve_flags()
-            await asyncio.sleep(self.__config.pull_interval)
+    def cron_flags(self):
+        self.retrieve_flags()
 
-    async def authenticate(self):
-        async with self.__lock:
-            client = Client(base_url=self.__config.base_url)
-            body = AuthenticationRequest(api_key=self.__sdk_key)
-            result = await authenticate(client=client, json_body=body)
-            self.__auth_token = result.auth_token
+    def cron_segments(self):
+        self.retrieve_segments()
 
-            decoded = decode(self.__auth_token, options={"verify_signature": False})
-            self.__environment_id = decoded["environment"]
-            self.__client = AuthenticatedClient(base_url=self.__config.base_url,
-                                                token=self.__auth_token)
-            self.__client.with_headers({'User-Agent': 'PythonSDK/' + VERSION})
-            self.__event.set()
+    def authenticate(self):
+        client = Client(base_url=self.__config.base_url)
+        body = AuthenticationRequest(api_key=self.__sdk_key)
+        result = authenticate(client=client, json_body=body)
+        self.__auth_token = result.auth_token
 
-    async def retrieve_flags(self):
-        if not self.__event.is_set():
-            return
-        result = await retrieve_flags(client=self.__client, environment_uuid=self.__environment_id)
-        print(result)
+        decoded = decode(self.__auth_token, options={"verify_signature": False})
+        self.__environment_id = decoded["environment"]
+        self.__client = AuthenticatedClient(
+            base_url=self.__config.base_url, token=self.__auth_token
+        )
+        self.__client.with_headers({"User-Agent": "PythonSDK/" + VERSION})
+
+    def retrieve_flags(self):
+        flags = retrieve_flags(
+            client=self.__client, environment_uuid=self.__environment_id
+        )
+        for flag in flags:
+            log.debug("Setting the cache value %s", flag.feature)
+            self.__config.cache.set(f"flags/{flag.feature}", flag)
 
     def retrieve_segments(self):
-        pass
+        segments = retrieve_segments(
+            client=self.__client, environment_uuid=self.__environment_id
+        )
+        for segment in segments:
+            log.debug("Setting the cache segment value %s", segment.identifier)
+            self.__config.cache.set(f"segments/{segment.identifier}", segment)
 
-    def bool_variation(self):
-        pass
+    def bool_variation(self, identifier: str, target: Target, default: bool) -> bool:
+        if self.__config.cache:
+            fc = self.__config.cache.get(f'flags/{identifier}')
+            variation = fc.bool_variation(target)
+            if variation is None:
+                log.debug('No variation found')
+                return default
+            return variation.bool()
+        return default
 
     def int_variation(self):
         pass
@@ -87,3 +101,9 @@ class CfClient(object):
 
     def json_variation(self):
         pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()

@@ -48,10 +48,14 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 clean-openapi:
-	rm -fr ./rest
+	rm -fr ./featureflags/rest
 
-generate: clean-openapi
-	openapi-python-client --config=config.yaml generate --path=./api.yaml --meta=none
+generate:
+	openapi-python-client generate --config=config.yaml --path=./api.yaml --meta=none
+	# docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate \
+    # -i ./local/api.yaml \
+    # -g python-legacy \
+    # -o /local/out/python
 
 lint: ## check style with flake8
 	flake8 --exclude=featureflags/rest featureflags tests
