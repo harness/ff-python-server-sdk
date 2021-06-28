@@ -1,14 +1,19 @@
 """Client for interacting with Harness FF server"""
 
-from typing import Any, Callable, Optional
+import threading
+from typing import Any, Callable, Dict, Optional
 
 from jwt import decode
+
+from featureflags.streaming import StreamProcessor
+from featureflags.evaluations.feature import FeatureConfig
 
 from .api.client import AuthenticatedClient, Client
 from .api.default.authenticate import AuthenticationRequest
 from .api.default.authenticate import sync as authenticate
 from .api.default.get_feature_config import sync as retrieve_flags
 from .api.default.get_all_segments import sync as retrieve_segments
+from .streaming import StreamProcessor
 from .config import Config, default_config
 from .evaluations.target import Target
 from .util import log
@@ -35,18 +40,29 @@ class CfClient(object):
                 option(self.__config)
 
         log.debug("CfClient initialized")
-        self.concurrent()
+        self.run()
 
-    def concurrent(self):
+    def run(self):
         self.authenticate()
         self.cron_flags()
         self.cron_segments()
+
+        event = threading.Event()
+
+        if self.__config.enable_stream:
+            self.stream = StreamProcessor(api_key=self.__sdk_key,
+                                          token= self.__auth_token,
+                                          config=self.__config,
+                                          ready=event)
+            self.stream.start()
+
 
     def get_environment_id(self):
         return self.__environment_id
 
     def cron_flags(self):
-        self.retrieve_flags()
+        self.__retrieve_flags()
+        
 
     def cron_segments(self):
         self.retrieve_segments()
@@ -64,7 +80,7 @@ class CfClient(object):
         )
         self.__client.with_headers({"User-Agent": "PythonSDK/" + VERSION})
 
-    def retrieve_flags(self):
+    def __retrieve_flags(self):
         flags = retrieve_flags(
             client=self.__client, environment_uuid=self.__environment_id
         )
@@ -80,27 +96,45 @@ class CfClient(object):
             log.debug("Setting the cache segment value %s", segment.identifier)
             self.__config.cache.set(f"segments/{segment.identifier}", segment)
 
-    def bool_variation(self, identifier: str, target: Target, default: bool) -> bool:
+    def map_segments_from_cache(self, fc: FeatureConfig) -> None:
+        if self.__config.cache:
+            segments = fc.get_segment_identifiers()
+            for identifier in segments:
+                segment = self.__config.cache.get(f'segments/{identifier}')
+                if fc.segments:
+                    fc.segments[identifier] = segment
+
+    def _variation(self, fn: str, identifier: str, target: Target, default: Any) -> Any:
         if self.__config.cache:
             fc = self.__config.cache.get(f'flags/{identifier}')
-            variation = fc.bool_variation(target)
-            if variation is None:
-                log.debug('No variation found')
-                return default
-            return variation.bool()
+            if fc:
+                self.map_segments_from_cache(fc)
+                method = getattr(fc, fn, None)
+                if method:
+                    variation = method(target)
+                    if variation is None:
+                        log.debug('No variation found')
+                        return default
+                    return variation.bool()
+                else:
+                    log.error("Wrong method name %s", fn)
         return default
 
-    def int_variation(self):
-        pass
 
-    def number_variation(self):
-        pass
+    def bool_variation(self, identifier: str, target: Target, default: bool) -> bool:
+        return self._variation('bool_variation', identifier, target, default)
 
-    def string_variation(self):
-        pass
+    def int_variation(self, identifier: str, target: Target, default: int) -> int:
+        return self._variation('int_variation', identifier, target, default)
 
-    def json_variation(self):
-        pass
+    def number_variation(self, identifier: str, target: Target, default: float) -> float:
+        return self._variation('number_variation', identifier, target, default)
+
+    def string_variation(self, identifier: str, target: Target, default: str) -> str:
+        return self._variation('string_variation', identifier, target, default)
+
+    def json_variation(self, identifier: str, target: Target, default: Dict[str, Any]) -> Dict[str, Any]:
+        return self._variation('number_variation', identifier, target, default)
 
     def __enter__(self):
         return self

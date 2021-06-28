@@ -2,5 +2,6 @@
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
-    "mypy.runUsingActiveInterpreter": true
+    "mypy.runUsingActiveInterpreter": true,
+    "python.pythonPath": "venv/bin/python"
 }

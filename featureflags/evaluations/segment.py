@@ -171,5 +171,6 @@ class Segment(object):
 
 
 class Segments(Dict[str, Segment]):
+    
     def evaluate(self, target: Target) -> bool:
         return True

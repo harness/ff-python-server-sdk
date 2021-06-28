@@ -1,4 +1,4 @@
-from featureflags.evaluations.target import Target
+from featureflags.evaluations.auth_target import Target
 import time
 
 from featureflags.client import CfClient
@@ -10,10 +10,11 @@ def main():
     client = CfClient("7fba0ca2-32d9-4cec-9f9e-5c0fd5d1ee9d")
 
     target = Target('johndoe')
-    result = client.bool_variation('pytest', target, False)
-    log.debug("Result %s", result)
-    # print(client.get_environment_id())
-    # time.sleep(5)
+    while True:
+        result = client.bool_variation('pytest', target, False)
+        log.debug("Result %s", result)
+        log.debug(client.get_environment_id())
+        time.sleep(5)
 
 
 if __name__ == "__main__":

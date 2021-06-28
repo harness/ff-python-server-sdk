@@ -7,7 +7,7 @@ import attr
 from featureflags.models import UNSET, Unset
 from featureflags.util import log
 
-from .constants import ONE_HUNDRED
+from .constants import ONE_HUNDRED, SEGMENT_MATCH_OPERATOR
 from .enum import FeatureState, Kind
 from .prerequisite import Prerequisite
 from .segment import Segments
@@ -29,6 +29,7 @@ class Evaluation(object):
 class FeatureConfigKind(str, Enum):
     BOOLEAN = "boolean"
     INT = "int"
+    NUMBER = "number"
     STRING = "string"
     JSON = "json"
 
@@ -54,6 +55,8 @@ class FeatureConfig(object):
     version: Union[Unset, int] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
+    cache: Dict[str, Any] = {}
+
     def evaluate(self, target: Target) -> Evaluation:
         log.debug('Flag kind: %s', self.kind)
         variation = None
@@ -63,6 +66,21 @@ class FeatureConfig(object):
 
     def bool_variation(self, target: Target) -> Optional[Variation]:
         if self.kind != FeatureConfigKind.BOOLEAN:
+            return None
+        return self.get_variation(target)
+
+    def int_variation(self, target: Target) -> Optional[Variation]:
+        if self.kind != FeatureConfigKind.INT:
+            return None
+        return self.get_variation(target)
+
+    def number_variation(self, target: Target) -> Optional[Variation]:
+        if self.kind != FeatureConfigKind.NUMBER:
+            return None
+        return self.get_variation(target)
+
+    def string_variation(self, target: Target) -> Optional[Variation]:
+        if self.kind != FeatureConfigKind.STRING:
             return None
         return self.get_variation(target)
 
@@ -85,6 +103,18 @@ class FeatureConfig(object):
             (val for val in self.variations if val.identifier == identifier), None
         )
         return variation
+
+    def get_segment_identifiers(self) -> List[str]:
+        if 'segments' in self.cache:
+            return self.cache['segments']
+        identifiers: List[str] = []
+        for rule in self.rules:
+            for clause in rule.clauses:
+                if clause.op == SEGMENT_MATCH_OPERATOR:
+                    for identifier in clause.values:
+                        identifiers.append(identifier)
+        self.cache['segments'] = identifiers
+        return identifiers
 
     def to_dict(self) -> Dict[str, Any]:
         project = self.project
