@@ -1,9 +1,9 @@
-from featureflags.evaluations.enum import FeatureState, Kind
-from featureflags.evaluations.feature import Evaluation, FeatureConfig
+
+from featureflags.evaluations.feature import Evaluation, FeatureConfig, FeatureState, FeatureConfigKind
 from featureflags.evaluations.weighted_variation import WeightedVariation
 from featureflags.evaluations.distribution import Distribution
 from featureflags.evaluations.serve import Serve
-from featureflags.evaluations.target import Target
+from featureflags.evaluations.auth_target import Target
 from featureflags.evaluations.variation import Variation
 
 
@@ -35,7 +35,7 @@ def test_evaluate_basic():
         feature="bool-flag",
         environment="production",
         default_serve=default_serve,
-        kind=Kind.BOOLEAN,
+        kind=FeatureConfigKind.BOOLEAN,
         off_variation="false",
         project="default",
         state=FeatureState.ON,

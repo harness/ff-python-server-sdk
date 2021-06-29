@@ -8,7 +8,10 @@ from .interface import Cache
 class LRUCache(Cache):
     def __init__(self, *args: Any, size: int = 1000, **kwargs: Any) -> None:
         self.size = size
-        self.cache: OrderedDict = OrderedDict(*args)
+        init = args
+        if len(init) > 0:
+            init = args[0][-size:]
+        self.cache: OrderedDict = OrderedDict(init)
 
     def __contains__(self, key: str) -> bool:
         return self.get(key) is not None

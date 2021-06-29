@@ -67,7 +67,7 @@ class Target():
 
     def get_attr_value(self, attribute: str) -> Optional[str]:
         result: Any = getattr(self, attribute, None)
-        if isinstance(result, Unset) and not isinstance(self.attributes, Unset):
+        if result is None and not isinstance(self.attributes, Unset):
             result = self.attributes.get(attribute, None)
         return result
 
