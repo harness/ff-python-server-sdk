@@ -1,13 +1,10 @@
-from featureflags.evaluation.enum import FeatureState, Kind
-from featureflags.evaluation.feature import (
-    Distribution,
-    Evaluation,
-    FeatureConfig,
-    Serve,
-    WeightedVariation,
-)
-from featureflags.evaluation.target import Target
-from featureflags.evaluation.variation import Variation
+from featureflags.evaluations.enum import FeatureState, Kind
+from featureflags.evaluations.feature import Evaluation, FeatureConfig
+from featureflags.evaluations.weighted_variation import WeightedVariation
+from featureflags.evaluations.distribution import Distribution
+from featureflags.evaluations.serve import Serve
+from featureflags.evaluations.target import Target
+from featureflags.evaluations.variation import Variation
 
 
 def test_get_key_name():

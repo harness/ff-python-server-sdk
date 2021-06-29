@@ -1,8 +1,11 @@
-from typing import Any, Dict, Type, TypeVar, Union
+from typing import Any, Dict, Type, TypeVar, Union, Optional
 
 import attr
 
 from featureflags.models import Unset, UNSET
+
+from featureflags.ftypes import OPERATORS
+from featureflags.ftypes.interface import Interface
 
 T = TypeVar("T", bound="Target")
 
@@ -10,12 +13,15 @@ T = TypeVar("T", bound="Target")
 class Target():
     
     identifier: str
+    name: Union[Unset, str] = UNSET
     anonymous: Union[Unset, bool] = UNSET
     attributes: Union[Unset, Dict[str, Any]] = UNSET
     
     def to_dict(self) -> Dict[str, Any]:
         identifier = self.identifier
+        name  = self.name
         anonymous = self.anonymous
+
         attributes: Union[Unset, Dict[str, Any]] = UNSET
         if not isinstance(self.attributes, Unset):
             attributes = self.attributes
@@ -23,9 +29,12 @@ class Target():
         field_dict: Dict[str, Any] = {}
         field_dict.update(
             {
-                "identifier": identifier
+                "identifier": identifier,
             }
         )
+
+        if name is not UNSET:
+            field_dict["name"] = name
         if anonymous is not UNSET:
             field_dict["anonymous"] = anonymous
         if attributes is not UNSET:
@@ -37,7 +46,7 @@ class Target():
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
         identifier = d.pop("identifier")
-
+        name = d.pop("name", UNSET)
         anonymous = d.pop("anonymous", UNSET)
 
         _attributes = d.pop("attributes", UNSET)
@@ -49,8 +58,24 @@ class Target():
 
         target = cls(
             identifier=identifier,
+            name=name,
             anonymous=anonymous,
             attributes=attributes,
         )
 
         return target
+
+    def get_attr_value(self, attribute: str) -> Optional[str]:
+        result: Any = getattr(self, attribute, None)
+        if isinstance(result, Unset) and not isinstance(self.attributes, Unset):
+            result = self.attributes.get(attribute, None)
+        return result
+
+    def get_operator(self, attribute: str) -> Optional[Interface]:
+        value: Optional[str] = self.get_attr_value(attribute)
+        for _type, klass in OPERATORS.items():
+            if isinstance(value, _type):
+                operator = OPERATORS.get(_type, None)
+                if operator:
+                    return klass(value)
+        return None

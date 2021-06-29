@@ -23,7 +23,7 @@ class PollingProcessor(Thread):
                 try:
                     self._requester.get_all_data()
                     if not self._ready.is_set() is True and self._store.initialized is True:
-                        log.info("PollingUpdateProcessor initialized ok")
+                        log.info("PollingProcessor initialized ok")
                         self._ready.set()
                 except Exception as e:
                     log.exception(

@@ -58,7 +58,7 @@ generate:
     # -o /local/out/python
 
 lint: ## check style with flake8
-	flake8 --exclude=featureflags/rest featureflags tests
+	flake8 featureflags tests
 
 test: ## run tests quickly with the default Python
 	pytest

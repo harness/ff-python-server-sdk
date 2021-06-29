@@ -1,7 +1,7 @@
 import pytest
 
-from featureflags.evaluation.clause import Clause
-from featureflags.evaluation.constants import (
+from featureflags.evaluations.clause import Clause
+from featureflags.evaluations.constants import (
     CONTAINS_OPERATOR,
     ENDS_WITH_OPERATOR,
     EQUAL_OPERATOR,
@@ -23,7 +23,7 @@ from featureflags.ftypes import String
 )
 def test_evaluate_op(op):
     clause = Clause(
-        attribute="email", id="", negate=False, op=op, value=["john@doe.com"]
+        attribute="email", id="", negate=False, op=op, values=["john@doe.com"]
     )
 
     got = clause.evaluate(None, None, String("john@doe.com"))
@@ -45,7 +45,7 @@ def test_evaluate_op(op):
 )
 def test_evaluate_string(mocker, op, method, expected):
     clause = Clause(
-        attribute="email", id="", negate=False, op=op, value=["john@doe.com"]
+        attribute="email", id="", negate=False, op=op, values=["john@doe.com"]
     )
 
     m = mocker.patch.object(String, method, return_value=expected)

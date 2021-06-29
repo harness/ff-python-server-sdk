@@ -1,5 +1,5 @@
-from featureflags.evaluation.clause import Clause, Clauses
-from featureflags.evaluation.constants import (
+from featureflags.evaluations.clause import Clause, Clauses
+from featureflags.evaluations.constants import (
     CONTAINS_OPERATOR,
     ENDS_WITH_OPERATOR,
     EQUAL_OPERATOR,
@@ -9,7 +9,7 @@ from featureflags.evaluation.constants import (
     SEGMENT_MATCH_OPERATOR,
     STARTS_WITH_OPERATOR,
 )
-from featureflags.evaluation.target import Target
+from featureflags.evaluations.auth_target import Target
 
 
 def test_evaluate_clauses():
@@ -21,10 +21,10 @@ def test_evaluate_clauses():
         id="",
         negate=False,
         op=EQUAL_OPERATOR,
-        value=["john@doe.com"],
+        values=["john@doe.com"],
     )
     clause_2 = Clause(
-        attribute="anonymous", id="", negate=False, op=EQUAL_OPERATOR, value=[False]
+        attribute="anonymous", id="", negate=False, op=EQUAL_OPERATOR, values=[False]
     )
     clauses = Clauses([clause_1, clause_2])
 

@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from featureflags.evaluation.variation import Variation
+from featureflags.evaluations.variation import Variation
 
 
 @pytest.mark.parametrize(

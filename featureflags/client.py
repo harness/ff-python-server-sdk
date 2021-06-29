@@ -1,5 +1,6 @@
 """Client for interacting with Harness FF server"""
 
+from featureflags.lru_cache import LRUCache
 import threading
 from typing import Any, Callable, Dict, Optional
 
@@ -25,7 +26,6 @@ class CfClient(object):
     def __init__(
         self, sdk_key: str, *options: Callable, config: Optional[Config] = None
     ):
-        
         self.__client = None
         self.__auth_token = None
         self.__environment_id = None
@@ -50,7 +50,10 @@ class CfClient(object):
         event = threading.Event()
 
         if self.__config.enable_stream:
-            self.stream = StreamProcessor(api_key=self.__sdk_key,
+            self.stream = StreamProcessor(cache=self.__config.cache,
+                                          client=self.__client,
+                                          environment_id=self.__environment_id,
+                                          api_key=self.__sdk_key,
                                           token= self.__auth_token,
                                           config=self.__config,
                                           ready=event)
@@ -62,10 +65,9 @@ class CfClient(object):
 
     def cron_flags(self):
         self.__retrieve_flags()
-        
 
     def cron_segments(self):
-        self.retrieve_segments()
+        self.__retrieve_segments()
 
     def authenticate(self):
         client = Client(base_url=self.__config.base_url)
@@ -88,7 +90,7 @@ class CfClient(object):
             log.debug("Setting the cache value %s", flag.feature)
             self.__config.cache.set(f"flags/{flag.feature}", flag)
 
-    def retrieve_segments(self):
+    def __retrieve_segments(self):
         segments = retrieve_segments(
             client=self.__client, environment_uuid=self.__environment_id
         )

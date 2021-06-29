@@ -1,6 +1,6 @@
 import pytest
 
-from featureflags.evaluation.target import Target
+from featureflags.evaluations.auth_target import Target
 from featureflags.ftypes import JSON, Boolean, Integer, Number, String
 
 

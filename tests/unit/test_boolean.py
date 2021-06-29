@@ -1,5 +1,3 @@
-import pytest
-
 from featureflags.ftypes.boolean import Boolean
 
 

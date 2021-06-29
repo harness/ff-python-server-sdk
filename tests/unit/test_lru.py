@@ -2,7 +2,7 @@ from collections import namedtuple
 
 import pytest
 
-from featureflags.cache.lru import LRUCache
+from featureflags.lru_cache import LRUCache
 
 
 def test_cache_null():
