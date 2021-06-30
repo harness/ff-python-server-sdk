@@ -1,5 +1,6 @@
 """Client for interacting with Harness FF server"""
 
+from featureflags.evaluations.segment import Segments
 from featureflags.lru_cache import LRUCache
 import threading
 from typing import Any, Callable, Dict, Optional
@@ -103,8 +104,9 @@ class CfClient(object):
             segments = fc.get_segment_identifiers()
             for identifier in segments:
                 segment = self.__config.cache.get(f'segments/{identifier}')
-                if fc.segments:
-                    fc.segments[identifier] = segment
+                if fc.segments is None:
+                    fc.segments = Segments({})
+                fc.segments[identifier] = segment
 
     def _variation(self, fn: str, identifier: str, target: Target, default: Any) -> Any:
         if self.__config.cache:

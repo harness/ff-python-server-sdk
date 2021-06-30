@@ -188,7 +188,6 @@ class FeatureConfig(object):
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
-        log.info("Dict, %s", src_dict)
         d = src_dict.copy()
         project = d.pop("project")
 

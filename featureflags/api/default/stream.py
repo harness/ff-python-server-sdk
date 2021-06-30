@@ -2,8 +2,8 @@ from typing import Any, Dict
 
 import httpx
 
-from ...client import AuthenticatedClient
-from ...types import Response
+from ..client import AuthenticatedClient
+from ..types import Response
 
 
 def _get_kwargs(
