@@ -9,7 +9,7 @@ def main():
     log.debug("Starting example")
     client = CfClient("7fba0ca2-32d9-4cec-9f9e-5c0fd5d1ee9d")
 
-    target = Target(identifier='user1@example.com')
+    target = Target(identifier='harness')
     while True:
         result = client.bool_variation('pytest', target, False)
         log.debug("Result %s", result)

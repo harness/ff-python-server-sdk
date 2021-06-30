@@ -44,8 +44,8 @@ class CfClient(object):
 
     def run(self):
         self.authenticate()
-        self.cron_flags()
         self.cron_segments()
+        self.cron_flags()
 
         event = threading.Event()
 

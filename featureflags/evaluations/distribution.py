@@ -4,7 +4,7 @@ import attr
 
 from .constants import ONE_HUNDRED
 from .strategy import get_normalized_number
-from .target import Target
+from .auth_target import Target
 from .weighted_variation import WeightedVariation
 
 T = TypeVar("T", bound="Distribution")

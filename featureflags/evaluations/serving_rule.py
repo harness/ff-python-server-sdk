@@ -7,7 +7,7 @@ from featureflags.models import UNSET, Unset
 from .clause import Clause, Clauses
 from .segment import Segments
 from .serve import Serve
-from .target import Target
+from .auth_target import Target
 
 T = TypeVar("T", bound="ServingRule")
 

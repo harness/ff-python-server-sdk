@@ -4,11 +4,10 @@ import attr
 
 from featureflags.models import UNSET, Unset
 
-if TYPE_CHECKING:
-    from .clause import Clause, Clauses
+from .clause import Clause, Clauses
 
 from .tag import Tag
-from .target import Target
+from .auth_target import Target
 
 T = TypeVar("T", bound="Segment")
 
@@ -19,13 +18,27 @@ class Segment(object):
     name: str
     environment: Union[Unset, str] = UNSET
     tags: Union[Unset, List[Tag]] = UNSET
-    included: Union[Unset, List[Target]] = UNSET
-    excluded: Union[Unset, List[Target]] = UNSET
+    included: Union[Unset, List[str]] = UNSET
+    excluded: Union[Unset, List[str]] = UNSET
     rules: Union[Unset, 'Clauses'] = UNSET
     created_at: Union[Unset, int] = UNSET
     modified_at: Union[Unset, int] = UNSET
     version: Union[Unset, int] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
+    
+    def evaluate(self, target: Target) -> bool:
+        if not isinstance(self.included, Unset):
+            if target.identifier in self.included:
+                return True
+
+        if not isinstance(self.excluded, Unset):
+            if target.identifier in self.excluded:
+                return True
+
+        if not isinstance(self.rules, Unset):
+            if self.rules.evaluate(target, None):
+                return True
+        return False
 
     def to_dict(self) -> Dict[str, Any]:
         identifier = self.identifier
@@ -39,21 +52,8 @@ class Segment(object):
 
                 tags.append(tags_item)
 
-        included: Union[Unset, List[Dict[str, Any]]] = UNSET
-        if not isinstance(self.included, Unset):
-            included = []
-            for included_item_data in self.included:
-                included_item = included_item_data.to_dict()
-
-                included.append(included_item)
-
-        excluded: Union[Unset, List[Dict[str, Any]]] = UNSET
-        if not isinstance(self.excluded, Unset):
-            excluded = []
-            for excluded_item_data in self.excluded:
-                excluded_item = excluded_item_data.to_dict()
-
-                excluded.append(excluded_item)
+        included = self.included
+        excluded = self.excluded
 
         rules: Union[Unset, List[Dict[str, Any]]] = UNSET
         if not isinstance(self.rules, Unset):
@@ -110,19 +110,8 @@ class Segment(object):
 
             tags.append(tags_item)
 
-        included = []
-        _included = d.pop("included", UNSET)
-        for included_item_data in _included or []:
-            included_item = Target.from_dict(included_item_data)
-
-            included.append(included_item)
-
-        excluded = []
-        _excluded = d.pop("excluded", UNSET)
-        for excluded_item_data in _excluded or []:
-            excluded_item = Target.from_dict(excluded_item_data)
-
-            excluded.append(excluded_item)
+        included = d.pop("included", UNSET)
+        excluded = d.pop("excluded", UNSET)
 
         rules: Clauses = Clauses()
         _rules = d.pop("rules", UNSET)
@@ -171,6 +160,9 @@ class Segment(object):
 
 
 class Segments(Dict[str, Segment]):
-    
+
     def evaluate(self, target: Target) -> bool:
+        for _, segment in self.items():
+            if not segment.evaluate(target):
+                return False
         return True

@@ -7,13 +7,13 @@ import attr
 from featureflags.models import UNSET, Unset
 from featureflags.util import log
 
-from .constants import ONE_HUNDRED, SEGMENT_MATCH_OPERATOR
+from .constants import SEGMENT_MATCH_OPERATOR
 from .enum import FeatureState, Kind
 from .prerequisite import Prerequisite
 from .segment import Segments
 from .serve import Serve
 from .serving_rule import ServingRule, ServingRules
-from .target import Target
+from .auth_target import Target
 from .variation import Variation
 from .variation_map import VariationMap
 
@@ -188,6 +188,7 @@ class FeatureConfig(object):
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
+        log.info("Dict, %s", src_dict)
         d = src_dict.copy()
         project = d.pop("project")
 

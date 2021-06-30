@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Type, TypeVar, cast
+from typing import Any, Dict, List, Optional, Type, TypeVar, cast, TYPE_CHECKING
 
 import attr
 
@@ -14,11 +14,12 @@ from .constants import (
     SEGMENT_MATCH_OPERATOR,
     STARTS_WITH_OPERATOR,
 )
-from .segment import Segments
-from .target import Target
+if TYPE_CHECKING:
+    from .segment import Segments
+from .auth_target import Target
+from featureflags.util import log
 
 T = TypeVar("T", bound="Clause")
-
 
 @attr.s(auto_attribs=True)
 class Clause(object):
@@ -30,28 +31,30 @@ class Clause(object):
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def evaluate(
-        self, target: Target, segments: Optional[Segments], operator: Interface
+        self, target: Target, segments: Optional['Segments'], operator: Optional[Interface]
     ) -> bool:
         if self.op is None or self.op == "":
             return False
         _op = self.op.lower()
-        if _op == SEGMENT_MATCH_OPERATOR:
+        if _op == SEGMENT_MATCH_OPERATOR.lower():
+            if segments:
+                return segments.evaluate(target)
             return False
-        if _op == IN_OPERATOR:
-            return operator.in_list(self.values)
-        if _op == EQUAL_OPERATOR:
-            return operator.equal(self.values)
-        if _op == GT_OPERATOR:
-            return operator.greater_than(self.values)
-        if _op == STARTS_WITH_OPERATOR:
-            return operator.starts_with(self.values)
-        if _op == ENDS_WITH_OPERATOR:
-            return operator.ends_with(self.values)
-        if _op == CONTAINS_OPERATOR:
-            return operator.contains(self.values)
-        if _op == EQUAL_SENSITIVE_OPERATOR:
-            return operator.equal_sensitive(self.values)
-
+        if operator:
+            if _op == IN_OPERATOR.lower():
+                return operator.in_list(self.values)
+            if _op == EQUAL_OPERATOR.lower():
+                return operator.equal(self.values)
+            if _op == GT_OPERATOR.lower():
+                return operator.greater_than(self.values)
+            if _op == STARTS_WITH_OPERATOR.lower():
+                return operator.starts_with(self.values)
+            if _op == ENDS_WITH_OPERATOR.lower():
+                return operator.ends_with(self.values)
+            if _op == CONTAINS_OPERATOR.lower():
+                return operator.contains(self.values)
+            if _op == EQUAL_SENSITIVE_OPERATOR.lower():
+                return operator.equal_sensitive(self.values)
         # unknown operation
         return False
 
@@ -119,11 +122,11 @@ class Clause(object):
 
 
 class Clauses(List[Clause]):
-    def evaluate(self, target: Target, segments: Optional[Segments]) -> bool:
+    def evaluate(self, target: Target, segments: Optional['Segments']) -> bool:
         for clause in self:
             operator = target.get_operator(clause.attribute)
             if operator is None:
-                return False
+                log.error("operator not found for clause %s", clause)
             if not clause.evaluate(target, segments, operator):
                 return False
         return True
