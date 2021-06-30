@@ -92,7 +92,7 @@ class FeatureConfig(object):
             for variation_map in self.variation_to_target_map:
                 if not isinstance(variation_map.targets, Unset):
                     for _target in variation_map.targets:
-                        if target.identifier == _target:
+                        if target.identifier == _target.identifier:
                             return variation_map.variation
 
         return self.rules.get_variation_name(target, self.segments, self.default_serve)
