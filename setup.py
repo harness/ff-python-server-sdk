@@ -11,12 +11,10 @@ with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
 requirements = [
-    "openapi-python-client~=0.9.2",
     "httpx~=0.16.1",
     "pyjwt~=2.0.1",
     "attrs~=20.3.0",
     "mmh3~=3.0.0",
-    "sseclient~=0.0.27",
 ]
 
 setup_requirements = [
@@ -54,6 +52,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/enverbisevac/ff-python-server-sdk",
-    version="0.1.0",
+    version="1.0.0",
     zip_safe=False,
 )
