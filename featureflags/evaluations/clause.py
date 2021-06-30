@@ -126,7 +126,7 @@ class Clauses(List[Clause]):
         for clause in self:
             operator = target.get_operator(clause.attribute)
             if operator is None:
-                log.error("operator not found for clause %s", clause)
+                log.warn("operator not found for clause %s", clause)
             if not clause.evaluate(target, segments, operator):
                 return False
         return True

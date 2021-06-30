@@ -13,12 +13,12 @@ from featureflags.evaluations.feature import FeatureConfig
 from .api.client import AuthenticatedClient, Client
 from .api.default.authenticate import AuthenticationRequest
 from .api.default.authenticate import sync as authenticate
-from .api.default.get_feature_config import sync as retrieve_flags
-from .api.default.get_all_segments import sync as retrieve_segments
 from .streaming import StreamProcessor
+from .polling import PollingProcessor
 from .config import Config, default_config
 from .evaluations.target import Target
 from .util import log
+from featureflags import polling
 
 VERSION: str = "1.0"
 
@@ -45,8 +45,13 @@ class CfClient(object):
 
     def run(self):
         self.authenticate()
-        self.cron_segments()
-        self.cron_flags()
+
+        polling_event = threading.Event()
+        polling_processor = PollingProcessor(client=self.__client, 
+                                             config=self.__config, 
+                                             environment_id=self.__environment_id,
+                                             ready=polling_event)
+        polling_processor.start()
 
         event = threading.Event()
 
@@ -55,20 +60,13 @@ class CfClient(object):
                                           client=self.__client,
                                           environment_id=self.__environment_id,
                                           api_key=self.__sdk_key,
-                                          token= self.__auth_token,
+                                          token=self.__auth_token,
                                           config=self.__config,
                                           ready=event)
             self.stream.start()
 
-
     def get_environment_id(self):
         return self.__environment_id
-
-    def cron_flags(self):
-        self.__retrieve_flags()
-
-    def cron_segments(self):
-        self.__retrieve_segments()
 
     def authenticate(self):
         client = Client(base_url=self.__config.base_url)
@@ -76,28 +74,13 @@ class CfClient(object):
         result = authenticate(client=client, json_body=body)
         self.__auth_token = result.auth_token
 
-        decoded = decode(self.__auth_token, options={"verify_signature": False})
+        decoded = decode(self.__auth_token, options={
+                         "verify_signature": False})
         self.__environment_id = decoded["environment"]
         self.__client = AuthenticatedClient(
             base_url=self.__config.base_url, token=self.__auth_token
         )
         self.__client.with_headers({"User-Agent": "PythonSDK/" + VERSION})
-
-    def __retrieve_flags(self):
-        flags = retrieve_flags(
-            client=self.__client, environment_uuid=self.__environment_id
-        )
-        for flag in flags:
-            log.debug("Setting the cache value %s", flag.feature)
-            self.__config.cache.set(f"flags/{flag.feature}", flag)
-
-    def __retrieve_segments(self):
-        segments = retrieve_segments(
-            client=self.__client, environment_uuid=self.__environment_id
-        )
-        for segment in segments:
-            log.debug("Setting the cache segment value %s", segment.identifier)
-            self.__config.cache.set(f"segments/{segment.identifier}", segment)
 
     def map_segments_from_cache(self, fc: FeatureConfig) -> None:
         if self.__config.cache:
@@ -123,7 +106,6 @@ class CfClient(object):
                 else:
                     log.error("Wrong method name %s", fn)
         return default
-
 
     def bool_variation(self, identifier: str, target: Target, default: bool) -> bool:
         return self._variation('bool_variation', identifier, target, default)
