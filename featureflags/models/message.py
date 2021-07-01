@@ -5,6 +5,7 @@ import attr
 
 T = TypeVar("T", bound="Message")
 
+
 @attr.s(auto_attribs=True)
 class Message(object):
     event: str
@@ -31,7 +32,7 @@ class Message(object):
 
     @classmethod
     def from_str(cls: Type[T], src: str) -> T:
-        if src == None or src == '':
+        if src is None or src == '':
             raise ValueError('source cannot be empty or None')
         d = json.loads(src)
         return cls.from_dict(d)

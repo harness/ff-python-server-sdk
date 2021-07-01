@@ -1,6 +1,6 @@
 from featureflags.api.client import AuthenticatedClient
 import time
-from threading import Thread
+from threading import Thread, Event
 
 from .config import Config
 from .util import log
@@ -10,8 +10,9 @@ from .api.default.get_all_segments import sync as retrieve_segments
 
 class PollingProcessor(Thread):
 
-    def __init__(self, client: AuthenticatedClient, config: Config, 
-                 environment_id: str, ready: bool) -> None:
+    def __init__(self, client: AuthenticatedClient, config: Config,
+                 environment_id: str, ready: Event,
+                 stream_ready: Event) -> None:
         Thread.__init__(self)
         self.daemon = True
         self.__environment_id = environment_id
@@ -19,6 +20,7 @@ class PollingProcessor(Thread):
         self.__config = config
         self.__running = False
         self.__ready = ready
+        self.__stream_ready = stream_ready
 
     def run(self):
         if not self.__running:
@@ -36,10 +38,17 @@ class PollingProcessor(Thread):
                     t2.join()
                     if not self.__ready.is_set() is True:
                         log.info("PollingProcessor initialized ok")
-                        self.__ready.set()
+                        if self.__config.enable_stream and \
+                                not self.__stream_ready.is_set():
+                            log.debug('Poller is in pause mode...')
+                            self.__ready.wait()
+                        else:
+                            self.__ready.set()
                 except Exception as e:
                     log.exception(
-                        'Error: Exception encountered when polling flags. %s' % e)
+                        'Error: Exception encountered when polling flags. %s',
+                        e
+                    )
 
                 elapsed = time.time() - start_time
                 if elapsed < self.__config.pull_interval:

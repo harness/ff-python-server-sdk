@@ -4,7 +4,8 @@ from .constants import ONE_HUNDRED
 
 
 def get_normalized_number(identifier: str, bucket_by: str) -> int:
-    return get_normalized_number_with_normalizer(identifier, bucket_by, ONE_HUNDRED)
+    return get_normalized_number_with_normalizer(identifier, bucket_by,
+                                                 ONE_HUNDRED)
 
 
 def get_normalized_number_with_normalizer(

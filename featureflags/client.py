@@ -1,15 +1,12 @@
 """Client for interacting with Harness FF server"""
 
-from featureflags.evaluations.segment import Segments
-from featureflags.lru_cache import LRUCache
 import threading
 from typing import Any, Callable, Dict, Optional
 
 from jwt import decode
 
-from featureflags.streaming import StreamProcessor
-from featureflags.evaluations.feature import FeatureConfig
-
+from .evaluations.feature import FeatureConfig
+from .evaluations.segment import Segments
 from .api.client import AuthenticatedClient, Client
 from .api.default.authenticate import AuthenticationRequest
 from .api.default.authenticate import sync as authenticate
@@ -18,7 +15,6 @@ from .polling import PollingProcessor
 from .config import Config, default_config
 from .evaluations.target import Target
 from .util import log
-from featureflags import polling
 
 VERSION: str = "1.0"
 
@@ -46,14 +42,16 @@ class CfClient(object):
     def run(self):
         self.authenticate()
 
+        streaming_event = threading.Event()
         polling_event = threading.Event()
-        polling_processor = PollingProcessor(client=self.__client, 
-                                             config=self.__config, 
-                                             environment_id=self.__environment_id,
-                                             ready=polling_event)
+        polling_processor = PollingProcessor(
+            client=self.__client,
+            config=self.__config,
+            environment_id=self.__environment_id,
+            ready=polling_event,
+            stream_ready=streaming_event
+        )
         polling_processor.start()
-
-        event = threading.Event()
 
         if self.__config.enable_stream:
             self.stream = StreamProcessor(cache=self.__config.cache,
@@ -62,7 +60,7 @@ class CfClient(object):
                                           api_key=self.__sdk_key,
                                           token=self.__auth_token,
                                           config=self.__config,
-                                          ready=event)
+                                          ready=streaming_event)
             self.stream.start()
 
     def get_environment_id(self):
@@ -91,7 +89,8 @@ class CfClient(object):
                     fc.segments = Segments({})
                 fc.segments[identifier] = segment
 
-    def _variation(self, fn: str, identifier: str, target: Target, default: Any) -> Any:
+    def _variation(self, fn: str, identifier: str, target: Target,
+                   default: Any) -> Any:
         if self.__config.cache:
             fc = self.__config.cache.get(f'flags/{identifier}')
             if fc:
@@ -107,19 +106,24 @@ class CfClient(object):
                     log.error("Wrong method name %s", fn)
         return default
 
-    def bool_variation(self, identifier: str, target: Target, default: bool) -> bool:
+    def bool_variation(self, identifier: str, target: Target,
+                       default: bool) -> bool:
         return self._variation('bool_variation', identifier, target, default)
 
-    def int_variation(self, identifier: str, target: Target, default: int) -> int:
+    def int_variation(self, identifier: str, target: Target,
+                      default: int) -> int:
         return self._variation('int_variation', identifier, target, default)
 
-    def number_variation(self, identifier: str, target: Target, default: float) -> float:
+    def number_variation(self, identifier: str, target: Target,
+                         default: float) -> float:
         return self._variation('number_variation', identifier, target, default)
 
-    def string_variation(self, identifier: str, target: Target, default: str) -> str:
+    def string_variation(self, identifier: str, target: Target,
+                         default: str) -> str:
         return self._variation('string_variation', identifier, target, default)
 
-    def json_variation(self, identifier: str, target: Target, default: Dict[str, Any]) -> Dict[str, Any]:
+    def json_variation(self, identifier: str, target: Target,
+                       default: Dict[str, Any]) -> Dict[str, Any]:
         return self._variation('number_variation', identifier, target, default)
 
     def __enter__(self):

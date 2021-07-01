@@ -58,7 +58,9 @@ class AuthenticationRequestTarget:
         if isinstance(_attributes, Unset):
             attributes = UNSET
         else:
-            attributes = AuthenticationRequestTargetAttributes.from_dict(_attributes)
+            attributes = AuthenticationRequestTargetAttributes.from_dict(
+                _attributes
+            )
 
         authentication_request_target = cls(
             identifier=identifier,

@@ -4,4 +4,10 @@ from .json import JSON
 from .number import Number
 from .string import String
 
-OPERATORS: dict = {bool: Boolean, str: String, int: Integer, float: Number, dict: JSON}
+OPERATORS: dict = {
+    bool: Boolean,
+    str: String,
+    int: Integer,
+    float: Number,
+    dict: JSON
+}

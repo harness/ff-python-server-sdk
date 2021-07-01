@@ -21,7 +21,8 @@ from featureflags.ftypes.string import String
 )
 def test_type_methods(mocker, arg, input, mocked, method, expected):
 
-    m = mocker.patch("featureflags.ftypes.string.get_str_value", return_value=mocked)
+    m = mocker.patch("featureflags.ftypes.string.get_str_value",
+                     return_value=mocked)
     _string = String(value=arg)
 
     fn = getattr(_string, method)

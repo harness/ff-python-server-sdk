@@ -2,6 +2,7 @@ from featureflags.evaluations.auth_target import Target
 import time
 
 from featureflags.client import CfClient
+from featureflags.config import with_stream_enabled
 from featureflags.util import log
 
 

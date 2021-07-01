@@ -25,7 +25,10 @@ class File:
     mime_type: Optional[str] = None
 
     def to_tuple(self) -> FileJsonType:
-        """Return a tuple representation that httpx will accept for multipart/form-data"""
+        """
+        Return a tuple representation that httpx will accept for
+        multipart/form-data
+        """
         return self.file_name, self.payload, self.mime_type
 
 

@@ -1,23 +1,25 @@
-from featureflags.interface import Cache
+
 from threading import Thread
 import threading
-from typing import Any, List, Union
+from typing import List, Union
 
-from featureflags.models.message import Message
-from featureflags.api.client import AuthenticatedClient, Client
+from .models.message import Message
+from .api.client import AuthenticatedClient
 
-from featureflags.config import Config
-from featureflags.sse_client import SSEClient
-from featureflags.util import log
-from featureflags.api.default.get_feature_config_by_identifier import sync as get_feature_config
-from featureflags.api.default.get_segment_by_identifier import sync as get_target_segment
+from .config import Config
+from .sse_client import SSEClient
 from .util import log
+from .api.default.get_feature_config_by_identifier import sync as \
+    get_feature_config
+from .api.default.get_segment_by_identifier import sync as \
+    get_target_segment
+from .interface import Cache
 
 
 class StreamProcessor(Thread):
-    def __init__(self, cache: Cache, client: AuthenticatedClient, environment_id: str,
-                 api_key: str, token: str, config: Config,
-                 ready: threading.Event):
+    def __init__(self, cache: Cache, client: AuthenticatedClient,
+                 environment_id: str, api_key: str, token: str,
+                 config: Config, ready: threading.Event):
 
         Thread.__init__(self)
         self.daemon = True
@@ -68,10 +70,12 @@ class StreamProcessor(Thread):
                                          msg=msg)
         elif msg.domain == "target-segment":
             log.debug('Starting segment message processor with %s', msg)
-            processor = SegmentMsgProcessor(cache=self._cache,
-                                            client=self._client,
-                                            environment_id=self._environment_id,
-                                            msg=msg)
+            processor = SegmentMsgProcessor(
+                cache=self._cache,
+                client=self._client,
+                environment_id=self._environment_id,
+                msg=msg
+            )
         if processor:
             processor.start()
             self._msg_processors.append(processor)
@@ -85,7 +89,8 @@ class StreamProcessor(Thread):
 
 class FlagMsgProcessor(Thread):
 
-    def __init__(self, cache: Cache, client: AuthenticatedClient, environment_id: str, msg: Message):
+    def __init__(self, cache: Cache, client: AuthenticatedClient,
+                 environment_id: str, msg: Message):
         Thread.__init__(self)
         self._cache = cache
         self._client = client
@@ -93,7 +98,8 @@ class FlagMsgProcessor(Thread):
         self._msg = msg
 
     def run(self):
-        log.debug("Fetching flag config '%s' from server", self._msg.identifier)
+        log.debug("Fetching flag config '%s' from server",
+                  self._msg.identifier)
         fc = get_feature_config(client=self._client,
                                 identifier=self._msg.identifier,
                                 environment_uuid=self._environemnt_id)
@@ -108,7 +114,8 @@ class FlagMsgProcessor(Thread):
 
 class SegmentMsgProcessor(Thread):
 
-    def __init__(self, cache: Cache, client: AuthenticatedClient, environment_id: str, msg: Message):
+    def __init__(self, cache: Cache, client: AuthenticatedClient,
+                 environment_id: str, msg: Message):
         Thread.__init__(self)
         self._cache = cache
         self._client = client
@@ -116,14 +123,15 @@ class SegmentMsgProcessor(Thread):
         self._msg = msg
 
     def run(self):
-        log.debug("Fetching target segment '%s' from server", self._msg.identifier)
+        log.debug("Fetching target segment '%s' from server",
+                  self._msg.identifier)
         ts = get_target_segment(client=self._client,
                                 identifier=self._msg.identifier,
                                 environment_uuid=self._environemnt_id)
         log.info("Target segment '%s' loaded", ts.identifier)
         if self._msg.event == 'create' or self._msg.event == 'patch':
-            self._cache.set(f'flags/{ts.identifier}', ts)
+            self._cache.set(f'segments/{ts.identifier}', ts)
             log.info('flag %s successfully stored in cache', ts.identifier)
         elif self._msg.event == 'delete':
-            self._cache.remove(f'flags/{ts.identifier}')
+            self._cache.remove(f'segments/{ts.identifier}')
             log.info('flag %s successfully removed from cache', ts.identifier)

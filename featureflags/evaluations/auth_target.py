@@ -9,17 +9,18 @@ from featureflags.ftypes.interface import Interface
 
 T = TypeVar("T", bound="Target")
 
+
 @attr.s(auto_attribs=True)
 class Target():
-    
+
     identifier: str
     name: Union[Unset, str] = UNSET
     anonymous: Union[Unset, bool] = UNSET
     attributes: Union[Unset, Dict[str, Any]] = UNSET
-    
+
     def to_dict(self) -> Dict[str, Any]:
         identifier = self.identifier
-        name  = self.name
+        name = self.name
         anonymous = self.anonymous
 
         attributes: Union[Unset, Dict[str, Any]] = UNSET

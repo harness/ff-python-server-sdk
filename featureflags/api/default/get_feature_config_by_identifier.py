@@ -14,9 +14,12 @@ def _get_kwargs(
     identifier: str,
     environment_uuid: str,
 ) -> Dict[str, Any]:
-    url = "{}/client/env/{environmentUUID}/feature-configs/{identifier}".format(
-        client.base_url, identifier=identifier, environmentUUID=environment_uuid
-    )
+    url = "{}/client/env/{environmentUUID}/feature-configs/" \
+        "{identifier}".format(
+            client.base_url,
+            identifier=identifier,
+            environmentUUID=environment_uuid
+        )
 
     headers: Dict[str, Any] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()

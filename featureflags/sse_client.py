@@ -13,6 +13,8 @@ from typing import Any, Dict, Generator, List, Match, Optional, Pattern
 import requests
 from requests.models import Response
 
+from .util import log
+
 # Technically, we should support streams that mix line endings.  This regex,
 # however, assumes that a system will provide consistent line endings.
 end_of_field: Pattern[str] = re.compile(r"\r\n\r\n|\r\r|\n\n")
@@ -104,6 +106,7 @@ class SSEClient(object):
                 self.buf += self.decoder.decode(next_chunk)
 
             except (StopIteration, requests.RequestException, EOFError) as e:
+                log.error(e)
                 time.sleep(self.retry / 1000.0)
                 self._connect()
 
@@ -134,7 +137,9 @@ class SSEClient(object):
 
 class Event(object):
 
-    sse_line_pattern: Pattern[str] = re.compile("(?P<name>[^:]*):?( ?(?P<value>.*))?")
+    sse_line_pattern: Pattern[str] = re.compile(
+        "(?P<name>[^:]*):?( ?(?P<value>.*))?"
+    )
 
     def __init__(
         self,

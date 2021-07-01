@@ -72,7 +72,7 @@ def test_cache_lru_overflow(mode, add_third):
     cache = LRUCache([("one", 1), ("two", 2)], size=2)
 
     if mode == "get":
-        dummy = cache["one"]
+        _ = cache["one"]
     elif mode == "set":
         cache["one"] = 1
     else:

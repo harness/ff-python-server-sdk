@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Type, TypeVar, Union
+from typing import Any, Dict, List, Type, TypeVar, Union
 
 import attr
 
@@ -25,7 +25,7 @@ class Segment(object):
     modified_at: Union[Unset, int] = UNSET
     version: Union[Unset, int] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
-    
+
     def evaluate(self, target: Target) -> bool:
         if not isinstance(self.included, Unset):
             if target.identifier in self.included:

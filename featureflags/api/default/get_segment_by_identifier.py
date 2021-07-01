@@ -14,9 +14,12 @@ def _get_kwargs(
     identifier: str,
     environment_uuid: str,
 ) -> Dict[str, Any]:
-    url = "{}/client/env/{environmentUUID}/target-segments/{identifier}".format(
-        client.base_url, identifier=identifier, environmentUUID=environment_uuid
-    )
+    url = "{}/client/env/{environmentUUID}/target-segments/" \
+        "{identifier}".format(
+            client.base_url,
+            identifier=identifier,
+            environmentUUID=environment_uuid
+        )
 
     headers: Dict[str, Any] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
@@ -28,12 +31,14 @@ def _get_kwargs(
         "timeout": client.get_timeout(),
     }
 
+
 def _parse_response(*, response: httpx.Response) -> Optional[Segment]:
     if response.status_code == 200:
         response_200 = Segment.from_dict(response.json())
 
         return response_200
     return None
+
 
 def _build_response(*, response: httpx.Response) -> Response[Segment]:
     return Response(

@@ -20,7 +20,10 @@ from featureflags.sse_client import Event as E
 # Some tests of parsing a single event string
 def test_round_trip_parse():
     m1 = E(
-        data="hi there\nsexy developer", event="salutation", id="abcdefg", retry=10000
+        data="hi there\nsexy developer",
+        event="salutation",
+        id="abcdefg",
+        retry=10000
     )
 
     dumped = m1.dump()
@@ -94,7 +97,8 @@ def join_events(*events):
 @pytest.mark.parametrize("encoding", ["utf-8", None])
 def test_last_id_remembered(monkeypatch, encoding):
     content = "data: message 1\nid: abcdef\n\ndata: message 2\n\n"
-    fake_get = mock.Mock(return_value=FakeResponse(200, content, encoding=encoding))
+    fake_get = mock.Mock(return_value=FakeResponse(200, content,
+                                                   encoding=encoding))
     monkeypatch.setattr(requests, "get", fake_get)
 
     c = sse_client.SSEClient("http://blah.com")
@@ -227,7 +231,10 @@ def unicode_multibyte_responses(monkeypatch):
             retry="4000",
             event="blerg",
         ),
-        E(data="üüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü", id="third"),
+        E(
+            data="üüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü",
+            id="third"
+        ),
     )
     fake_get = mock.Mock(return_value=FakeResponse(200, content))
     monkeypatch.setattr(requests, "get", fake_get)
@@ -244,9 +251,12 @@ def unicode_multibyte_responses(monkeypatch):
 @pytest.mark.usefixtures("unicode_multibyte_responses")
 def test_multiple_unicode_messages():
     c = sse_client.SSEClient("http://blah.com", chunk_size=51)
-    assert next(c).data == "ööööööööööööööööööööööööööööööööööööööööööööööööööööööööö"
-    assert next(c).data == "äääääääääääääääääääääääääääääääääääääääääääääääääääääääää"
-    assert next(c).data == "üüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü"
+    assert next(c).data == "öööööööööööööööööööööööööööööööööööööööööööööööö" \
+                           "ööööööööö"
+    assert next(c).data == "ääääääääääääääääääääääääääääääääääääääääääääääää" \
+                           "äääääääää"
+    assert next(c).data == "üüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüüü" \
+                           "üüüüüüüüü"
 
 
 def test_event_stream():
@@ -258,7 +268,7 @@ def test_event_stream():
         if event.event != "message" or not event.data:
             continue
         try:
-            element = json.loads(event.data)
+            json.loads(event.data)
         except ValueError as e:
             source.resp.close()
             raise e

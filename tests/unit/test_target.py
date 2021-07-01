@@ -15,7 +15,8 @@ from featureflags.ftypes import JSON, Boolean, Integer, Number, String
             True,
         ),
         (
-            Target(identifier="harness", name="Harness", attributes={"height": 180}),
+            Target(identifier="harness", name="Harness",
+                   attributes={"height": 180}),
             "height",
             180,
         ),
@@ -37,10 +38,22 @@ def test_get_attr_value(target, attribute, expected):
             "anonymous",
             Boolean,
         ),
-        (Target(identifier="harness", attributes={"height": 180}), "height", Integer),
-        (Target(identifier="harness", attributes={"weight": 90.5}), "weight", Number),
         (
-            Target(identifier="harness", attributes={"custom": {"key": "value"}}),
+            Target(identifier="harness", attributes={"height": 180}),
+            "height",
+            Integer
+        ),
+        (
+            Target(identifier="harness", attributes={"weight": 90.5}),
+            "weight",
+            Number
+        ),
+        (
+            Target(identifier="harness", attributes={
+                "custom": {
+                    "key": "value"
+                }
+            }),
             "custom",
             JSON,
         ),

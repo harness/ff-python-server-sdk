@@ -20,7 +20,8 @@ from featureflags.ftypes.number import Number
 )
 def test_type_methods(mocker, arg, input, mocked, method, expected):
 
-    m = mocker.patch("featureflags.ftypes.number.get_float_value", return_value=mocked)
+    m = mocker.patch("featureflags.ftypes.number.get_float_value",
+                     return_value=mocked)
     number = Number(value=arg)
 
     fn = getattr(number, method)

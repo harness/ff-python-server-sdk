@@ -1,4 +1,3 @@
-import json
 from enum import Enum
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
@@ -8,7 +7,7 @@ from featureflags.models import UNSET, Unset
 from featureflags.util import log
 
 from .constants import SEGMENT_MATCH_OPERATOR
-from .enum import FeatureState, Kind
+from .enum import FeatureState
 from .prerequisite import Prerequisite
 from .segment import Segments
 from .serve import Serve
@@ -95,12 +94,14 @@ class FeatureConfig(object):
                         if target.identifier == _target.identifier:
                             return variation_map.variation
 
-        return self.rules.get_variation_name(target, self.segments, self.default_serve)
+        return self.rules.get_variation_name(target, self.segments,
+                                             self.default_serve)
 
     def get_variation(self, target: Target) -> Optional[Variation]:
         identifier = self.get_variation_name(target)
         variation = next(
-            (val for val in self.variations if val.identifier == identifier), None
+            (val for val in self.variations if val.identifier == identifier),
+            None
         )
         return variation
 
@@ -152,7 +153,8 @@ class FeatureConfig(object):
         variation_to_target_map: Union[Unset, List[Dict[str, Any]]] = UNSET
         if not isinstance(self.variation_to_target_map, Unset):
             variation_to_target_map = []
-            for variation_to_target_map_item_data in self.variation_to_target_map:
+            for variation_to_target_map_item_data in \
+                    self.variation_to_target_map:
                 variation_to_target_map_item = (
                     variation_to_target_map_item_data.to_dict()
                 )
@@ -220,13 +222,16 @@ class FeatureConfig(object):
         prerequisites = []
         _prerequisites = d.pop("prerequisites", UNSET)
         for prerequisites_item_data in _prerequisites or []:
-            prerequisites_item = Prerequisite.from_dict(prerequisites_item_data)
+            prerequisites_item = Prerequisite.from_dict(
+                prerequisites_item_data
+            )
 
             prerequisites.append(prerequisites_item)
 
         variation_to_target_map = []
         _variation_to_target_map = d.pop("variationToTargetMap", UNSET)
-        for variation_to_target_map_item_data in _variation_to_target_map or []:
+        for variation_to_target_map_item_data in \
+                _variation_to_target_map or []:
             variation_to_target_map_item = VariationMap.from_dict(
                 variation_to_target_map_item_data
             )

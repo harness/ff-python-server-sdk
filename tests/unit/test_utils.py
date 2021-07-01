@@ -31,6 +31,7 @@ def test_get_str_value(mocker):
     val = get_str_value([value])
 
     m.assert_called_with([value])
+    assert val == value
 
 
 def test_get_int_value(mocker):
@@ -40,6 +41,7 @@ def test_get_int_value(mocker):
     val = get_int_value([value])
 
     m.assert_called_with([value])
+    assert val == value
 
 
 def test_get_number_value(mocker):
@@ -49,3 +51,4 @@ def test_get_number_value(mocker):
     val = get_float_value([value])
 
     m.assert_called_with([value])
+    assert val == value

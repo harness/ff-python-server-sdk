@@ -3,7 +3,8 @@
 import typing
 
 
-def get_value(value: typing.Union[typing.Any, typing.List[typing.Any]]) -> typing.Any:
+def get_value(value: typing.Union[typing.Any,
+              typing.List[typing.Any]]) -> typing.Any:
     if isinstance(value, list):
         return value[0]
     return value

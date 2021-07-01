@@ -28,7 +28,10 @@ def _get_kwargs(
     }
 
 
-def _parse_response(*, response: httpx.Response) -> Optional[List[FeatureConfig]]:
+def _parse_response(
+    *,
+    response: httpx.Response
+) -> Optional[List[FeatureConfig]]:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -41,7 +44,10 @@ def _parse_response(*, response: httpx.Response) -> Optional[List[FeatureConfig]
     return None
 
 
-def _build_response(*, response: httpx.Response) -> Response[List[FeatureConfig]]:
+def _build_response(
+    *,
+    response: httpx.Response
+) -> Response[List[FeatureConfig]]:
     return Response(
         status_code=response.status_code,
         content=response.content,

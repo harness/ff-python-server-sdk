@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from datetime import datetime, timedelta
 from typing import Any, List
 
 from .interface import Cache

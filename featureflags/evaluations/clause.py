@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Optional, Type, TypeVar, cast, TYPE_CHECKING
+from typing import (Any, Dict, List, Optional, Type, TypeVar,
+                    cast, TYPE_CHECKING)
 
 import attr
 
@@ -14,12 +15,14 @@ from .constants import (
     SEGMENT_MATCH_OPERATOR,
     STARTS_WITH_OPERATOR,
 )
-if TYPE_CHECKING:
-    from .segment import Segments
 from .auth_target import Target
 from featureflags.util import log
 
+if TYPE_CHECKING:
+    from .segment import Segments # noqa
+
 T = TypeVar("T", bound="Clause")
+
 
 @attr.s(auto_attribs=True)
 class Clause(object):
@@ -30,9 +33,8 @@ class Clause(object):
     values: List[str] = attr.Factory(list)
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
-    def evaluate(
-        self, target: Target, segments: Optional['Segments'], operator: Optional[Interface]
-    ) -> bool:
+    def evaluate(self, target: Target, segments: Optional['Segments'],
+                 operator: Optional[Interface]) -> bool:
         if self.op is None or self.op == "":
             return False
         _op = self.op.lower()
@@ -126,7 +128,7 @@ class Clauses(List[Clause]):
         for clause in self:
             operator = target.get_operator(clause.attribute)
             if operator is None:
-                log.warn("operator not found for clause %s", clause)
+                log.warning("operator not found for clause %s", clause)
             if not clause.evaluate(target, segments, operator):
                 return False
         return True

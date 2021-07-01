@@ -8,7 +8,6 @@ from featureflags.evaluations.constants import (
     EQUAL_SENSITIVE_OPERATOR,
     GT_OPERATOR,
     IN_OPERATOR,
-    SEGMENT_MATCH_OPERATOR,
     STARTS_WITH_OPERATOR,
 )
 from featureflags.ftypes import String
@@ -28,7 +27,7 @@ def test_evaluate_op(op):
 
     got = clause.evaluate(None, None, String("john@doe.com"))
 
-    assert got == False
+    assert got is False
 
 
 @pytest.mark.parametrize(

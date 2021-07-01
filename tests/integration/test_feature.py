@@ -2,7 +2,12 @@
 from featureflags.evaluations.constants import SEGMENT_MATCH_OPERATOR
 from featureflags.evaluations.serving_rule import ServingRule, ServingRules
 from featureflags.evaluations.variation_map import VariationMap
-from featureflags.evaluations.feature import Evaluation, FeatureConfig, FeatureState, FeatureConfigKind
+from featureflags.evaluations.feature import (
+    Evaluation,
+    FeatureConfig,
+    FeatureState,
+    FeatureConfigKind
+)
 from featureflags.evaluations.weighted_variation import WeightedVariation
 from featureflags.evaluations.distribution import Distribution
 from featureflags.evaluations.serve import Serve

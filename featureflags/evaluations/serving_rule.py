@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 
 import attr
 
-from featureflags.models import UNSET, Unset
+from featureflags.models import Unset
 
 from .clause import Clause, Clauses
 from .segment import Segments
