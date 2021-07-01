@@ -1,0 +1,2 @@
+project_name_override: featureflags
+package_name_override: featureflags/rest
