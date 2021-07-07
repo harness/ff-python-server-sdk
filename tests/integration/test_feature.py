@@ -1,20 +1,16 @@
 
-from featureflags.evaluations.constants import SEGMENT_MATCH_OPERATOR
-from featureflags.evaluations.serving_rule import ServingRule, ServingRules
-from featureflags.evaluations.variation_map import VariationMap
-from featureflags.evaluations.feature import (
-    Evaluation,
-    FeatureConfig,
-    FeatureState,
-    FeatureConfigKind
-)
-from featureflags.evaluations.weighted_variation import WeightedVariation
-from featureflags.evaluations.distribution import Distribution
-from featureflags.evaluations.serve import Serve
-from featureflags.evaluations.clause import Clause, Clauses
 from featureflags.evaluations.auth_target import Target
-from featureflags.evaluations.variation import Variation
+from featureflags.evaluations.clause import Clause, Clauses
+from featureflags.evaluations.constants import SEGMENT_MATCH_OPERATOR
+from featureflags.evaluations.distribution import Distribution
+from featureflags.evaluations.feature import (Evaluation, FeatureConfig,
+                                              FeatureConfigKind, FeatureState)
 from featureflags.evaluations.segment import Segment, Segments
+from featureflags.evaluations.serve import Serve
+from featureflags.evaluations.serving_rule import ServingRule, ServingRules
+from featureflags.evaluations.variation import Variation
+from featureflags.evaluations.variation_map import VariationMap
+from featureflags.evaluations.weighted_variation import WeightedVariation
 
 
 def test_get_key_name():

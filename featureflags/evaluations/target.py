@@ -2,9 +2,9 @@ from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
 import attr
 
-from featureflags.models import UNSET, Unset
 from featureflags.ftypes import OPERATORS
 from featureflags.ftypes.interface import Interface
+from featureflags.models import UNSET, Unset
 
 from .target_attributes import TargetAttributes
 

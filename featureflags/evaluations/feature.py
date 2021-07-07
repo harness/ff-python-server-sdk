@@ -6,13 +6,13 @@ import attr
 from featureflags.models import UNSET, Unset
 from featureflags.util import log
 
+from .auth_target import Target
 from .constants import SEGMENT_MATCH_OPERATOR
 from .enum import FeatureState
 from .prerequisite import Prerequisite
 from .segment import Segments
 from .serve import Serve
 from .serving_rule import ServingRule, ServingRules
-from .auth_target import Target
 from .variation import Variation
 from .variation_map import VariationMap
 

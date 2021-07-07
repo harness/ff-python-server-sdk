@@ -1,20 +1,21 @@
 """Client for interacting with Harness FF server"""
 
-from featureflags.analytics import AnalyticsService
 import threading
 from typing import Any, Callable, Dict, Optional
 
 from jwt import decode
 
-from .evaluations.feature import FeatureConfig
-from .evaluations.segment import Segments
+from featureflags.analytics import AnalyticsService
+
 from .api.client import AuthenticatedClient, Client
 from .api.default.authenticate import AuthenticationRequest
 from .api.default.authenticate import sync as authenticate
-from .streaming import StreamProcessor
-from .polling import PollingProcessor
 from .config import Config, default_config
+from .evaluations.feature import FeatureConfig
+from .evaluations.segment import Segments
 from .evaluations.target import Target
+from .polling import PollingProcessor
+from .streaming import StreamProcessor
 from .util import log
 
 VERSION: str = "1.0"
@@ -56,19 +57,23 @@ class CfClient(object):
         self._polling_processor.start()
 
         if self._config.enable_stream:
-            self._stream = StreamProcessor(cache=self._config.cache,
-                                          client=self._client,
-                                          environment_id=self._environment_id,
-                                          api_key=self._sdk_key,
-                                          token=self._auth_token,
-                                          config=self._config,
-                                          ready=streaming_event)
+            self._stream = StreamProcessor(
+                cache=self._config.cache,
+                client=self._client,
+                environment_id=self._environment_id,
+                api_key=self._sdk_key,
+                token=self._auth_token,
+                config=self._config,
+                ready=streaming_event
+            )
             self._stream.start()
 
         if self._config.enable_analytics:
-            self._analytics = AnalyticsService(config=self._config,
-                                              client=self._client,
-                                              environment=self._environment_id)
+            self._analytics = AnalyticsService(
+                config=self._config,
+                client=self._client,
+                environment=self._environment_id
+            )
 
     def get_environment_id(self):
         return self._environment_id

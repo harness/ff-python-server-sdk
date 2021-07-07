@@ -4,10 +4,9 @@ import attr
 
 from featureflags.models import UNSET, Unset
 
-from .clause import Clause, Clauses
-
-from .tag import Tag
 from .auth_target import Target
+from .clause import Clause, Clauses
+from .tag import Tag
 
 T = TypeVar("T", bound="Segment")
 

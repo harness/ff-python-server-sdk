@@ -57,6 +57,10 @@ generate:
     # -g python-legacy \
     # -o /local/out/python
 
+fmt:
+	isort ./featureflags ./tests
+	autopep8 --in-place --recursive ./featureflags ./tests
+
 lint: ## check style with flake8
 	flake8 featureflags tests
 

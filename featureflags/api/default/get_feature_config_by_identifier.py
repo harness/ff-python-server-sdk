@@ -3,7 +3,6 @@ from typing import Any, Dict, Optional
 import httpx
 
 from ...evaluations.feature import FeatureConfig
-
 from ..client import AuthenticatedClient
 from ..types import Response
 

@@ -2,9 +2,9 @@ from typing import Any, Dict, List, Type, TypeVar
 
 import attr
 
+from .auth_target import Target
 from .constants import ONE_HUNDRED
 from .strategy import get_normalized_number
-from .auth_target import Target
 from .weighted_variation import WeightedVariation
 
 T = TypeVar("T", bound="Distribution")

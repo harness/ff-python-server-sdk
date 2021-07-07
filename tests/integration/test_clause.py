@@ -1,8 +1,6 @@
-from featureflags.evaluations.clause import Clause, Clauses
-from featureflags.evaluations.constants import (
-    EQUAL_OPERATOR
-)
 from featureflags.evaluations.auth_target import Target
+from featureflags.evaluations.clause import Clause, Clauses
+from featureflags.evaluations.constants import EQUAL_OPERATOR
 
 
 def test_evaluate_clauses():
