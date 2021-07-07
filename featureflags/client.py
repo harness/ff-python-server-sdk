@@ -1,5 +1,6 @@
 """Client for interacting with Harness FF server"""
 
+from featureflags.analytics import AnalyticsService
 import threading
 from typing import Any, Callable, Dict, Optional
 
@@ -44,30 +45,39 @@ class CfClient(object):
 
         streaming_event = threading.Event()
         polling_event = threading.Event()
-        polling_processor = PollingProcessor(
+
+        self._polling_processor = PollingProcessor(
             client=self.__client,
             config=self.__config,
             environment_id=self.__environment_id,
             ready=polling_event,
             stream_ready=streaming_event
         )
-        polling_processor.start()
+        self._polling_processor.start()
 
         if self.__config.enable_stream:
-            self.stream = StreamProcessor(cache=self.__config.cache,
+            self._stream = StreamProcessor(cache=self.__config.cache,
                                           client=self.__client,
                                           environment_id=self.__environment_id,
                                           api_key=self.__sdk_key,
                                           token=self.__auth_token,
                                           config=self.__config,
                                           ready=streaming_event)
-            self.stream.start()
+            self._stream.start()
+
+        if self.__config.enable_analytics:
+            self._analytics = AnalyticsService(config=self.__config,
+                                              client=self.__client,
+                                              environment=self.__environment_id)
 
     def get_environment_id(self):
         return self.__environment_id
 
     def authenticate(self):
-        client = Client(base_url=self.__config.base_url)
+        client = Client(
+            base_url=self.__config.base_url,
+            events_url=self.__config.events_url
+        )
         body = AuthenticationRequest(api_key=self.__sdk_key)
         result = authenticate(client=client, json_body=body)
         self.__auth_token = result.auth_token
@@ -76,7 +86,9 @@ class CfClient(object):
                          "verify_signature": False})
         self.__environment_id = decoded["environment"]
         self.__client = AuthenticatedClient(
-            base_url=self.__config.base_url, token=self.__auth_token
+            base_url=self.__config.base_url,
+            events_url=self.__config.events_url,
+            token=self.__auth_token
         )
         self.__client.with_headers({"User-Agent": "PythonSDK/" + VERSION})
 
@@ -101,6 +113,7 @@ class CfClient(object):
                     if variation is None:
                         log.debug('No variation found')
                         return default
+                    self._analytics.enqueue(target, fc, variation)
                     return variation.bool()
                 else:
                     log.error("Wrong method name %s", fn)
@@ -125,6 +138,16 @@ class CfClient(object):
     def json_variation(self, identifier: str, target: Target,
                        default: Dict[str, Any]) -> Dict[str, Any]:
         return self._variation('number_variation', identifier, target, default)
+
+    def close(self):
+        log.info('closing sdk client')
+        self._polling_processor.stop()
+        if self.__config.enable_stream:
+            self._stream.stop()
+
+        if self.__config.enable_analytics:
+            self._analytics.close()
+        log.info('All threads finished')
 
     def __enter__(self):
         return self

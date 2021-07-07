@@ -2,33 +2,46 @@ from typing import Any, Dict, List, Type, TypeVar
 
 import attr
 
-T = TypeVar("T", bound="TargetAttributes")
+T = TypeVar("T", bound="KeyValue")
 
 
 @attr.s(auto_attribs=True)
-class TargetAttributes:
+class KeyValue:
     """ """
 
+    key: str
+    value: str
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
-    def get(self, attr: str, default=None) -> Any:
-        return self.__getitem__(attr)
-
     def to_dict(self) -> Dict[str, Any]:
+        key = self.key
+        value = self.value
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update({})
+        field_dict.update(
+            {
+                "key": key,
+                "value": value,
+            }
+        )
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        target_attributes = cls()
+        key = d.pop("key")
 
-        target_attributes.additional_properties = d
-        return target_attributes
+        value = d.pop("value")
+
+        key_value = cls(
+            key=key,
+            value=value,
+        )
+
+        key_value.additional_properties = d
+        return key_value
 
     @property
     def additional_keys(self) -> List[str]:
@@ -45,7 +58,3 @@ class TargetAttributes:
 
     def __contains__(self, key: str) -> bool:
         return key in self.additional_properties
-
-    def __iter__(self):
-        return self.additional_properties.__iter__
-
