@@ -1,15 +1,12 @@
 import pytest
 
 from featureflags.evaluations.clause import Clause
-from featureflags.evaluations.constants import (
-    CONTAINS_OPERATOR,
-    ENDS_WITH_OPERATOR,
-    EQUAL_OPERATOR,
-    EQUAL_SENSITIVE_OPERATOR,
-    GT_OPERATOR,
-    IN_OPERATOR,
-    STARTS_WITH_OPERATOR,
-)
+from featureflags.evaluations.constants import (CONTAINS_OPERATOR,
+                                                ENDS_WITH_OPERATOR,
+                                                EQUAL_OPERATOR,
+                                                EQUAL_SENSITIVE_OPERATOR,
+                                                GT_OPERATOR, IN_OPERATOR,
+                                                STARTS_WITH_OPERATOR)
 from featureflags.ftypes import String
 
 

@@ -1,25 +1,18 @@
-from typing import (Any, Dict, List, Optional, Type, TypeVar,
-                    cast, TYPE_CHECKING)
+from typing import (TYPE_CHECKING, Any, Dict, List, Optional, Type, TypeVar,
+                    cast)
 
 import attr
 
 from featureflags.ftypes.interface import Interface
-
-from .constants import (
-    CONTAINS_OPERATOR,
-    ENDS_WITH_OPERATOR,
-    EQUAL_OPERATOR,
-    EQUAL_SENSITIVE_OPERATOR,
-    GT_OPERATOR,
-    IN_OPERATOR,
-    SEGMENT_MATCH_OPERATOR,
-    STARTS_WITH_OPERATOR,
-)
-from .auth_target import Target
 from featureflags.util import log
 
+from .auth_target import Target
+from .constants import (CONTAINS_OPERATOR, ENDS_WITH_OPERATOR, EQUAL_OPERATOR,
+                        EQUAL_SENSITIVE_OPERATOR, GT_OPERATOR, IN_OPERATOR,
+                        SEGMENT_MATCH_OPERATOR, STARTS_WITH_OPERATOR)
+
 if TYPE_CHECKING:
-    from .segment import Segments # noqa
+    from .segment import Segments  # noqa
 
 T = TypeVar("T", bound="Clause")
 

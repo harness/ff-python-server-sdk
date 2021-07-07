@@ -1,5 +1,5 @@
-from typing import Any, Dict, Type, TypeVar
 import json
+from typing import Any, Dict, Type, TypeVar
 
 import attr
 

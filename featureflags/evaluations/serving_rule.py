@@ -4,10 +4,10 @@ import attr
 
 from featureflags.models import Unset
 
+from .auth_target import Target
 from .clause import Clause, Clauses
 from .segment import Segments
 from .serve import Serve
-from .auth_target import Target
 
 T = TypeVar("T", bound="ServingRule")
 

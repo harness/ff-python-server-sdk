@@ -2,9 +2,8 @@ from typing import Any, Dict, List, Type, TypeVar, Union
 
 import attr
 
-from ..models.authentication_request_target_attributes import (
-    AuthenticationRequestTargetAttributes,
-)
+from ..models.authentication_request_target_attributes import \
+    AuthenticationRequestTargetAttributes
 from .unset import UNSET, Unset
 
 T = TypeVar("T", bound="AuthenticationRequestTarget")

@@ -1,11 +1,12 @@
-from featureflags.api.client import AuthenticatedClient
 import time
-from threading import Thread, Event
+from threading import Event, Thread
 
+from featureflags.api.client import AuthenticatedClient
+
+from .api.default.get_all_segments import sync as retrieve_segments
+from .api.default.get_feature_config import sync as retrieve_flags
 from .config import Config
 from .util import log
-from .api.default.get_feature_config import sync as retrieve_flags
-from .api.default.get_all_segments import sync as retrieve_segments
 
 
 class PollingProcessor(Thread):

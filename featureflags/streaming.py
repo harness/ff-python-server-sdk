@@ -1,19 +1,17 @@
 
-from threading import Thread
 import threading
+from threading import Thread
 from typing import List, Union
 
-from .models.message import Message
 from .api.client import AuthenticatedClient
-
+from .api.default.get_feature_config_by_identifier import \
+    sync as get_feature_config
+from .api.default.get_segment_by_identifier import sync as get_target_segment
 from .config import Config
+from .interface import Cache
+from .models.message import Message
 from .sse_client import SSEClient
 from .util import log
-from .api.default.get_feature_config_by_identifier import sync as \
-    get_feature_config
-from .api.default.get_segment_by_identifier import sync as \
-    get_target_segment
-from .interface import Cache
 
 
 class StreamProcessor(Thread):

@@ -1,11 +1,10 @@
-from typing import Any, Dict, Type, TypeVar, Union, Optional
+from typing import Any, Dict, Optional, Type, TypeVar, Union
 
 import attr
 
-from featureflags.models import Unset, UNSET
-
 from featureflags.ftypes import OPERATORS
 from featureflags.ftypes.interface import Interface
+from featureflags.models import UNSET, Unset
 
 T = TypeVar("T", bound="Target")
 

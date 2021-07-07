@@ -1,11 +1,7 @@
 import pytest
 
-from featureflags.ftypes.utils import (
-    get_float_value,
-    get_int_value,
-    get_str_value,
-    get_value,
-)
+from featureflags.ftypes.utils import (get_float_value, get_int_value,
+                                       get_str_value, get_value)
 
 
 @pytest.mark.parametrize(

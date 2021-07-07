@@ -1,20 +1,21 @@
 """Client for interacting with Harness FF server"""
 
-from featureflags.analytics import AnalyticsService
 import threading
 from typing import Any, Callable, Dict, Optional
 
 from jwt import decode
 
-from .evaluations.feature import FeatureConfig
-from .evaluations.segment import Segments
+from featureflags.analytics import AnalyticsService
+
 from .api.client import AuthenticatedClient, Client
 from .api.default.authenticate import AuthenticationRequest
 from .api.default.authenticate import sync as authenticate
-from .streaming import StreamProcessor
-from .polling import PollingProcessor
 from .config import Config, default_config
+from .evaluations.feature import FeatureConfig
+from .evaluations.segment import Segments
 from .evaluations.target import Target
+from .polling import PollingProcessor
+from .streaming import StreamProcessor
 from .util import log
 
 VERSION: str = "1.0"
