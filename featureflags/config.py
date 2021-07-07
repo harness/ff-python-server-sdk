@@ -49,11 +49,13 @@ def with_base_url(base_url: str) -> Callable:
 
     return func
 
+
 def with_events_url(events_url: str) -> Callable:
     def func(config: Config) -> None:
         config.events_url = events_url
 
     return func
+
 
 def with_stream_enabled(value: bool) -> Callable:
     def func(config: Config) -> None:

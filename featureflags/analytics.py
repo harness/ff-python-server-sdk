@@ -1,12 +1,11 @@
 import time
 from threading import Lock, Thread
-from typing import Any, Dict, List
+from typing import Dict, List
 
 import attr
 
 from featureflags.models.metrics_data_metrics_type import \
     MetricsDataMetricsType
-from featureflags.models.unset import UNSET
 
 from .api.client import AuthenticatedClient
 from .api.default.post_metrics import sync_detailed as post_metrics
@@ -58,7 +57,6 @@ class AnalyticsService(object):
         self._runner = Thread(target=self._sync)
         self._runner.daemon = True
         self._runner.start()
-
 
     def enqueue(self, target: Target, feature_config: FeatureConfig,
                 variation: Variation):
@@ -123,9 +121,12 @@ class AnalyticsService(object):
                     target_data.append(td)
 
                 metric_attributes: List[KeyValue] = [
-                    KeyValue(FEATURE_IDENTIFIER_ATTRIBUTE, event.feature_config.feature),
-                    KeyValue(FEATURE_NAME_ATTRIBUTE, event.feature_config.feature),
-                    KeyValue(VARIATION_IDENTIFIER_ATTRIBUTE, event.variation.identifier),
+                    KeyValue(FEATURE_IDENTIFIER_ATTRIBUTE,
+                             event.feature_config.feature),
+                    KeyValue(FEATURE_NAME_ATTRIBUTE,
+                             event.feature_config.feature),
+                    KeyValue(VARIATION_IDENTIFIER_ATTRIBUTE,
+                             event.variation.identifier),
                     KeyValue(VARIATION_VALUE_ATTRIBUTE, event.variation.value),
                     KeyValue(SDK_TYPE_ATTRIBUTE, SDK_TYPE),
                     KeyValue(SDK_LANGUAGE_ATTRIBUTE, SDK_LANGUAGE),
@@ -143,10 +144,15 @@ class AnalyticsService(object):
         finally:
             self._data = {}
             self._lock.release()
-        body: Metrics = Metrics(target_data=target_data, metrics_data=metrics_data)
-        response = post_metrics(client=self._client, environment=self._environment, json_body=body)
+        body: Metrics = Metrics(target_data=target_data,
+                                metrics_data=metrics_data)
+        response = post_metrics(client=self._client,
+                                environment=self._environment, json_body=body)
         if 400 >= response.status_code < 500:
-            log.error('Error while sending metrics data with status code: %d', response.status_code)
+            log.error(
+                'Error while sending metrics data with status code: %d',
+                response.status_code
+            )
             return
         log.info('Metrics data sent to server')
         return
@@ -161,4 +167,3 @@ class AnalyticsService(object):
 
     def __exit__(self, type, value, traceback):
         self.close()
-

@@ -57,19 +57,23 @@ class CfClient(object):
         self._polling_processor.start()
 
         if self._config.enable_stream:
-            self._stream = StreamProcessor(cache=self._config.cache,
-                                          client=self._client,
-                                          environment_id=self._environment_id,
-                                          api_key=self._sdk_key,
-                                          token=self._auth_token,
-                                          config=self._config,
-                                          ready=streaming_event)
+            self._stream = StreamProcessor(
+                cache=self._config.cache,
+                client=self._client,
+                environment_id=self._environment_id,
+                api_key=self._sdk_key,
+                token=self._auth_token,
+                config=self._config,
+                ready=streaming_event
+            )
             self._stream.start()
 
         if self._config.enable_analytics:
-            self._analytics = AnalyticsService(config=self._config,
-                                              client=self._client,
-                                              environment=self._environment_id)
+            self._analytics = AnalyticsService(
+                config=self._config,
+                client=self._client,
+                environment=self._environment_id
+            )
 
     def get_environment_id(self):
         return self._environment_id

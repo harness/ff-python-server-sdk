@@ -48,4 +48,3 @@ class TargetAttributes:
 
     def __iter__(self):
         return self.additional_properties.__iter__
-
