@@ -67,7 +67,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,
-    url="https://github.com/enverbisevac/ff-python-server-sdk",
+    url="https://github.com/drone/ff-python-server-sdk",
     version=get_version("featureflags/__init__.py"),
     zip_safe=False,
 )

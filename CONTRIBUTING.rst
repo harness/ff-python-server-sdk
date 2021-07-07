@@ -45,7 +45,7 @@ articles, and such.
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://github.com/enverbisevac/ff_python_server_sdk/issues.
+The best way to send feedback is to file an issue at https://github.com/drone/ff-python-server-sdk/issues.
 
 If you are proposing a feature:
 
