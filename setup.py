@@ -1,8 +1,24 @@
 #!/usr/bin/env python
 
 """The setup script."""
+import codecs
+import os.path
 
 from setuptools import find_packages, setup
+
+
+def read(rel_path):
+    here = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(here, rel_path), 'r') as fp:
+        return fp.read()
+
+def get_version(rel_path):
+    for line in read(rel_path).splitlines():
+        if line.startswith('__version__'):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    else:
+        raise RuntimeError("Unable to find version string.")
 
 with open("README.rst") as readme_file:
     readme = readme_file.read()
@@ -46,12 +62,12 @@ setup(
     long_description=readme + "\n\n" + history,
     include_package_data=True,
     keywords="featureflags",
-    name="featureflags",
+    name="harness-featureflags",
     packages=find_packages(include=["featureflags", "featureflags.*"]),
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/enverbisevac/ff-python-server-sdk",
-    version="1.0.0",
+    version=get_version("featureflags/__init__.py"),
     zip_safe=False,
 )

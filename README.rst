@@ -24,5 +24,5 @@ Feature flag server SDK for python
 
 
 * Free software: Apache Software License 2.0
-* Documentation: https://ff-python-server-sdk.readthedocs.io.
+* Documentation: https://harness-featureflags.readthedocs.io.
 
