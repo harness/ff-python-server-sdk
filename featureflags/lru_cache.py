@@ -34,7 +34,8 @@ class LRUCache(Cache):
 
     def get(self, key: str) -> Any:
         val = self.cache.get(key)
-        self.cache.move_to_end(key)
+        if val:
+            self.cache.move_to_end(key)
         return val
 
     def remove(self, keys: List[str]) -> None:
