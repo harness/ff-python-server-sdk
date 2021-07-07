@@ -24,18 +24,18 @@ class CfClient(object):
     def __init__(
         self, sdk_key: str, *options: Callable, config: Optional[Config] = None
     ):
-        self.__client = None
-        self.__auth_token = None
-        self.__environment_id = None
-        self.__sdk_key = sdk_key
-        self.__config = default_config
+        self._client = None
+        self._auth_token = None
+        self._environment_id = None
+        self._sdk_key = sdk_key
+        self._config = default_config
 
         if config:
-            self.__config = config
+            self._config = config
 
         for option in options:
             if callable(option):
-                option(self.__config)
+                option(self._config)
 
         log.debug("CfClient initialized")
         self.run()
@@ -47,64 +47,64 @@ class CfClient(object):
         polling_event = threading.Event()
 
         self._polling_processor = PollingProcessor(
-            client=self.__client,
-            config=self.__config,
-            environment_id=self.__environment_id,
+            client=self._client,
+            config=self._config,
+            environment_id=self._environment_id,
             ready=polling_event,
             stream_ready=streaming_event
         )
         self._polling_processor.start()
 
-        if self.__config.enable_stream:
-            self._stream = StreamProcessor(cache=self.__config.cache,
-                                          client=self.__client,
-                                          environment_id=self.__environment_id,
-                                          api_key=self.__sdk_key,
-                                          token=self.__auth_token,
-                                          config=self.__config,
+        if self._config.enable_stream:
+            self._stream = StreamProcessor(cache=self._config.cache,
+                                          client=self._client,
+                                          environment_id=self._environment_id,
+                                          api_key=self._sdk_key,
+                                          token=self._auth_token,
+                                          config=self._config,
                                           ready=streaming_event)
             self._stream.start()
 
-        if self.__config.enable_analytics:
-            self._analytics = AnalyticsService(config=self.__config,
-                                              client=self.__client,
-                                              environment=self.__environment_id)
+        if self._config.enable_analytics:
+            self._analytics = AnalyticsService(config=self._config,
+                                              client=self._client,
+                                              environment=self._environment_id)
 
     def get_environment_id(self):
-        return self.__environment_id
+        return self._environment_id
 
     def authenticate(self):
         client = Client(
-            base_url=self.__config.base_url,
-            events_url=self.__config.events_url
+            base_url=self._config.base_url,
+            events_url=self._config.events_url
         )
-        body = AuthenticationRequest(api_key=self.__sdk_key)
-        result = authenticate(client=client, json_body=body)
-        self.__auth_token = result.auth_token
+        body = AuthenticationRequest(api_key=self._sdk_key)
+        response = authenticate(client=client, json_body=body)
+        self._auth_token = response.auth_token
 
-        decoded = decode(self.__auth_token, options={
+        decoded = decode(self._auth_token, options={
                          "verify_signature": False})
-        self.__environment_id = decoded["environment"]
-        self.__client = AuthenticatedClient(
-            base_url=self.__config.base_url,
-            events_url=self.__config.events_url,
-            token=self.__auth_token
+        self._environment_id = decoded["environment"]
+        self._client = AuthenticatedClient(
+            base_url=self._config.base_url,
+            events_url=self._config.events_url,
+            token=self._auth_token
         )
-        self.__client.with_headers({"User-Agent": "PythonSDK/" + VERSION})
+        self._client.with_headers({"User-Agent": "PythonSDK/" + VERSION})
 
     def map_segments_from_cache(self, fc: FeatureConfig) -> None:
-        if self.__config.cache:
+        if self._config.cache:
             segments = fc.get_segment_identifiers()
             for identifier in segments:
-                segment = self.__config.cache.get(f'segments/{identifier}')
+                segment = self._config.cache.get(f'segments/{identifier}')
                 if fc.segments is None:
                     fc.segments = Segments({})
                 fc.segments[identifier] = segment
 
     def _variation(self, fn: str, identifier: str, target: Target,
                    default: Any) -> Any:
-        if self.__config.cache:
-            fc = self.__config.cache.get(f'flags/{identifier}')
+        if self._config.cache:
+            fc = self._config.cache.get(f'flags/{identifier}')
             if fc:
                 self.map_segments_from_cache(fc)
                 method = getattr(fc, fn, None)
@@ -142,10 +142,10 @@ class CfClient(object):
     def close(self):
         log.info('closing sdk client')
         self._polling_processor.stop()
-        if self.__config.enable_stream:
+        if self._config.enable_stream:
             self._stream.stop()
 
-        if self.__config.enable_analytics:
+        if self._config.enable_analytics:
             self._analytics.close()
         log.info('All threads finished')
 
