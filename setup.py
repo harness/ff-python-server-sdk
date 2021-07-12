@@ -53,6 +53,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/drone/ff-python-server-sdk",
-    version="1.0.2",
+    version="version='1.1.0'",
     zip_safe=False,
 )
