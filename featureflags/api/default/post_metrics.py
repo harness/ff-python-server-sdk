@@ -13,11 +13,17 @@ def _get_kwargs(
     client: AuthenticatedClient,
     environment: str,
     json_body: Metrics,
+    **params: Any
 ) -> Dict[str, Any]:
     url = "{}/metrics/{environment}".format(
-        client.base_url,
+        client.events_url,
         environment=environment
     )
+
+    query_params = {
+        **client.get_params(),
+        **params
+    }
 
     headers: Dict[str, Any] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
@@ -26,6 +32,7 @@ def _get_kwargs(
 
     return {
         "url": url,
+        "params": query_params,
         "headers": headers,
         "cookies": cookies,
         "timeout": client.get_timeout(),
@@ -47,11 +54,13 @@ def sync_detailed(
     client: AuthenticatedClient,
     environment: str,
     json_body: Metrics,
+    **params: Any
 ) -> Response[None]:
     kwargs = _get_kwargs(
         client=client,
         environment=environment,
         json_body=json_body,
+        **params
     )
 
     response = httpx.post(
@@ -66,11 +75,13 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     environment: str,
     json_body: Metrics,
+    **params: Any
 ) -> Response[None]:
     kwargs = _get_kwargs(
         client=client,
         environment=environment,
         json_body=json_body,
+        **params
     )
 
     async with httpx.AsyncClient() as _client:

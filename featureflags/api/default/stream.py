@@ -10,8 +10,14 @@ def _get_kwargs(
     *,
     client: AuthenticatedClient,
     api_key: str,
+    **params: Any
 ) -> Dict[str, Any]:
     url = "{}/stream".format(client.base_url)
+
+    query_params = {
+        **client.get_params(),
+        **params
+    }
 
     headers: Dict[str, Any] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
@@ -20,6 +26,7 @@ def _get_kwargs(
 
     return {
         "url": url,
+        "params": query_params,
         "headers": headers,
         "cookies": cookies,
         "timeout": client.get_timeout(),
@@ -39,10 +46,12 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     api_key: str,
+    **params: Any
 ) -> Response[None]:
     kwargs = _get_kwargs(
         client=client,
         api_key=api_key,
+        **params
     )
 
     response = httpx.get(
@@ -56,10 +65,12 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     api_key: str,
+    **params: Any
 ) -> Response[None]:
     kwargs = _get_kwargs(
         client=client,
         api_key=api_key,
+        **params
     )
 
     async with httpx.AsyncClient() as _client:

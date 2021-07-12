@@ -6,8 +6,8 @@ from typing import Callable
 from .interface import Cache
 from .lru_cache import LRUCache
 
-BASE_URL = "https://config.feature-flags.uat.harness.io/api/1.0"
-EVENTS_URL = "https://event.feature-flags.uat.harness.io/api/1.0"
+BASE_URL = "https://config.ff.harness.io/api/1.0"
+EVENTS_URL = "https://events.ff.harness.io/api/1.0"
 MINUTE = 60
 PULL_INTERVAL = 1 * MINUTE
 PERSIST_INTERVAL = 1 * MINUTE

@@ -25,11 +25,12 @@ class CfClient(object):
     def __init__(
         self, sdk_key: str, *options: Callable, config: Optional[Config] = None
     ):
-        self._client = None
-        self._auth_token = None
-        self._environment_id = None
-        self._sdk_key = sdk_key
-        self._config = default_config
+        self._client: Optional[Client] = None
+        self._auth_token: Optional[str] = None
+        self._environment_id: Optional[str] = None
+        self._sdk_key: Optional[str] = sdk_key
+        self._config: Config = default_config
+        self._cluster: str = '1'
 
         if config:
             self._config = config
@@ -64,7 +65,8 @@ class CfClient(object):
                 api_key=self._sdk_key,
                 token=self._auth_token,
                 config=self._config,
-                ready=streaming_event
+                ready=streaming_event,
+                cluster=self._cluster
             )
             self._stream.start()
 
@@ -90,10 +92,16 @@ class CfClient(object):
         decoded = decode(self._auth_token, options={
                          "verify_signature": False})
         self._environment_id = decoded["environment"]
+        self._cluster = decoded["clusterIdentifier"]
+        if not self._cluster:
+            self._cluster = '1'
         self._client = AuthenticatedClient(
             base_url=self._config.base_url,
             events_url=self._config.events_url,
-            token=self._auth_token
+            token=self._auth_token,
+            params={
+                'cluster': self._cluster
+            }
         )
         self._client.with_headers({"User-Agent": "PythonSDK/" + VERSION})
 

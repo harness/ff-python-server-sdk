@@ -1,24 +1,10 @@
 #!/usr/bin/env python
 
 """The setup script."""
-import codecs
-import os.path
 
+from sys import version
 from setuptools import find_packages, setup
 
-
-def read(rel_path):
-    here = os.path.abspath(os.path.dirname(__file__))
-    with codecs.open(os.path.join(here, rel_path), 'r') as fp:
-        return fp.read()
-
-def get_version(rel_path):
-    for line in read(rel_path).splitlines():
-        if line.startswith('__version__'):
-            delim = '"' if '"' in line else "'"
-            return line.split(delim)[1]
-    else:
-        raise RuntimeError("Unable to find version string.")
 
 with open("README.rst") as readme_file:
     readme = readme_file.read()
@@ -68,6 +54,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/drone/ff-python-server-sdk",
-    version=get_version("featureflags/__init__.py"),
+    version='1.0.3',
     zip_safe=False,
 )
