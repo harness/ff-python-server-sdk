@@ -2,6 +2,7 @@
 
 """The setup script."""
 
+from sys import version
 from setuptools import find_packages, setup
 
 
@@ -53,5 +54,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/drone/ff-python-server-sdk",
+    version="1.0.2",
     zip_safe=False,
 )
