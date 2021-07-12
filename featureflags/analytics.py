@@ -148,7 +148,8 @@ class AnalyticsService(object):
                                 metrics_data=metrics_data)
         response = post_metrics(client=self._client,
                                 environment=self._environment, json_body=body)
-        if 400 >= response.status_code < 500:
+        log.debug('Metrics server returns: %d', response.status_code)
+        if response.status_code >= 400:
             log.error(
                 'Error while sending metrics data with status code: %d',
                 response.status_code

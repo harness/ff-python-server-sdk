@@ -17,7 +17,8 @@ from .util import log
 class StreamProcessor(Thread):
     def __init__(self, cache: Cache, client: AuthenticatedClient,
                  environment_id: str, api_key: str, token: str,
-                 config: Config, ready: threading.Event):
+                 config: Config, ready: threading.Event,
+                 cluster: str):
 
         Thread.__init__(self)
         self.daemon = True
@@ -28,7 +29,7 @@ class StreamProcessor(Thread):
         self._environment_id = environment_id
         self._api_key = api_key
         self._token = token
-        self._stream_url = f'{config.base_url}/stream'
+        self._stream_url = f'{config.base_url}/stream?cluster={cluster}'
         self._msg_processors: List[Union[FlagMsgProcessor,
                                          SegmentMsgProcessor]] = []
 

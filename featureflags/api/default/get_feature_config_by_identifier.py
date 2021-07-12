@@ -12,6 +12,7 @@ def _get_kwargs(
     client: AuthenticatedClient,
     identifier: str,
     environment_uuid: str,
+    **params: Any
 ) -> Dict[str, Any]:
     url = "{}/client/env/{environmentUUID}/feature-configs/" \
         "{identifier}".format(
@@ -20,11 +21,17 @@ def _get_kwargs(
             environmentUUID=environment_uuid
         )
 
+    query_params = {
+        **client.get_params(),
+        **params
+    }
+
     headers: Dict[str, Any] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
 
     return {
         "url": url,
+        "params": query_params,
         "headers": headers,
         "cookies": cookies,
         "timeout": client.get_timeout(),
@@ -53,11 +60,13 @@ def sync_detailed(
     client: AuthenticatedClient,
     identifier: str,
     environment_uuid: str,
+    **params: Any
 ) -> Response[FeatureConfig]:
     kwargs = _get_kwargs(
         client=client,
         identifier=identifier,
         environment_uuid=environment_uuid,
+        **params
     )
 
     response = httpx.get(
@@ -72,6 +81,7 @@ def sync(
     client: AuthenticatedClient,
     identifier: str,
     environment_uuid: str,
+    **params: Any
 ) -> Optional[FeatureConfig]:
     """ """
 
@@ -79,6 +89,7 @@ def sync(
         client=client,
         identifier=identifier,
         environment_uuid=environment_uuid,
+        **params
     ).parsed
 
 
@@ -87,11 +98,13 @@ async def asyncio_detailed(
     client: AuthenticatedClient,
     identifier: str,
     environment_uuid: str,
+    **params: Any
 ) -> Response[FeatureConfig]:
     kwargs = _get_kwargs(
         client=client,
         identifier=identifier,
         environment_uuid=environment_uuid,
+        **params
     )
 
     async with httpx.AsyncClient() as _client:
@@ -105,6 +118,7 @@ async def asyncio(
     client: AuthenticatedClient,
     identifier: str,
     environment_uuid: str,
+    **params
 ) -> Optional[FeatureConfig]:
     """ """
 
@@ -113,5 +127,6 @@ async def asyncio(
             client=client,
             identifier=identifier,
             environment_uuid=environment_uuid,
+            **params
         )
     ).parsed

@@ -9,6 +9,7 @@ class Client:
 
     base_url: str
     events_url: str
+    params: Dict[str, str] = attr.ib(factory=dict, kw_only=True)
     cookies: Dict[str, str] = attr.ib(factory=dict, kw_only=True)
     headers: Dict[str, str] = attr.ib(factory=dict, kw_only=True)
     timeout: float = attr.ib(5.0, kw_only=True)
@@ -20,6 +21,9 @@ class Client:
     def with_headers(self, headers: Dict[str, str]) -> "Client":
         """Get a new client matching this one with additional headers"""
         return attr.evolve(self, headers={**self.headers, **headers})
+
+    def get_params(self) -> Dict[str, str]:
+        return {**self.params}
 
     def get_cookies(self) -> Dict[str, str]:
         return {**self.cookies}
