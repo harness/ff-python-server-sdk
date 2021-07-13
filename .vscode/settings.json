@@ -3,5 +3,6 @@
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.defaultInterpreterPath": "venv/bin/python",
-    "mypy.runUsingActiveInterpreter": true
+    "mypy.runUsingActiveInterpreter": true,
+    "restructuredtext.confPath": ""
 }
