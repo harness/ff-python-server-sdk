@@ -17,6 +17,7 @@ requirements = [
     "pyjwt~=2.0.1",
     "attrs~=20.3.0",
     "mmh3~=3.0.0",
+    "requests==2.25.1"
 ]
 
 setup_requirements = [
@@ -54,6 +55,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/drone/ff-python-server-sdk",
-    version='1.0.3',
+    version='1.0.4',
     zip_safe=False,
 )
