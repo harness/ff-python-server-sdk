@@ -109,27 +109,33 @@ class CfClient(object):
         if self._config.cache:
             segments = fc.get_segment_identifiers()
             for identifier in segments:
-                segment = self._config.cache.get(f'segments/{identifier}')
-                if fc.segments is None:
-                    fc.segments = Segments({})
-                fc.segments[identifier] = segment
+                try:
+                    segment = self._config.cache.get(f'segments/{identifier}')
+                    if fc.segments is None:
+                        fc.segments = Segments({})
+                    fc.segments[identifier] = segment
+                except KeyError:
+                    log.warn("segment %s not found in cache", identifier)
 
     def _variation(self, fn: str, identifier: str, target: Target,
                    default: Any) -> Any:
         if self._config.cache:
-            fc = self._config.cache.get(f'flags/{identifier}')
-            if fc:
-                self.map_segments_from_cache(fc)
-                method = getattr(fc, fn, None)
-                if method:
-                    variation = method(target)
-                    if variation is None:
-                        log.debug('No variation found')
-                        return default
-                    self._analytics.enqueue(target, fc, variation)
-                    return variation.bool()
-                else:
-                    log.error("Wrong method name %s", fn)
+            try:
+                fc = self._config.cache.get(f'flags/{identifier}')
+                if fc:
+                    self.map_segments_from_cache(fc)
+                    method = getattr(fc, fn, None)
+                    if method:
+                        variation = method(target)
+                        if variation is None:
+                            log.debug('No variation found')
+                            return default
+                        self._analytics.enqueue(target, fc, variation)
+                        return variation.bool()
+                    else:
+                        log.error("Wrong method name %s", fn)
+            except KeyError:
+                log.warn("flag %s not found in cache", identifier)
         return default
 
     def bool_variation(self, identifier: str, target: Target,
