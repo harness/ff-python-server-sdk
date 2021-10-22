@@ -26,15 +26,15 @@ class Segment(object):
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def evaluate(self, target: Target) -> bool:
-        if not isinstance(self.included, Unset):
+        if not isinstance(self.included, Unset) and self.included:
             if target.identifier in self.included:
                 return True
 
-        if not isinstance(self.excluded, Unset):
+        if not isinstance(self.excluded, Unset) and self.excluded:
             if target.identifier in self.excluded:
                 return True
 
-        if not isinstance(self.rules, Unset):
+        if not isinstance(self.rules, Unset) and self.rules:
             if self.rules.evaluate(target, None):
                 return True
         return False

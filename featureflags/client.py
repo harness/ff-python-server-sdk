@@ -124,14 +124,14 @@ class CfClient(object):
                 fc = self._config.cache.get(f'flags/{identifier}')
                 if fc:
                     self.map_segments_from_cache(fc)
-                    method = getattr(fc, fn, None)
+                    method = getattr(fc, f'{fn}_variation', None)
                     if method:
                         variation = method(target)
                         if variation is None:
                             log.debug('No variation found')
                             return default
                         self._analytics.enqueue(target, fc, variation)
-                        return variation.bool()
+                        return getattr(variation, fn)(default)
                     else:
                         log.error("Wrong method name %s", fn)
             except KeyError:
@@ -140,23 +140,23 @@ class CfClient(object):
 
     def bool_variation(self, identifier: str, target: Target,
                        default: bool) -> bool:
-        return self._variation('bool_variation', identifier, target, default)
+        return self._variation('bool', identifier, target, default)
 
     def int_variation(self, identifier: str, target: Target,
                       default: int) -> int:
-        return self._variation('int_variation', identifier, target, default)
+        return self._variation('int', identifier, target, default)
 
     def number_variation(self, identifier: str, target: Target,
                          default: float) -> float:
-        return self._variation('number_variation', identifier, target, default)
+        return self._variation('number', identifier, target, default)
 
     def string_variation(self, identifier: str, target: Target,
                          default: str) -> str:
-        return self._variation('string_variation', identifier, target, default)
+        return self._variation('string', identifier, target, default)
 
     def json_variation(self, identifier: str, target: Target,
                        default: Dict[str, Any]) -> Dict[str, Any]:
-        return self._variation('number_variation', identifier, target, default)
+        return self._variation('json', identifier, target, default)
 
     def close(self):
         log.info('closing sdk client')

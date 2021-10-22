@@ -120,8 +120,6 @@ class Clauses(List[Clause]):
     def evaluate(self, target: Target, segments: Optional['Segments']) -> bool:
         for clause in self:
             operator = target.get_operator(clause.attribute)
-            if operator is None:
-                log.warning("operator not found for clause %s", clause)
             if not clause.evaluate(target, segments, operator):
                 return False
         return True

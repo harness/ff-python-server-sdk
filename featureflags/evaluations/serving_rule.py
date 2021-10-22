@@ -110,5 +110,4 @@ class ServingRules(List[ServingRule]):
 
             if not isinstance(default_serve.distribution, Unset):
                 return default_serve.distribution.get_key_name(target)
-
         return None
