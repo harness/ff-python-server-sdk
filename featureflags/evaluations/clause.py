@@ -4,7 +4,6 @@ from typing import (TYPE_CHECKING, Any, Dict, List, Optional, Type, TypeVar,
 import attr
 
 from featureflags.ftypes.interface import Interface
-from featureflags.util import log
 
 from .auth_target import Target
 from .constants import (CONTAINS_OPERATOR, ENDS_WITH_OPERATOR, EQUAL_OPERATOR,
