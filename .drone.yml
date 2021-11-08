@@ -4,17 +4,12 @@ type: docker
 name: default
 
 steps:
-- name: Test
-  image: python:3.9
-  commands:
-  - pip install -r requirements.txt
-  - pytest
-- name: Format
-  image: python:3.9
-  commands:
-  - make fmt
-
-trigger:
-  ref:
-  - "refs/tags/*"
-...
+  - name: Test
+    image: python:3.9
+    commands:
+      - pip install -r requirements.txt
+      - pytest
+  - name: Format
+    image: python:3.9
+    commands:
+      - make fmt
