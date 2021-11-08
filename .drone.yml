@@ -4,12 +4,10 @@ type: docker
 name: default
 
 steps:
-  - name: Test
+  - name: Test + build
     image: python:3.9
     commands:
+      - pip install flake8 pytest
       - pip install -r requirements_dev.txt
       - pytest
-  - name: Format
-    image: python:3.9
-    commands:
       - make fmt
