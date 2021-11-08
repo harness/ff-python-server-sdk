@@ -2,7 +2,6 @@
 Feature Flag Server SDK
 =======================
 
-
 .. image:: https://img.shields.io/pypi/v/harness-featureflags.svg
         :target: https://pypi.python.org/pypi/harness-featureflags
 
