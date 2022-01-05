@@ -45,6 +45,8 @@ Initialization
 ``CfClient`` is a base class that provides all features of SDK.
 
 ::
+        from featureflags.client import CfClient
+        from featureflags.client import Target
 
         """
         Put the API Key here from your environment
