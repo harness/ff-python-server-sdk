@@ -59,7 +59,7 @@ Initialization
         Define you target on which you would like to evaluate
         the featureFlag
         """
-        target = Target(identifier="user1",account="my-acc",org="my-org",environment="my-env",project="my-project",name="user1")
+        target = Target(identifier="user1", name="user1")
 
 ``target`` represents the desired target for which we want features to
 be evaluated.
