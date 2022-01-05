@@ -46,7 +46,7 @@ Initialization
 
 ::
         from featureflags.client import CfClient
-        from featureflags.client import Target
+        ffrom featureflags.evaluations.auth_target import Target
 
         """
         Put the API Key here from your environment
