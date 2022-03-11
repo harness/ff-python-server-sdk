@@ -13,7 +13,15 @@ Harness Feature Flag Python SDK
 
 ## Intro
 ## Requirements
+
+[Python 3.7](https://www.python.org/downloads/) or newer (python --version)<br>
+[pip](https://packaging.python.org/en/latest/tutorials/installing-packages/#id12)
+
 ## Quickstart
+
+python -m pip install harness-featureflags
+
+
 
 
 -------------------------
