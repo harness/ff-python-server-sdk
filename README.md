@@ -30,7 +30,7 @@ Harness Feature Flags (FF) is a feature management solution that enables users t
 The Feature Flag SDK provides a client that connects to the feature flag service, and fetches the value
 of featue flags.   The following section provides an example of how to install the SDK and initalize it from
 an application.
-This quickstart assumes you have followed the instructions to [setup a Feature Flag project and have created a flag called `simpleboolflag` and created a server API Key](https://ngdocs.harness.io/article/0a2u2ppp8s-getting-started-with-feature-flags).
+This quickstart assumes you have followed the instructions to [setup a Feature Flag project and have created a flag called `simpleboolflag` and created a server API Key](https://ngdocs.harness.io/article/1j7pdkqh7j-create-a-feature-flag#step_1_create_a_project).
 
 ### Install the SDK
 Install the python SDK using pip
