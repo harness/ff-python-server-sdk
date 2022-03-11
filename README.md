@@ -23,6 +23,7 @@ Harness Feature Flags (FF) is a feature management solution that enables users t
 [Python 3.7](https://www.python.org/downloads/) or newer (python --version)<br>
 [pip](https://packaging.python.org/en/latest/tutorials/installing-packages/#id12)<br>
 [For Mac users](https://opensource.com/article/19/5/python-3-default-mac) if you don't already have pyenv or something similar installed for managing python version<br>
+[Have project set up and SDK key created](https://ngdocs.harness.io/article/0a2u2ppp8s-getting-started-with-feature-flags)<br>
 
 ## Quickstart
 
@@ -37,7 +38,7 @@ python -m pip install harness-featureflags
 ```
 
 ### Initialize the SDK
-To intialize the SDK you need to provide a API Key.
+To intialize the SDK you need to provide an API Key.
 ```python
     client = CfClient("c9b3f14f-6336-4d23-83b4-73f29d1ebefa")
 ```
@@ -45,7 +46,7 @@ To intialize the SDK you need to provide a API Key.
 ### Setup a Target
 The client will evaluate a flag and return the value.  A target must be provided for the evaluation.
 If no special [target rules](https://ngdocs.harness.io/article/xf3hmxbaji-targeting-users-with-flags) have been added in the feature flag service for the target, then the flag defaults will be returned. 
-To create a target do the following, providing an identifier and optionally a friendly name.
+To create a target do the following - provide an identifier and (optionally) a friendly name:
 ```python
     target = Target(identifier='mytarget', name="FriendlyName")
 ```
@@ -60,7 +61,7 @@ result = client.bool_variation('simpleboolflag', target, False)
 ```
 
 ### Working Example
-Here is a complete example that will connect, and run forever reporting the flag value.  Any time a flag is 
+Here is a complete example that will connect and report the flag value every 10 seconds until the connection is clsed.  Any time a flag is 
 toggled from the feature flag service you will receive the updated value.
 
 ```python
