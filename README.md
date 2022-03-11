@@ -12,6 +12,12 @@ Harness Feature Flag Python SDK
 
 
 ## Intro
+
+Harness Feature Flags (FF) is a feature management solution that enables users to change the software’s functionality, without deploying new code. FF uses feature flags to hide code or behaviours without having to ship new versions of the software. A feature flag is like a powerful if statement.
+* For more information, see https://harness.io/products/feature-flags/
+* To read more, see https://ngdocs.harness.io/category/vjolt35atg-feature-flags
+* To sign up, https://app.harness.io/auth/#/signup/
+
 ## Requirements
 
 [Python 3.7](https://www.python.org/downloads/) or newer (python --version)<br>
@@ -19,7 +25,11 @@ Harness Feature Flag Python SDK
 
 ## Quickstart
 
+### Install
+
 python -m pip install harness-featureflags
+
+### Sample Client
 
 ```python
 import time
@@ -49,8 +59,22 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+### Adding SDK key
+Log into Feature flags UI > environments > select/create your environment > select add key
+
+### Getting the Variation for your flag 
+
+### To Run
+`python3 <pathto your client>/<yourclient.py>`
+
+    
+**[Advanced Configuration](docs/advanced.md)**<br>
+**[Build Instructions](docs/build.md)**<br>
 
 
+## Intro
+## Requirements
+## Quickstart
 
 -------------------------
 [Harness](https://www.harness.io/) is a feature management platform that helps teams to build better software and to
