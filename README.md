@@ -22,6 +22,7 @@ Harness Feature Flags (FF) is a feature management solution that enables users t
 
 [Python 3.7](https://www.python.org/downloads/) or newer (python --version)<br>
 [pip](https://packaging.python.org/en/latest/tutorials/installing-packages/#id12)
+[For Mac users](https://opensource.com/article/19/5/python-3-default-mac) if you don't already have pyenv or something similar installed for managing python version<br>
 
 ## Quickstart
 
@@ -65,7 +66,7 @@ Log into Feature flags UI > environments > select/create your environment > sele
 ### Getting the Variation for your flag 
 
 ### To Run
-`python3 <pathto your client>/<yourclient.py>`
+`python3 <path to your client>/<yourclient>.py`
 
     
 **[Advanced Configuration](docs/advanced.md)**<br>
