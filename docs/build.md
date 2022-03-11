@@ -1,9 +1,11 @@
 # Building ff-python-server-sdk
 
-This document shows the instructions on how to build and execute the tests for this SDK.
+This document shows the instructions on how to build and execute the tests for
+this SDK.
 
 Make sure that you have the Python version >= 3 with the “pip“
-[https://pip.pypa.io/en/stable/installation/)][installed on your system], then run:
+[installed on your system](https://pip.pypa.io/en/stable/installation/), then
+run:
 
 ```
 python -m pip install --upgrade pip
