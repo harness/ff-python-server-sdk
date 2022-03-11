@@ -7,7 +7,7 @@ Harness Feature Flag Python SDK
 **[Intro](#Intro)**<br>
 **[Requirements](#Requirements)**<br>
 **[Quickstart](#Quickstart)**<br>
-**[Advanced Configuration](docs/further_reading.md)**<br>
+**[Further Reading](docs/further_reading.md)**<br>
 **[Build Instructions](docs/build.md)**<br>
 
 
