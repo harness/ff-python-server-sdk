@@ -22,14 +22,15 @@ Harness Feature Flags (FF) is a feature management solution that enables users t
 
 [Python 3.7](https://www.python.org/downloads/) or newer (python --version)<br>
 [pip](https://packaging.python.org/en/latest/tutorials/installing-packages/#id12)<br>
+<br>
 [For Mac users](https://opensource.com/article/19/5/python-3-default-mac) if you don't already have pyenv or something similar installed for managing python version<br>
-[Have project set up and SDK key created](https://ngdocs.harness.io/article/0a2u2ppp8s-getting-started-with-feature-flags)<br>
+
 
 ## Quickstart
-
 The Feature Flag SDK provides a client that connects to the feature flag service, and fetches the value
 of featue flags.   The following section provides an example of how to install the SDK and initalize it from
 an application.
+This quickstart assumes you have followed the instructions to [setup a Feature Flag project and have created a flag called `simpleboolflag` and created a server API Key](https://ngdocs.harness.io/article/0a2u2ppp8s-getting-started-with-feature-flags).
 
 ### Install the SDK
 Install the python SDK using pip
@@ -46,7 +47,7 @@ To intialize the SDK you need to provide an API Key.
 ### Setup a Target
 The client will evaluate a flag and return the value.  A target must be provided for the evaluation.
 If no special [target rules](https://ngdocs.harness.io/article/xf3hmxbaji-targeting-users-with-flags) have been added in the feature flag service for the target, then the flag defaults will be returned. 
-To create a target do the following - provide an identifier and (optionally) a friendly name:
+To create a target do the following - provide an identifier and (optionally) a friendly name.   When the client authenticates with the feature flag service it will automatically register the target if it doesn't exist:
 ```python
     target = Target(identifier='mytarget', name="FriendlyName")
 ```
