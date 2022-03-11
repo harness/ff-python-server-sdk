@@ -19,4 +19,4 @@ pytest
 pytest --junitxml=junit.xml
 ```
 
-This set of commands will build the SDK and run the tests.
+This set of commands will build the SDK and execute the tests.
