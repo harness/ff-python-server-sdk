@@ -25,12 +25,43 @@ Harness Feature Flags (FF) is a feature management solution that enables users t
 [For Mac users](https://opensource.com/article/19/5/python-3-default-mac) if you don't already have pyenv or something similar installed for managing python version<br>
 
 ## Quickstart
+The Feature Flag SDK provides a client that connects to the feature flag service, and fetches the value
+of featue flags.   The following section provides an example of how to install the SDK and initalize it from
+an application.
 
-### Install
 
+Install the python SDK using pip
+```python
 python -m pip install harness-featureflags
+```
+<br>
 
-### Sample Client
+To intialize the SDK you need to provide a API Key.
+```python
+    client = CfClient("c9b3f14f-6336-4d23-83b4-73f29d1ebefa")
+```
+<br>
+
+
+The client will evaluate a flag and return the value.  A target must be provided for the evaluation.
+If no special [target rules](https://ngdocs.harness.io/article/xf3hmxbaji-targeting-users-with-flags) have been added in the feature flag service for the target, then the flag defaults will be returned. 
+To create a target do the following, providing an identifier and optionally a friendly name.
+```python
+    target = Target(identifier='mytarget', name="FriendlyName")
+```
+<br>
+
+
+You can now call one of the evaluate functions, to get the value of a flag.   Incase there is an error you
+can specify the default that should be returned.
+```python
+result = client.bool_variation('simpleboolflag', target, False)
+```
+<br>
+
+
+Here is a complete example that will connect, and run forever reporting the flag value.  Any time a flag is 
+toggled from the feature flag service you will receive the updated value.
 
 ```python
 import time
@@ -43,9 +74,9 @@ from featureflags.util import log
 
 def main():
     # Create a Feature Flag Client
-    client = CfClient("c9b3f14f-6336-4d23-83b4-73f29d1ebefa",
-                      with_base_url("https://config.feature-flags.uat.harness.io/api/1.0"),
-                      with_events_url("https://event.feature-flags.uat.harness.io/api/1.0"))
+    client = CfClient("c9b3f14f-6336-4d23-83b4-73f29d1ebeeb",
+                      with_base_url("https://config.ff.harness.io/api/1.0"),
+                      with_events_url("https://events.ff.harness.io/api/1.0"))
 
     # Create a target (different targets can get different results based on rules)
     target = Target(identifier='mytarget', name="FriendlyName")
@@ -68,14 +99,6 @@ Log into Feature flags UI > environments > select/create your environment > sele
 ### To Run
 `python3 <path to your client>/<yourclient>.py`
 
-    
-**[Advanced Configuration](docs/advanced.md)**<br>
-**[Build Instructions](docs/build.md)**<br>
-
-
-## Intro
-## Requirements
-## Quickstart
 
 -------------------------
 [Harness](https://www.harness.io/) is a feature management platform that helps teams to build better software and to
