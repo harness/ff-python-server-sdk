@@ -92,15 +92,12 @@ if __name__ == "__main__":
     main()
 ```
 
-<br>
+### Running the example
 You can save the above to a file called `sdk_sample.py` and run with
+
 ```bash
 $ python sdk_sample.py
 ```
-
-### Adding SDK key
-Log into Feature flags UI > environments > select/create your environment > select add key
-
 
 -------------------------
 [Harness](https://www.harness.io/) is a feature management platform that helps teams to build better software and to
