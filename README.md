@@ -87,6 +87,8 @@ def main():
         result = client.bool_variation('harnessappdemodarkmode', target, False)
         log.info("Flag variation %s", result)
         time.sleep(10)
+           
+    close()
 
 
 if __name__ == "__main__":
@@ -98,6 +100,15 @@ You can save the above to a file called `sdk_sample.py` and run with
 
 ```bash
 $ python sdk_sample.py
+```
+
+### Additional Methods
+In addition to a boolean flag, we can evaluate string, number and json flags.  
+```python
+bool_variation(key: str, target: Target, default: bool) -> bool
+string_variation(key: str, target: Target, default: str) -> str
+number_variation(key: str, target: Target, default: float) -> float
+json_variation(String key, Target target, default: dict) -> dict
 ```
 
 -------------------------
