@@ -21,7 +21,7 @@ Harness Feature Flags (FF) is a feature management solution that enables users t
 ## Requirements
 
 [Python 3.7](https://www.python.org/downloads/) or newer (python --version)<br>
-[pip](https://packaging.python.org/en/latest/tutorials/installing-packages/#id12)
+[pip](https://packaging.python.org/en/latest/tutorials/installing-packages/#id12)<br>
 [For Mac users](https://opensource.com/article/19/5/python-3-default-mac) if you don't already have pyenv or something similar installed for managing python version<br>
 
 ## Quickstart
