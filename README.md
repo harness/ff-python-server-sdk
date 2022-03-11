@@ -105,14 +105,12 @@ You can save the above to a file called `sdk_sample.py` and run with
 $ python sdk_sample.py
 ```
 
-### Additional Methods
-In addition to a boolean flag, we can evaluate string, number and json flags.  
-```python
-bool_variation(key: str, target: Target, default: bool) -> bool
-string_variation(key: str, target: Target, default: str) -> str
-number_variation(key: str, target: Target, default: float) -> float
-json_variation(String key, Target target, default: dict) -> dict
-```
+### Additional Reading
+
+Further examples and config options are in the further reading section:
+
+[Further Reading](docs/further_reading.md)
+
 
 -------------------------
 [Harness](https://www.harness.io/) is a feature management platform that helps teams to build better software and to

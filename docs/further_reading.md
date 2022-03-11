@@ -18,19 +18,19 @@ Covers advanced topics (different config options and scenarios)
 ```python
 client.string_variation('identifier_of_your_string_flag', target, "default string")
 ```
-[Example](examples/string_variation_example/string_variation.py)
+[Example](../examples/string_variation_example/string_variation.py)
 
 ### Number Variation
 ```python
 client.number_variation('identifier_of_your_number_flag', target, -1)
 ```
-[Example](examples/number_variation_example/number_variation.py)
+[Example](../examples/number_variation_example/number_variation.py)
 
 ### JSON Variation
 ```python
 client.json_variation('identifier_of_your_json_flag', target, {})
 ```
-[Example](examples/json_variation_example/json_variation.py)
+[Example](../examples/json_variation_example/json_variation.py)
 
 ## Cleanup
 Call the close function on the client 
@@ -38,7 +38,7 @@ Call the close function on the client
 ```python
 client.close()
 ```
-[Example](examples/cleanup_example/cleanup.py)
+[Example](../examples/cleanup_example/cleanup.py)
 
 ## Change default URL
 
@@ -60,5 +60,5 @@ Then pass them with the new URLs when creating your client.
                       with_events_url("https://event.feature-flags.uat.harness.io/api/1.0"))
 ```
 
-[Example](examples/url_change_example/url_change.py)
+[Example](../examples/url_change_example/url_change.py)
 
