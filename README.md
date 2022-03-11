@@ -18,6 +18,8 @@ Harness Feature Flags (FF) is a feature management solution that enables users t
 * To read more, see https://ngdocs.harness.io/category/vjolt35atg-feature-flags
 * To sign up, https://app.harness.io/auth/#/signup/
 
+![FeatureFlags](https://github.com/harness/ff-python-server-sdk/raw/main/docs/images/ff-gui.png)
+
 ## Requirements
 
 [Python 3.7](https://www.python.org/downloads/) or newer (python --version)<br>
