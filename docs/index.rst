@@ -1,5 +1,5 @@
 Welcome to Feature Flag Server SDK's documentation!
-======================================
+===================================================
 
 .. toctree::
    :maxdepth: 2
