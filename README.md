@@ -54,8 +54,11 @@ from featureflags.util import log
 
 
 def main():
+    # API Key
+    apiKey = "c9b3f14f-6336-4d23-83b4-73f29d1ebeeb"
+    
     # Create a Feature Flag Client
-    client = CfClient("c9b3f14f-6336-4d23-83b4-73f29d1ebeeb")
+    client = CfClient(apiKey)
 
     # Create a target (different targets can get different results based on rules)
     target = Target(identifier='mytarget', name="FriendlyName")
