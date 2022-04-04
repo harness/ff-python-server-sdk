@@ -107,7 +107,7 @@ class AnalyticsService(object):
                 if event.target is not None and not event.target.anonymous:
                     target_attributes: List[KeyValue] = []
                     if not isinstance(event.target.attributes, Unset):
-                        for key, value in event.target.attributes:
+                        for key, value in event.target.attributes.items():
                             target_attributes.append(KeyValue(key, value))
                     target_name = event.target.identifier
                     if event.target.name:
