@@ -68,29 +68,32 @@ Here is a complete example that will connect and report the flag value every 10 
 toggled from the feature flag service you will receive the updated value.
 
 ```python
-import time
-
 from featureflags.client import CfClient
 from featureflags.config import *
 from featureflags.evaluations.auth_target import Target
 from featureflags.util import log
+import os
+import time
 
+# API Key
+apiKey = os.getenv('FF_API_KEY', "changeme")
+
+# Flag Name
+flagName = os.getenv('FF_FLAG_NAME', "harnessappdemodarkmode")
 
 def main():
     # Create a Feature Flag Client
-    client = CfClient("c9b3f14f-6336-4d23-83b4-73f29d1ebeeb",
-                      with_base_url("https://config.ff.harness.io/api/1.0"),
-                      with_events_url("https://events.ff.harness.io/api/1.0"))
+    client = CfClient(apiKey)
 
-    # Create a target (different targets can get different results based on rules)
-    target = Target(identifier='mytarget', name="FriendlyName")
+    # Create a target (different targets can get different results based on rules.  This include a custom attribute 'location')
+    target = Target(identifier='mytarget', name="FriendlyName", attributes={"location": "emea"}
 
     # Loop forever reporting the state of the flag
     while True:
-        result = client.bool_variation('harnessappdemodarkmode', target, False)
+        result = client.bool_variation(flagName, target, False)
         log.info("Flag variation %s", result)
         time.sleep(10)
-           
+
     close()
 
 
@@ -102,7 +105,19 @@ if __name__ == "__main__":
 You can save the above to a file called `sdk_sample.py` and run with
 
 ```bash
-$ python sdk_sample.py
+$ export FF_API_KEY=<your key here>
+$ python3 examples/getting_started/getting_started.py
+```
+
+### Running with docker
+If you dont have the right version of python installed locally, or dont want to install the dependancies you can
+use docker to quicky get started
+```bash
+# Install the package
+docker run -v $(pwd):/app -w /app python:3.7-slim python -m pip install -t ./local  harness-featureflags
+
+# Run the script
+docker run  -e PYTHONPATH=/app/local -e FF_API_KEY=$FF_API_KEY -v $(pwd):/app -w /app python:3.7-slim python examples/getting_started/getting_started.py
 ```
 
 ### Additional Reading
