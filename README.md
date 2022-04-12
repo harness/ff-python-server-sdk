@@ -58,10 +58,7 @@ apiKey = os.getenv('FF_API_KEY', "changeme")
 # Flag Name
 flagName = os.getenv('FF_FLAG_NAME', "harnessappdemodarkmode")
 
-def main():
-    # API Key
-    apiKey = "c9b3f14f-6336-4d23-83b4-73f29d1ebeeb"
-    
+def main():    
     # Create a Feature Flag Client
     client = CfClient(apiKey)
 
