@@ -4,5 +4,7 @@
     "python.testing.pytestEnabled": true,
     "python.defaultInterpreterPath": "venv/bin/python",
     "mypy.runUsingActiveInterpreter": true,
-    "restructuredtext.confPath": ""
+    "esbonio.sphinx.confDir": "",
+    "python.linting.mypyEnabled": true,
+    "python.linting.enabled": true
 }

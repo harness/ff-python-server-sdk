@@ -4,8 +4,8 @@ import httpx
 
 from featureflags.models.metrics import Metrics
 
-from ..client import AuthenticatedClient
-from ..types import Response
+from featureflags.api.client import AuthenticatedClient
+from featureflags.api.types import Response
 
 
 def _get_kwargs(

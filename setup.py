@@ -15,7 +15,7 @@ with open("HISTORY.rst") as history_file:
 requirements = [
     "httpx~=0.16.1",
     "pyjwt~=2.0.1",
-    "attrs~=20.3.0",
+    "attrs~=21.2.0",
     "mmh3~=3.0.0",
     "requests==2.25.1"
 ]

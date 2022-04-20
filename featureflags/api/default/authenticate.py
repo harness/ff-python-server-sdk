@@ -2,10 +2,10 @@ from typing import Any, Dict, Optional, Union
 
 import httpx
 
-from ...client import Client
-from ...models.authentication_request import AuthenticationRequest
-from ...models.authentication_response import AuthenticationResponse
-from ..types import Response
+from featureflags.api.client import Client
+from featureflags.api.types import Response
+from featureflags.models.authentication_request import AuthenticationRequest
+from featureflags.models.authentication_response import AuthenticationResponse
 
 
 def _get_kwargs(

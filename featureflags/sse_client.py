@@ -179,7 +179,8 @@ class Event(object):
             m: Optional[Match[str]] = cls.sse_line_pattern.match(line)
             if m is None:
                 # Malformed line.  Discard but warn.
-                warnings.warn('Invalid SSE line: "%s"' % line, SyntaxWarning)
+                log.warning('Invalid SSE line: "%s"' %
+                            line, SyntaxWarning)
                 continue
 
             name: str = m.group("name")

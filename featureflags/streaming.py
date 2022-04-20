@@ -51,7 +51,7 @@ class StreamProcessor(Thread):
                     if self._ready.is_set() is False:
                         self._ready.set()
             except Exception as e:
-                log.warn("Unexpected error on stream connection: %s", e)
+                log.warning("Unexpected error on stream connection: %s", e)
 
     def _connect(self) -> SSEClient:
         return SSEClient(self._stream_url, headers={
