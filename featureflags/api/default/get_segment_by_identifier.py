@@ -2,10 +2,9 @@ from typing import Any, Dict, Optional
 
 import httpx
 
-from featureflags.evaluations.segment import Segment
-
 from featureflags.api.client import AuthenticatedClient
 from featureflags.api.types import Response
+from featureflags.evaluations.segment import Segment
 
 
 def _get_kwargs(

@@ -1,10 +1,10 @@
 import pytest
+
 from featureflags.evaluations.auth_target import Target
 from featureflags.evaluations.clause import Clause
 from featureflags.evaluations.constants import EQUAL_OPERATOR
 from featureflags.evaluations.distribution import Distribution
 from featureflags.evaluations.enum import FeatureState
-
 from featureflags.evaluations.evaluator import Evaluator
 from featureflags.evaluations.feature import FeatureConfig, FeatureConfigKind
 from featureflags.evaluations.segment import Segment
@@ -16,7 +16,6 @@ from featureflags.evaluations.variation_map import VariationMap
 from featureflags.evaluations.weighted_variation import WeightedVariation
 from featureflags.lru_cache import LRUCache
 from featureflags.repository import Repository
-
 
 TRUE = "true"
 FALSE = "false"
@@ -101,7 +100,8 @@ def data_provider(feature, segment):
     (FALSE, 'false_variation'),
     ("unknown", 'none_variation')
 ])
-def test_find_variation(request, data_provider, variations, identifier, expected):
+def test_find_variation(request, data_provider, variations, identifier,
+                        expected):
     evaluator = Evaluator(data_provider)
 
     expected = request.getfixturevalue(expected)
@@ -129,7 +129,7 @@ def test_is_enabled(data_provider, target):
 
     got = evaluator._is_enabled(target, "email", 10)
 
-    assert got == False
+    assert got is False
 
 
 def test_evaluate_distribution(data_provider, distribution_by_email, target):
@@ -145,7 +145,7 @@ def test_check_target_in_segment(data_provider, target):
 
     got = evaluator._check_target_in_segment(["beta"], target)
 
-    assert got == True
+    assert got is True
 
 
 def test_evaluate_clause(data_provider, target):
@@ -160,7 +160,7 @@ def test_evaluate_clause(data_provider, target):
 
     got = evaluator._evaluate_clause(clause, target)
 
-    assert got == True
+    assert got is True
 
 
 def test_evaluate_rules(data_provider, target):

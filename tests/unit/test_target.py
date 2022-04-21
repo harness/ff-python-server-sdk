@@ -59,8 +59,8 @@ def test_get_attr_value(target, attribute, expected):
         ),
     ],
 )
-def test_get_operator(target, attribute, expected):
+def test_get_type(target, attribute, expected):
 
-    got = target.get_operator(attribute)
+    got = target.get_type(attribute)
 
     assert got.__class__ == expected

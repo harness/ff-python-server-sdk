@@ -2,7 +2,6 @@ import abc
 from typing import List, Optional
 
 from featureflags.evaluations.feature import FeatureConfig
-
 from featureflags.evaluations.segment import Segment
 from featureflags.interface import Cache, Store
 from featureflags.models.unset import Unset
@@ -71,7 +70,8 @@ class Repository(DataProviderInterface):
         self.cache = cache
         self.store = store
 
-    def get_flag(self, identifier: str, cacheable: bool = None) -> Optional[FeatureConfig]:
+    def get_flag(self, identifier: str,
+                 cacheable: bool = None) -> Optional[FeatureConfig]:
         flag_key = format_flag_key(identifier)
         try:
             flag = self.cache.get(flag_key)
@@ -88,7 +88,8 @@ class Repository(DataProviderInterface):
         log.warning("flag not found %s", identifier)
         return None
 
-    def get_segment(self, identifier: str, cacheable: bool = None) -> Optional[Segment]:
+    def get_segment(self, identifier: str,
+                    cacheable: bool = None) -> Optional[Segment]:
         segment_key = format_segment_key(identifier)
         try:
             segment = self.cache.get(segment_key)
@@ -116,7 +117,8 @@ class Repository(DataProviderInterface):
             self.store.set(flag_key, flag)
             self.cache.remove([flag_key])
             log.debug(
-                "Flag %s successfully stored and cache invalidated", flag.feature)
+                "Flag %s successfully stored and cache invalidated",
+                flag.feature)
         else:
             self.cache.set(flag_key, flag)
             log.debug("Flag %s successfully cached", flag.feature)
@@ -132,7 +134,8 @@ class Repository(DataProviderInterface):
             self.store.set(segment_key, segment)
             self.cache.remove([segment_key])
             log.debug(
-                "Segment %s successfully stored and cache invalidated", segment.identifier)
+                "Segment %s successfully stored and cache invalidated",
+                segment.identifier)
         else:
             self.cache.set(segment_key, segment)
             log.debug("Segment %s successfully cached", segment.identifier)
@@ -144,17 +147,21 @@ class Repository(DataProviderInterface):
         if self.store:
             self.store.close()
 
-    def is_flag_outdated(self, identifier: str, new_config: FeatureConfig) -> bool:
+    def is_flag_outdated(self, identifier: str,
+                         new_config: FeatureConfig) -> bool:
         flag = self.get_flag(identifier, cacheable=False)
         if flag and not isinstance(flag.version, Unset) and \
-                not isinstance(new_config, Unset) and not isinstance(new_config.version, Unset):
+                not isinstance(new_config, Unset) and \
+                not isinstance(new_config.version, Unset):
             return flag.version >= new_config.version
         return False
 
-    def is_segment_outdated(self, identifier: str, new_segment: Segment) -> bool:
+    def is_segment_outdated(self, identifier: str,
+                            new_segment: Segment) -> bool:
         segment = self.get_segment(identifier, cacheable=False)
         if segment and not isinstance(segment.version, Unset) and \
-                not isinstance(new_segment, Unset) and not isinstance(new_segment.version, Unset):
+                not isinstance(new_segment, Unset) and \
+                not isinstance(new_segment.version, Unset):
             return segment.version >= segment.version
         return False
 

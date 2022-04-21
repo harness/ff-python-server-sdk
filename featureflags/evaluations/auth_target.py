@@ -5,7 +5,6 @@ import attr
 from featureflags.ftypes import TYPES
 from featureflags.ftypes.interface import Interface
 from featureflags.models import UNSET, Unset
-
 from featureflags.util import log
 
 T = TypeVar("T", bound="Target")

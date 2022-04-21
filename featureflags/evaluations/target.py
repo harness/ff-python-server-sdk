@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
 import attr
+
 from featureflags.ftypes import TYPES
 from featureflags.ftypes.interface import Interface
 from featureflags.models import UNSET, Unset

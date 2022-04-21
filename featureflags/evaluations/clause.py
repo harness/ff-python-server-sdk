@@ -118,7 +118,7 @@ class Clause(object):
 class Clauses(List[Clause]):
     def evaluate(self, target: Target, segments: Optional['Segments']) -> bool:
         for clause in self:
-            operator = target.get_operator(clause.attribute)
+            operator = target.get_type(clause.attribute)
             if not clause.evaluate(target, segments, operator):
                 return False
         return True

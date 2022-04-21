@@ -7,7 +7,6 @@ Based on: https://github.com/btubbs/sseclient
 import codecs
 import re
 import time
-import warnings
 from typing import Any, Dict, Generator, List, Match, Optional, Pattern
 
 import requests

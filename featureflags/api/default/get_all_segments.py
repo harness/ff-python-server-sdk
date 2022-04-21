@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 import httpx
+
 from featureflags.api.client import AuthenticatedClient
 from featureflags.api.types import Response
 from featureflags.evaluations.segment import Segment
