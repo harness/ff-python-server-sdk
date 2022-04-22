@@ -75,7 +75,7 @@ class Target():
                                          Unset):
             log.debug("Checking attributes field %s", attribute)
             result = self.attributes.get(attribute, None)
-            if not result:
+            if result is None:
                 log.warning("Attribute %s does not exist", attribute)
         log.debug("Target %s attribute %s value %s", self, attribute, result)
         return result

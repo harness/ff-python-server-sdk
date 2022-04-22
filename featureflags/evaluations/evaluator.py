@@ -53,7 +53,7 @@ class Evaluator(object):
                     percentage: int) -> bool:
         attr_value = target.get_attr_value(bucket_by)
         if not attr_value:
-            log.debug("Returns false attribute not present %s", bucket_by)
+            log.debug("Returns False. %s is set to %s", bucket_by, attr_value)
             return False
         bucket_id = self._get_normalized_number(bucket_by, attr_value)
         log.debug("Bucket id %d for target %s", bucket_id, target.identifier)
