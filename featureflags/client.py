@@ -115,7 +115,7 @@ class CfClient(object):
                         fc.segments = Segments({})
                     fc.segments[identifier] = segment
                 except KeyError:
-                    log.warn("segment %s not found in cache", identifier)
+                    log.warning("segment %s not found in cache", identifier)
 
     def _variation(self, fn: str, identifier: str, target: Target,
                    default: Any) -> Any:
@@ -135,7 +135,7 @@ class CfClient(object):
                     else:
                         log.error("Wrong method name %s", fn)
             except KeyError:
-                log.warn("flag %s not found in cache", identifier)
+                log.warning("flag %s not found in cache", identifier)
         return default
 
     def bool_variation(self, identifier: str, target: Target,

@@ -2,9 +2,10 @@ from typing import Any, Dict, Optional, Type, TypeVar, Union
 
 import attr
 
-from featureflags.ftypes import OPERATORS
+from featureflags.ftypes import TYPES
 from featureflags.ftypes.interface import Interface
 from featureflags.models import UNSET, Unset
+from featureflags.util import log
 
 T = TypeVar("T", bound="Target")
 
@@ -66,16 +67,25 @@ class Target():
         return target
 
     def get_attr_value(self, attribute: str) -> Optional[str]:
+        if not attribute:
+            log.debug("Attribute is empty")
+            return None
         result: Any = getattr(self, attribute, None)
-        if result is None and not isinstance(self.attributes, Unset):
+        if not result and not isinstance(self.attributes,
+                                         Unset):
+            log.debug("Checking attributes field %s", attribute)
             result = self.attributes.get(attribute, None)
+            if result is None:
+                log.warning("Attribute %s does not exist", attribute)
+        log.debug("Target %s attribute %s value %s", self, attribute, result)
         return result
 
-    def get_operator(self, attribute: str) -> Optional[Interface]:
+    def get_type(self, attribute: str) -> Optional[Interface]:
         value: Optional[str] = self.get_attr_value(attribute)
-        for _type, klass in OPERATORS.items():
+        for _type, klass in TYPES.items():
             if isinstance(value, _type):
-                operator = OPERATORS.get(_type, None)
+                operator = TYPES.get(_type, None)
                 if operator:
                     return klass(value)
+        log.debug("Unsupported type found on attribute %s", attribute)
         return None

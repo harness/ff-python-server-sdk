@@ -2,10 +2,9 @@ from typing import Any, Dict
 
 import httpx
 
+from featureflags.api.client import AuthenticatedClient
+from featureflags.api.types import Response
 from featureflags.models.metrics import Metrics
-
-from ..client import AuthenticatedClient
-from ..types import Response
 
 
 def _get_kwargs(

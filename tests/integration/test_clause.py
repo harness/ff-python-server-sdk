@@ -26,4 +26,4 @@ def test_evaluate_clauses():
 
     got = clauses.evaluate(target, [])
 
-    assert got is True
+    assert got is False

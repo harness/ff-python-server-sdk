@@ -32,3 +32,10 @@ class Cache(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def keys(self) -> typing.List[str]:
         raise NotImplementedError
+
+
+class Store(Cache):
+
+    @abc.abstractmethod
+    def close(self) -> None:
+        raise NotImplementedError
