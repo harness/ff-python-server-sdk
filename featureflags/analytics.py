@@ -10,7 +10,6 @@ from featureflags.models.metrics_data_metrics_type import \
 from .api.client import AuthenticatedClient
 from .api.default.post_metrics import sync_detailed as post_metrics
 from .config import Config
-from .evaluations.feature import FeatureConfig
 from .evaluations.target import Target
 from .evaluations.variation import Variation
 from .models.key_value import KeyValue

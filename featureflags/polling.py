@@ -14,7 +14,8 @@ class PollingProcessor(Thread):
 
     def __init__(self, client: AuthenticatedClient, config: Config,
                  environment_id: str, ready: Event,
-                 stream_ready: Event, repository: DataProviderInterface) -> None:
+                 stream_ready: Event,
+                 repository: DataProviderInterface) -> None:
         Thread.__init__(self)
         self.daemon = True
         self.__environment_id = environment_id

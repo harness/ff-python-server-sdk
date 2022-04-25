@@ -7,15 +7,12 @@ from jwt import decode
 
 from featureflags.analytics import AnalyticsService
 from featureflags.evaluations.evaluator import Evaluator
-from featureflags.lru_cache import LRUCache
 from featureflags.repository import Repository
 
 from .api.client import AuthenticatedClient, Client
 from .api.default.authenticate import AuthenticationRequest
 from .api.default.authenticate import sync as authenticate
 from .config import Config, default_config
-from .evaluations.feature import FeatureConfig, FeatureConfigKind
-from .evaluations.segment import Segments
 from .evaluations.auth_target import Target
 from .polling import PollingProcessor
 from .streaming import StreamProcessor

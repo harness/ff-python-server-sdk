@@ -10,14 +10,14 @@ from .api.default.get_feature_config_by_identifier import \
     sync as get_feature_config
 from .api.default.get_segment_by_identifier import sync as get_target_segment
 from .config import Config
-from .interface import Cache
 from .models.message import Message
 from .sse_client import SSEClient
 from .util import log
 
 
 class StreamProcessor(Thread):
-    def __init__(self, repository: DataProviderInterface, client: AuthenticatedClient,
+    def __init__(self, repository: DataProviderInterface,
+                 client: AuthenticatedClient,
                  environment_id: str, api_key: str, token: str,
                  config: Config, ready: threading.Event,
                  cluster: str):
@@ -90,7 +90,8 @@ class StreamProcessor(Thread):
 
 class FlagMsgProcessor(Thread):
 
-    def __init__(self, repository: DataProviderInterface, client: AuthenticatedClient,
+    def __init__(self, repository: DataProviderInterface,
+                 client: AuthenticatedClient,
                  environment_id: str, msg: Message):
         Thread.__init__(self)
         self._repository = repository
@@ -115,7 +116,8 @@ class FlagMsgProcessor(Thread):
 
 class SegmentMsgProcessor(Thread):
 
-    def __init__(self, repository: DataProviderInterface, client: AuthenticatedClient,
+    def __init__(self, repository: DataProviderInterface,
+                 client: AuthenticatedClient,
                  environment_id: str, msg: Message):
         Thread.__init__(self)
         self._repository = repository
