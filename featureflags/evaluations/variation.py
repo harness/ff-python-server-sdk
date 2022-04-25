@@ -1,5 +1,6 @@
 import json
 from typing import Any, Dict, List, Type, TypeVar, Union
+from xmlrpc.client import boolean
 
 import attr
 
@@ -11,14 +12,14 @@ T = TypeVar("T", bound="Variation")
 @attr.s(auto_attribs=True)
 class Variation(object):
     identifier: str
-    value: str
+    value: Union[str, None]
     name: Union[Unset, str] = UNSET
     description: Union[Unset, str] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def bool(self, default: bool = False) -> bool:
         if self.value:
-            return self.value == "true"
+            return self.value.lower() == "true"
         return default
 
     def string(self, default: str) -> str:
@@ -94,5 +95,5 @@ class Variation(object):
     def __delitem__(self, key: str) -> None:
         del self.additional_properties[key]
 
-    def __contains__(self, key: str) -> bool:
+    def __contains__(self, key: str) -> boolean:
         return key in self.additional_properties

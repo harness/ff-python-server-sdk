@@ -6,14 +6,17 @@ from typing import Any, Callable, Dict, Optional
 from jwt import decode
 
 from featureflags.analytics import AnalyticsService
+from featureflags.evaluations.evaluator import Evaluator
+from featureflags.lru_cache import LRUCache
+from featureflags.repository import Repository
 
 from .api.client import AuthenticatedClient, Client
 from .api.default.authenticate import AuthenticationRequest
 from .api.default.authenticate import sync as authenticate
 from .config import Config, default_config
-from .evaluations.feature import FeatureConfig
+from .evaluations.feature import FeatureConfig, FeatureConfigKind
 from .evaluations.segment import Segments
-from .evaluations.target import Target
+from .evaluations.auth_target import Target
 from .polling import PollingProcessor
 from .streaming import StreamProcessor
 from .util import log
@@ -39,6 +42,12 @@ class CfClient(object):
             if callable(option):
                 option(self._config)
 
+        if self._config.cache is None:
+            raise Exception("cache cannot be none")
+
+        self._repository = Repository(self._config.cache)
+        self._evaluator = Evaluator(self._repository)
+
         log.debug("CfClient initialized")
         self.run()
 
@@ -53,20 +62,21 @@ class CfClient(object):
             config=self._config,
             environment_id=self._environment_id,
             ready=polling_event,
-            stream_ready=streaming_event
+            stream_ready=streaming_event,
+            repository=self._repository
         )
         self._polling_processor.start()
 
         if self._config.enable_stream:
             self._stream = StreamProcessor(
-                cache=self._config.cache,
+                repository=self._repository,
                 client=self._client,
                 environment_id=self._environment_id,
                 api_key=self._sdk_key,
                 token=self._auth_token,
                 config=self._config,
                 ready=streaming_event,
-                cluster=self._cluster
+                cluster=self._cluster,
             )
             self._stream.start()
 
@@ -105,58 +115,37 @@ class CfClient(object):
         )
         self._client.with_headers({"User-Agent": "PythonSDK/" + VERSION})
 
-    def map_segments_from_cache(self, fc: FeatureConfig) -> None:
-        if self._config.cache:
-            segments = fc.get_segment_identifiers()
-            for identifier in segments:
-                try:
-                    segment = self._config.cache.get(f'segments/{identifier}')
-                    if fc.segments is None:
-                        fc.segments = Segments({})
-                    fc.segments[identifier] = segment
-                except KeyError:
-                    log.warning("segment %s not found in cache", identifier)
-
-    def _variation(self, fn: str, identifier: str, target: Target,
-                   default: Any) -> Any:
-        if self._config.cache:
-            try:
-                fc = self._config.cache.get(f'flags/{identifier}')
-                if fc:
-                    self.map_segments_from_cache(fc)
-                    method = getattr(fc, f'{fn}_variation', None)
-                    if method:
-                        variation = method(target)
-                        if variation is None:
-                            log.debug('No variation found')
-                            return default
-                        self._analytics.enqueue(target, fc, variation)
-                        return getattr(variation, fn)(default)
-                    else:
-                        log.error("Wrong method name %s", fn)
-            except KeyError:
-                log.warning("flag %s not found in cache", identifier)
-        return default
-
     def bool_variation(self, identifier: str, target: Target,
                        default: bool) -> bool:
-        return self._variation('bool', identifier, target, default)
+        variation = self._evaluator.evaluate(identifier, target)
+        self._analytics.enqueue(target, identifier, variation)
+        return variation.bool(default)
 
     def int_variation(self, identifier: str, target: Target,
                       default: int) -> int:
-        return self._variation('int', identifier, target, default)
+        variation = self._evaluator.evaluate(identifier, target)
+        self._analytics.enqueue(target, identifier, variation)
+        return variation.int(default)
 
     def number_variation(self, identifier: str, target: Target,
                          default: float) -> float:
-        return self._variation('number', identifier, target, default)
+        variation = self._evaluator.evaluate(
+            identifier, target)
+        self._analytics.enqueue(target, identifier, variation)
+        return variation.number(default)
 
     def string_variation(self, identifier: str, target: Target,
                          default: str) -> str:
-        return self._variation('string', identifier, target, default)
+        variation = self._evaluator.evaluate(
+            identifier, target)
+        self._analytics.enqueue(target, identifier, variation)
+        return variation.string(default)
 
     def json_variation(self, identifier: str, target: Target,
                        default: Dict[str, Any]) -> Dict[str, Any]:
-        return self._variation('json', identifier, target, default)
+        variation = self._evaluator.evaluate(identifier, target)
+        self._analytics.enqueue(target, identifier, variation)
+        return variation.json(default)
 
     def close(self):
         log.info('closing sdk client')

@@ -38,8 +38,8 @@ def false_variation():
 
 
 @pytest.fixture
-def none_variation():
-    return None
+def empty_variation():
+    return Variation(identifier="", value=None)
 
 
 @pytest.fixture
@@ -99,7 +99,7 @@ def data_provider(feature, segment):
 @pytest.mark.parametrize('identifier,expected', [
     (TRUE, 'true_variation'),
     (FALSE, 'false_variation'),
-    ("unknown", 'none_variation')
+    ("unknown", 'empty_variation')
 ])
 def test_find_variation(request, data_provider, variations, identifier,
                         expected):

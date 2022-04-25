@@ -1,5 +1,6 @@
 import abc
 from typing import List, Optional
+from featureflags.evaluations.constants import SEGMENT_MATCH_OPERATOR
 
 from featureflags.evaluations.feature import FeatureConfig
 from featureflags.evaluations.segment import Segment
@@ -56,6 +57,16 @@ class DataProviderInterface(QueryInterface):
     @abc.abstractmethod
     def set_segment(self, group: Segment) -> None:
         """Put Target group to the repository"""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def remove_flag(self, identifier: str) -> None:
+        """Remove Flag from the repository"""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def remove_segment(self, identifier: str) -> None:
+        """Remove Target group from the repository"""
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -140,8 +151,45 @@ class Repository(DataProviderInterface):
             self.cache.set(segment_key, segment)
             log.debug("Segment %s successfully cached", segment.identifier)
 
-    def find_flags_by_segment(self, identifier: str) -> List[str]:
-        return []
+    def find_flags_by_segment(self, segment: str) -> List[str]:
+        result = []
+        keys = self.cache.keys()
+        if self.store:
+            keys = self.store.keys()
+        for key in keys:
+            flag = self.get_flag(key, cacheable=False)
+            if not flag:
+                continue
+            for serving_rule in flag.rules:
+                for clause in serving_rule.clauses:
+                    if clause.op == SEGMENT_MATCH_OPERATOR and not next(
+                        (val for val in clause.values if val == segment),
+                        None
+                    ):
+                        log.debug("Flag %s evaluated in segments",
+                                  flag.feature)
+                        result.append(flag.feature)
+        return result
+
+    def remove_flag(self, identifier: str) -> None:
+        """Remove Flag from the repository"""
+        flag_key = format_flag_key(identifier)
+        if self.store:
+            self.store.remove([flag_key])
+            log.debug("Flag %s successfully deleted from store", identifier)
+
+        self.cache.remove([flag_key])
+        log.debug("Flag %s successfully deleted from cache", identifier)
+
+    def remove_segment(self, identifier: str) -> None:
+        """Remove Target group from the repository"""
+        segment_key = format_segment_key(identifier)
+        if self.store:
+            self.store.remove([segment_key])
+            log.debug("Segment %s successfully deleted from store", identifier)
+
+        self.cache.remove([segment_key])
+        log.debug("Segment %s successfully deleted from cache", identifier)
 
     def close(self) -> None:
         if self.store:

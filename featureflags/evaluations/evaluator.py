@@ -23,20 +23,23 @@ from featureflags.repository import QueryInterface
 from featureflags.util import log
 
 
+EMPTY_VARIATION = Variation(identifier="", value=None)
+
+
 class Evaluator(object):
 
     def __init__(self, provider: QueryInterface):
         self.provider = provider
 
     def _find_variation(self, variations: List[Variation],
-                        identifier: Optional[str]) -> Optional[Variation]:
+                        identifier: Optional[str]) -> Variation:
         if not identifier:
             log.debug("Empty identifier %s or variations %s occurred",
                       identifier, variations)
-            return None
+            return EMPTY_VARIATION
         variation = next(
             (val for val in variations if val.identifier == identifier),
-            None
+            EMPTY_VARIATION
         )
         log.debug("Variation %s found in variations %s",
                   identifier, variations)
@@ -236,7 +239,7 @@ class Evaluator(object):
         return None
 
     def _evaluate_flag(self, fc: FeatureConfig,
-                       target: Target) -> Optional[Variation]:
+                       target: Target) -> Variation:
         variation: Optional[str] = fc.off_variation
         log.debug("feature %s state is %s", fc.feature, fc.state)
         if fc.state == FeatureState.ON:
@@ -297,11 +300,10 @@ class Evaluator(object):
                     return self._check_prerequisite(config, target)
         return True
 
-    def evaluate(self, identifier: str, target: Target,
-                 expected: FeatureConfigKind) -> Optional[Variation]:
+    def evaluate(self, identifier: str, target: Target) -> Variation:
         fc = self.provider.get_flag(identifier)
-        if not fc or fc.kind != expected:
-            return None
+        if not fc:
+            return Variation(identifier="", value=None)
 
         if fc.prerequisites:
             prereq = self._check_prerequisite(fc, target)

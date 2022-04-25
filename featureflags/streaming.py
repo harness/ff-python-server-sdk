@@ -3,6 +3,8 @@ import threading
 from threading import Thread
 from typing import List, Union
 
+from featureflags.repository import DataProviderInterface
+
 from .api.client import AuthenticatedClient
 from .api.default.get_feature_config_by_identifier import \
     sync as get_feature_config
@@ -15,7 +17,7 @@ from .util import log
 
 
 class StreamProcessor(Thread):
-    def __init__(self, cache: Cache, client: AuthenticatedClient,
+    def __init__(self, repository: DataProviderInterface, client: AuthenticatedClient,
                  environment_id: str, api_key: str, token: str,
                  config: Config, ready: threading.Event,
                  cluster: str):
@@ -23,7 +25,6 @@ class StreamProcessor(Thread):
         Thread.__init__(self)
         self.daemon = True
         self._running = False
-        self._cache = cache
         self._ready = ready
         self._client = client
         self._environment_id = environment_id
@@ -32,6 +33,7 @@ class StreamProcessor(Thread):
         self._stream_url = f'{config.base_url}/stream?cluster={cluster}'
         self._msg_processors: List[Union[FlagMsgProcessor,
                                          SegmentMsgProcessor]] = []
+        self._repository = repository
 
     def run(self):
         log.info("Starting StreamingProcessor connecting to uri: " +
@@ -63,14 +65,14 @@ class StreamProcessor(Thread):
         processor: Union[FlagMsgProcessor, SegmentMsgProcessor, None] = None
         if msg.domain == "flag":
             log.debug('Starting flag message processor with %s', msg)
-            processor = FlagMsgProcessor(cache=self._cache,
+            processor = FlagMsgProcessor(repository=self._repository,
                                          client=self._client,
                                          environment_id=self._environment_id,
                                          msg=msg)
         elif msg.domain == "target-segment":
             log.debug('Starting segment message processor with %s', msg)
             processor = SegmentMsgProcessor(
-                cache=self._cache,
+                repository=self._repository,
                 client=self._client,
                 environment_id=self._environment_id,
                 msg=msg
@@ -88,10 +90,10 @@ class StreamProcessor(Thread):
 
 class FlagMsgProcessor(Thread):
 
-    def __init__(self, cache: Cache, client: AuthenticatedClient,
+    def __init__(self, repository: DataProviderInterface, client: AuthenticatedClient,
                  environment_id: str, msg: Message):
         Thread.__init__(self)
-        self._cache = cache
+        self._repository = repository
         self._client = client
         self._environemnt_id = environment_id
         self._msg = msg
@@ -104,19 +106,19 @@ class FlagMsgProcessor(Thread):
                                 environment_uuid=self._environemnt_id)
         log.info("Feature config '%s' loaded", fc.feature)
         if self._msg.event == 'create' or self._msg.event == 'patch':
-            self._cache.set(f'flags/{fc.feature}', fc)
+            self._repository.set_flag(fc)
             log.info('flag %s successfully stored in the cache', fc.feature)
         elif self._msg.event == 'delete':
-            self._cache.remove(f'flags/{fc.feature}')
+            self._repository.remove_flag(fc)
             log.info('flag %s successfully removed from cache', fc.feature)
 
 
 class SegmentMsgProcessor(Thread):
 
-    def __init__(self, cache: Cache, client: AuthenticatedClient,
+    def __init__(self, repository: DataProviderInterface, client: AuthenticatedClient,
                  environment_id: str, msg: Message):
         Thread.__init__(self)
-        self._cache = cache
+        self._repository = repository
         self._client = client
         self._environemnt_id = environment_id
         self._msg = msg
@@ -129,8 +131,8 @@ class SegmentMsgProcessor(Thread):
                                 environment_uuid=self._environemnt_id)
         log.info("Target segment '%s' loaded", ts.identifier)
         if self._msg.event == 'create' or self._msg.event == 'patch':
-            self._cache.set(f'segments/{ts.identifier}', ts)
+            self._repository.set_segment(ts)
             log.info('flag %s successfully stored in cache', ts.identifier)
         elif self._msg.event == 'delete':
-            self._cache.remove(f'segments/{ts.identifier}')
+            self._repository.remove_segment(ts.identifier)
             log.info('flag %s successfully removed from cache', ts.identifier)
