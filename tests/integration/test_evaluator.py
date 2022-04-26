@@ -91,25 +91,15 @@ def test_evaluator(fname, identifier, expected, usecase):
 
     switch_kind = {
         FeatureConfigKind.BOOLEAN:
-            lambda: evaluator.evaluate(usecase.flag.feature,
-                                       target,
-                                       FeatureConfigKind.BOOLEAN).bool(),
+            lambda: evaluator.evaluate(usecase.flag.feature, target).bool(),
         FeatureConfigKind.STRING:
-            lambda: evaluator.evaluate(usecase.flag.feature,
-                                       target,
-                                       FeatureConfigKind.STRING).string(),
+            lambda: evaluator.evaluate(usecase.flag.feature, target).string(),
         FeatureConfigKind.INT:
-            lambda: evaluator.evaluate(usecase.flag.feature,
-                                       target,
-                                       FeatureConfigKind.INT).int(),
+            lambda: evaluator.evaluate(usecase.flag.feature, target).int(),
         FeatureConfigKind.NUMBER:
-            lambda: evaluator.evaluate(usecase.flag.feature,
-                                       target,
-                                       FeatureConfigKind.NUMBER).number(),
+            lambda: evaluator.evaluate(usecase.flag.feature, target).number(),
         FeatureConfigKind.JSON:
-            lambda: evaluator.evaluate(usecase.flag.feature,
-                                       target,
-                                       FeatureConfigKind.JSON).json(),
+            lambda: evaluator.evaluate(usecase.flag.feature, target).json(),
     }
 
     got = switch_kind[usecase.flag.kind]()

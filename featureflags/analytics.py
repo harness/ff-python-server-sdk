@@ -10,7 +10,6 @@ from featureflags.models.metrics_data_metrics_type import \
 from .api.client import AuthenticatedClient
 from .api.default.post_metrics import sync_detailed as post_metrics
 from .config import Config
-from .evaluations.feature import FeatureConfig
 from .evaluations.target import Target
 from .evaluations.variation import Variation
 from .models.key_value import KeyValue
@@ -38,7 +37,7 @@ GLOBAL_TARGET = 'global'
 @attr.s(auto_attribs=True)
 class AnalyticsEvent(object):
     target: Target
-    feature_config: FeatureConfig
+    flag_identifier: str
     variation: Variation
     count: int = 0
 
@@ -58,11 +57,11 @@ class AnalyticsService(object):
         self._runner.daemon = True
         self._runner.start()
 
-    def enqueue(self, target: Target, feature_config: FeatureConfig,
+    def enqueue(self, target: Target, identifier: str,
                 variation: Variation):
         event: AnalyticsEvent = AnalyticsEvent(
             target=target,
-            feature_config=feature_config,
+            flag_identifier=identifier,
             variation=variation
         )
 
@@ -79,7 +78,7 @@ class AnalyticsService(object):
 
     def get_key(self, event: AnalyticsEvent) -> str:
         return '{feature}-{variation}-{value}-{target}'.format(
-            feature=event.feature_config.feature,
+            feature=event.flag_identifier,
             variation=event.variation.identifier,
             value=event.variation.value,
             target=GLOBAL_TARGET,
@@ -122,9 +121,9 @@ class AnalyticsService(object):
 
                 metric_attributes: List[KeyValue] = [
                     KeyValue(FEATURE_IDENTIFIER_ATTRIBUTE,
-                             event.feature_config.feature),
+                             event.flag_identifier),
                     KeyValue(FEATURE_NAME_ATTRIBUTE,
-                             event.feature_config.feature),
+                             event.flag_identifier),
                     KeyValue(VARIATION_IDENTIFIER_ATTRIBUTE,
                              event.variation.identifier),
                     KeyValue(VARIATION_VALUE_ATTRIBUTE, event.variation.value),
