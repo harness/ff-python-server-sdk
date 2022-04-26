@@ -86,7 +86,10 @@ class Evaluator(object):
                 # Should Target be excluded - if in excluded
                 # list we return false
                 if not isinstance(segment.excluded, Unset) and \
-                        target.identifier in segment.excluded:
+                        next(
+                            (val for val in segment.excluded
+                             if val.identifier == target.identifier),
+                            None) is not None:
                     log.debug('Target % s excluded from segment % s' +
                               'via exclude list\n',
                               target.name, segment.name)
@@ -94,8 +97,13 @@ class Evaluator(object):
 
                 # Should Target be included - if in included list
                 #  we return true
+                log.info("target %s, segment %s",
+                         target.identifier, segment.included)
                 if not isinstance(segment.included, Unset) and \
-                        target.identifier in segment.included:
+                        next(
+                            (val for val in segment.included
+                             if val.identifier == target.identifier),
+                            None) is not None:
                     log.debug('Target %s included in segment %s' +
                               ' via include list\n',
                               target.name, segment.name)
@@ -172,7 +180,7 @@ class Evaluator(object):
             return item.priority
 
         log.debug("Sorting serving rules %s", rules)
-        rules.sort(reverse=True, key=sort_by_priority)
+        rules.sort(key=sort_by_priority)
         log.debug("Sorted serving rules %s", rules)
 
         identifier = None

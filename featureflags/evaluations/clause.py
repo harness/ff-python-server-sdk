@@ -85,7 +85,9 @@ class Clause(object):
 
         values = cast(List[str], d.pop("values"))
 
-        negate = d.pop("negate")
+        negate = False
+        if "negate" in d:
+            negate = d.pop("negate")
 
         clause = cls(
             id=id,

@@ -23,7 +23,8 @@ FALSE = "false"
 
 @pytest.fixture
 def target():
-    return Target(identifier="john", attributes={"email": "john@doe.com"})
+    return Target(identifier="john", name="John",
+                  attributes={"email": "john@doe.com"})
 
 
 @pytest.fixture
@@ -79,7 +80,7 @@ def segment(target):
         identifier="beta",
         name="Beta users",
         environment="test",
-        included=[target.identifier],
+        included=[Target(identifier=target.identifier, name=target.name)],
         version=1
     )
 
