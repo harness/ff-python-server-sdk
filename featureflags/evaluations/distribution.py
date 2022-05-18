@@ -54,6 +54,8 @@ class Distribution(object):
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
+        if src_dict is None:
+            return None
         d = src_dict.copy()
         bucket_by = d.pop("bucketBy")
 

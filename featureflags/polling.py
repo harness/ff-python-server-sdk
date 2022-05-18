@@ -2,6 +2,7 @@ import time
 from threading import Event, Thread
 
 from featureflags.api.client import AuthenticatedClient
+from featureflags.repository import DataProviderInterface
 
 from .api.default.get_all_segments import sync as retrieve_segments
 from .api.default.get_feature_config import sync as retrieve_flags
@@ -13,7 +14,8 @@ class PollingProcessor(Thread):
 
     def __init__(self, client: AuthenticatedClient, config: Config,
                  environment_id: str, ready: Event,
-                 stream_ready: Event) -> None:
+                 stream_ready: Event,
+                 repository: DataProviderInterface) -> None:
         Thread.__init__(self)
         self.daemon = True
         self.__environment_id = environment_id
@@ -22,6 +24,7 @@ class PollingProcessor(Thread):
         self.__running = False
         self.__ready = ready
         self.__stream_ready = stream_ready
+        self.__repository = repository
 
     def run(self):
         if not self.__running:
@@ -66,8 +69,8 @@ class PollingProcessor(Thread):
         )
         log.debug("Feature flags loaded")
         for flag in flags:
-            log.debug("Setting the cache value %s", flag.feature)
-            self.__config.cache.set(f"flags/{flag.feature}", flag)
+            log.debug("Put flag %s into repository", flag.feature)
+            self.__repository.set_flag(flag)
 
     def __retrieve_segments(self):
         log.debug("Loading target segments")
@@ -76,5 +79,5 @@ class PollingProcessor(Thread):
         )
         log.debug("Target segments loaded")
         for segment in segments:
-            log.debug("Setting the cache segment value %s", segment.identifier)
-            self.__config.cache.set(f"segments/{segment.identifier}", segment)
+            log.debug("Put %s segment into repository", segment.identifier)
+            self.__repository.set_segment(segment)

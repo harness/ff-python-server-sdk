@@ -85,7 +85,9 @@ class Clause(object):
 
         values = cast(List[str], d.pop("values"))
 
-        negate = d.pop("negate")
+        negate = False
+        if "negate" in d:
+            negate = d.pop("negate")
 
         clause = cls(
             id=id,
@@ -118,7 +120,7 @@ class Clause(object):
 class Clauses(List[Clause]):
     def evaluate(self, target: Target, segments: Optional['Segments']) -> bool:
         for clause in self:
-            operator = target.get_operator(clause.attribute)
+            operator = target.get_type(clause.attribute)
             if not clause.evaluate(target, segments, operator):
                 return False
         return True

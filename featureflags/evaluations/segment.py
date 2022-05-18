@@ -17,8 +17,8 @@ class Segment(object):
     name: str
     environment: Union[Unset, str] = UNSET
     tags: Union[Unset, List[Tag]] = UNSET
-    included: Union[Unset, List[str]] = UNSET
-    excluded: Union[Unset, List[str]] = UNSET
+    included: Union[Unset, List[Target]] = UNSET
+    excluded: Union[Unset, List[Target]] = UNSET
     rules: Union[Unset, 'Clauses'] = UNSET
     created_at: Union[Unset, int] = UNSET
     modified_at: Union[Unset, int] = UNSET
@@ -109,8 +109,10 @@ class Segment(object):
 
             tags.append(tags_item)
 
-        included = d.pop("included", UNSET)
-        excluded = d.pop("excluded", UNSET)
+        included = [Target.from_dict(target)
+                    for target in d.pop("included", UNSET)]
+        excluded = [Target.from_dict(target)
+                    for target in d.pop("excluded", UNSET)]
 
         rules: Clauses = Clauses()
         _rules = d.pop("rules", UNSET)

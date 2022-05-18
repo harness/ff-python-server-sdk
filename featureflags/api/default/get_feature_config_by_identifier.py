@@ -2,9 +2,9 @@ from typing import Any, Dict, Optional
 
 import httpx
 
-from ...evaluations.feature import FeatureConfig
-from ..client import AuthenticatedClient
-from ..types import Response
+from featureflags.api.client import AuthenticatedClient
+from featureflags.api.types import Response
+from featureflags.evaluations.feature import FeatureConfig
 
 
 def _get_kwargs(
