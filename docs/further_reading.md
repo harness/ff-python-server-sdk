@@ -2,6 +2,42 @@
 
 Covers advanced topics (different config options and scenarios)
 
+## Configuration Options
+The following configuration options are available to control the behaviour of the SDK.
+You can pass the configuration in as options when the SDK client is created.
+```python
+    # Create a Feature Flag Client
+    client = CfClient(apiKey,
+                      with_base_url("https://config.ff.harness.io/api/1.0"),
+                      with_events_url("https://events.ff.harness.io/api/1.0"),
+                      with_stream_enabled(True),
+                      with_analytics_enabled(True),
+                      Config(pull_interval=60))
+```
+
+| Name            | Config Option                                            | Description                                                                                                                                      | default                              |
+|-----------------|----------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------|
+| baseUrl         | with_base_url("https://config.ff.harness.io/api/1.0")    | the URL used to fetch feature flag evaluations. You should change this when using the Feature Flag proxy to http://localhost:7000                | https://config.ff.harness.io/api/1.0 |
+| eventsUrl       | with_events_url("https://events.ff.harness.io/api/1.0"), | the URL used to post metrics data to the feature flag service. You should change this when using the Feature Flag proxy to http://localhost:7000 | https://events.ff.harness.io/api/1.0 |
+| pollInterval    | Config(pull_interval=60)                                 | when running in stream mode, the interval in seconds that we poll for changes.                                                                   | 60                                   |
+| enableStream    | with_stream_enabled(True),                               | Enable streaming mode.                                                                                                                           | true                                 |
+| enableAnalytics | with_analytics_enabled(True)                             | Enable analytics.  Metrics data is posted every 60s                                                                                              | true                                 |
+
+## Logging Configuration
+The SDK provides a logger that wraps the standard python logging package.  You can import and use it with:
+```python
+from featureflags.util import log
+log.info("Hello, World!")
+```
+
+If you want to change the default log level, you can use the standard logging levels
+```python
+from featureflags.util import log
+import logging
+
+log.setLevel(logging.WARN)
+```
+
 ## Recommended reading
 
 [Feature Flag Concepts](https://ngdocs.harness.io/article/7n9433hkc0-cf-feature-flag-overview)

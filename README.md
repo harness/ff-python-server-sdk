@@ -63,7 +63,7 @@ def main():
     client = CfClient(apiKey)
 
     # Create a target (different targets can get different results based on rules.  This include a custom attribute 'location')
-    target = Target(identifier='mytarget', name="FriendlyName", attributes={"location": "emea"}
+    target = Target(identifier='pythonSDK', name="PythonSDK", attributes={"location": "emea"})
 
     # Loop forever reporting the state of the flag
     while True:
