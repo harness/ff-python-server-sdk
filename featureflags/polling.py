@@ -29,7 +29,7 @@ class PollingProcessor(Thread):
     def run(self):
         if not self.__running:
             if self.__config.pull_interval < 60:
-                log.info("Pull Interval must be greater than or equal "
+                log.warning("Pull Interval must be greater than or equal "
                          "to 60 seconds, was: " +
                          str(self.__config.pull_interval) + " setting to 60")
                 self.__config.pull_interval = 60
