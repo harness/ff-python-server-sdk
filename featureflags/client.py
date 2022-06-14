@@ -23,7 +23,7 @@ VERSION: str = "1.0"
 
 class CfClient(object):
     def __init__(
-        self, sdk_key: str, *options: Callable, config: Optional[Config] = None
+            self, sdk_key: str, *options: Callable, config: Optional[Config] = None
     ):
         self._client: Optional[Client] = None
         self._auth_token: Optional[str] = None
@@ -97,7 +97,7 @@ class CfClient(object):
         self._auth_token = response.auth_token
 
         decoded = decode(self._auth_token, options={
-                         "verify_signature": False})
+            "verify_signature": False})
         self._environment_id = decoded["environment"]
         self._cluster = decoded["clusterIdentifier"]
         if not self._cluster:
@@ -115,33 +115,38 @@ class CfClient(object):
     def bool_variation(self, identifier: str, target: Target,
                        default: bool) -> bool:
         variation = self._evaluator.evaluate(identifier, target)
-        self._analytics.enqueue(target, identifier, variation)
+        if self._config.enable_analytics:
+            self._analytics.enqueue(target, identifier, variation)
         return variation.bool(default)
 
     def int_variation(self, identifier: str, target: Target,
                       default: int) -> int:
         variation = self._evaluator.evaluate(identifier, target)
-        self._analytics.enqueue(target, identifier, variation)
+        if self._config.enable_analytics:
+            self._analytics.enqueue(target, identifier, variation)
         return variation.int(default)
 
     def number_variation(self, identifier: str, target: Target,
                          default: float) -> float:
         variation = self._evaluator.evaluate(
             identifier, target)
-        self._analytics.enqueue(target, identifier, variation)
+        if self._config.enable_analytics:
+            self._analytics.enqueue(target, identifier, variation)
         return variation.number(default)
 
     def string_variation(self, identifier: str, target: Target,
                          default: str) -> str:
         variation = self._evaluator.evaluate(
             identifier, target)
-        self._analytics.enqueue(target, identifier, variation)
+        if self._config.enable_analytics:
+            self._analytics.enqueue(target, identifier, variation)
         return variation.string(default)
 
     def json_variation(self, identifier: str, target: Target,
                        default: Dict[str, Any]) -> Dict[str, Any]:
         variation = self._evaluator.evaluate(identifier, target)
-        self._analytics.enqueue(target, identifier, variation)
+        if self._config.enable_analytics:
+            self._analytics.enqueue(target, identifier, variation)
         return variation.json(default)
 
     def close(self):
