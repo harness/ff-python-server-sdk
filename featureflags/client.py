@@ -23,7 +23,9 @@ VERSION: str = "1.0"
 
 class CfClient(object):
     def __init__(
-            self, sdk_key: str, *options: Callable, config: Optional[Config] = None
+            self, sdk_key: str,
+            *options: Callable,
+            config: Optional[Config] = None
     ):
         self._client: Optional[Client] = None
         self._auth_token: Optional[str] = None
