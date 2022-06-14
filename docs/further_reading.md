@@ -22,6 +22,7 @@ You can pass the configuration in as options when the SDK client is created.
 | pollInterval    | Config(pull_interval=60)                                 | when running in stream mode, the interval in seconds that we poll for changes.                                                                   | 60                                   |
 | enableStream    | with_stream_enabled(True),                               | Enable streaming mode.                                                                                                                           | true                                 |
 | enableAnalytics | with_analytics_enabled(True)                             | Enable analytics.  Metrics data is posted every 60s                                                                                              | true                                 |
+| pollInterval    | with_poll_interval(120)                                  | When running in stream mode, the interval in seconds that we poll for changes.                                                                   | 60                                   |
 
 ## Logging Configuration
 The SDK provides a logger that wraps the standard python logging package.  You can import and use it with:
