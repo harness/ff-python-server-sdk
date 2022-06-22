@@ -210,7 +210,7 @@ class Repository(DataProviderInterface):
         if segment and not isinstance(segment.version, Unset) and \
                 not isinstance(new_segment, Unset) and \
                 not isinstance(new_segment.version, Unset):
-            return segment.version >= segment.version
+            return segment.version >= new_segment.version
         return False
 
 
