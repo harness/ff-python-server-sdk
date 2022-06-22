@@ -16,16 +16,16 @@ EVENTS_SYNC_INTERVAL = 1 * MINUTE
 
 class Config(object):
     def __init__(
-        self,
-        base_url: str = BASE_URL,
-        events_url: str = EVENTS_URL,
-        pull_interval: int = PULL_INTERVAL,
-        persist_interval: int = PERSIST_INTERVAL,
-        events_sync_interval: int = EVENTS_SYNC_INTERVAL,
-        cache: Cache = None,
-        store: object = None,
-        enable_stream: bool = True,
-        enable_analytics: bool = True
+            self,
+            base_url: str = BASE_URL,
+            events_url: str = EVENTS_URL,
+            pull_interval: int = PULL_INTERVAL,
+            persist_interval: int = PERSIST_INTERVAL,
+            events_sync_interval: int = EVENTS_SYNC_INTERVAL,
+            cache: Cache = None,
+            store: object = None,
+            enable_stream: bool = True,
+            enable_analytics: bool = True
     ):
         self.base_url = base_url
         self.events_url = events_url
@@ -67,5 +67,12 @@ def with_stream_enabled(value: bool) -> Callable:
 def with_analytics_enabled(value: bool) -> Callable:
     def func(config: Config) -> None:
         config.enable_analytics = value
+
+    return func
+
+
+def with_pull_interval(value: int) -> Callable:
+    def func(config: Config) -> None:
+        config.pull_interval = value
 
     return func
