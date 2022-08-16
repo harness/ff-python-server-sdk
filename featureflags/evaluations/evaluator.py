@@ -293,8 +293,7 @@ class Evaluator(object):
                 log.info('Pre requisite flag %s should have the variations %s',
                          config.feature, pqs.variations)
 
-                if isinstance(variation, Unset) and variation.identifier \
-                        not in pqs.variations:
+                if variation.identifier not in pqs.variations:
                     return False
                 else:
                     return self._check_prerequisite(config, target)
