@@ -13,8 +13,8 @@ with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
 requirements = [
-    "httpx~=0.16.1",
-    "pyjwt~=2.0.1",
+    "httpx~=0.23.0",
+    "pyjwt~=2.4.0",
     "attrs~=21.2.0",
     "mmh3~=3.0.0",
     "requests==2.25.1"
