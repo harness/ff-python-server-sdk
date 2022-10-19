@@ -163,11 +163,11 @@ class Evaluator(object):
                           target: Target) -> bool:
         if not isinstance(clauses, Unset):
             for clause in clauses:
-                if not self._evaluate_clause(clause, target):
-                    log.debug("Unsuccessful evaluation of clause %s", clause)
-                    return False
+                if self._evaluate_clause(clause, target):
+                    log.debug("Successful evaluation of clause %s", clause)
+                    return True
         log.debug("All clauses %s evaluated", clauses)
-        return True
+        return False
 
     def _evaluate_rule(self, rule: ServingRule, target: Target) -> bool:
         return self._evaluate_clauses(rule.clauses, target)

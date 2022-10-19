@@ -16,7 +16,7 @@ Python SDK For Harness Feature Flags
 Use this README to get started with our Feature Flags (FF) SDK for Python. This guide outlines the basics of getting started with the SDK and provides a full code sample for you to try out. 
 This sample doesn’t include configuration options, for in depth steps and configuring the SDK, for example, disabling streaming or using our Relay Proxy, see the  [Python SDK Reference](https://ngdocs.harness.io/article/hwoxb6x2oe-python-sdk-reference).
 
-For a sample FF Python SDK project, see our test [test Golang project](examples/getting_started/getting_started.py).
+For a sample FF Python SDK project, see our test [test python project](examples/getting_started/getting_started.py).
 
 ![FeatureFlags](https://github.com/harness/ff-python-server-sdk/raw/main/docs/images/ff-gui.png)
 
