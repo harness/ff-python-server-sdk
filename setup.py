@@ -13,11 +13,11 @@ with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
 requirements = [
-    "httpx~=0.16.1",
-    "pyjwt~=2.0.1",
-    "attrs~=21.2.0",
-    "mmh3~=3.0.0",
-    "requests==2.25.1"
+    "httpx>=0.23.0",
+    "pyjwt>=2.4.0",
+    "attrs>=21.2.0",
+    "mmh3>=3.0.0",
+    "requests>=2.25.1"
 ]
 
 setup_requirements = [
@@ -56,6 +56,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/drone/ff-python-server-sdk",
-    version='1.1.0',
+    version='1.1.3',
     zip_safe=False,
 )

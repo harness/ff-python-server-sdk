@@ -2,7 +2,7 @@ import pytest
 
 from featureflags.evaluations.auth_target import Target
 from featureflags.evaluations.clause import Clause
-from featureflags.evaluations.constants import EQUAL_OPERATOR
+from featureflags.evaluations.constants import EQUAL_OPERATOR, STARTS_WITH_OPERATOR
 from featureflags.evaluations.distribution import Distribution
 from featureflags.evaluations.enum import FeatureState
 from featureflags.evaluations.evaluator import Evaluator
@@ -58,7 +58,6 @@ def distribution_by_email():
 
 @pytest.fixture
 def feature(variations):
-
     default_serve = Serve(variation=TRUE)
 
     return FeatureConfig(
@@ -75,7 +74,6 @@ def feature(variations):
 
 @pytest.fixture
 def segment(target):
-
     return Segment(
         identifier="beta",
         name="Beta users",
@@ -162,6 +160,48 @@ def test_evaluate_clause(data_provider, target):
     got = evaluator._evaluate_clause(clause, target)
 
     assert got is True
+
+
+def test_evaluate_clauses(data_provider, target):
+    evaluator = Evaluator(data_provider)
+    clause1 = Clause(
+        id="",
+        attribute="identifier",
+        op=EQUAL_OPERATOR,
+        values=[target.identifier]
+    )
+
+    clause2 = Clause(
+        id="",
+        attribute="name",
+        op=EQUAL_OPERATOR,
+        values=[target.name]
+    )
+
+    clause3 = Clause(
+        id="",
+        attribute="name",
+        op=EQUAL_OPERATOR,
+        values=["Not John"]
+    )
+
+    clause4 = Clause(
+        id="",
+        attribute="name",
+        op=STARTS_WITH_OPERATOR,
+        values=["Not John"]
+    )
+
+    testcases = [
+        {"scenario": "Evaluate clauses with no clauses", "input": [], "expected": False},
+        {"scenario": "Evaluate clauses with 2 Clauses both will match", "input": [clause1, clause2], "expected": True},
+        {"scenario": "Evaluate clauses with 2 Clauses only 1 match", "input": [clause1, clause3], "expected": True},
+        {"scenario": "Evaluate clauses with 2 Clauses but no match", "input": [clause3, clause4], "expected": False}
+    ]
+
+    for tc in testcases:
+        actual = evaluator._evaluate_clauses(tc["input"], target)
+        assert actual is tc["expected"]
 
 
 def test_evaluate_rules(data_provider, target):
