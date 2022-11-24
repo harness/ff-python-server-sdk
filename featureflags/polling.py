@@ -46,14 +46,13 @@ class PollingProcessor(Thread):
                     t2.start()
                     t1.join()
                     t2.join()
-                    if not self.__ready.is_set() is True:
-                        log.info("PollingProcessor initialized ok")
-                        if self.__config.enable_stream and \
-                                not self.__stream_ready.is_set():
-                            log.debug('Poller is in pause mode...')
-                            self.__ready.wait()
-                        else:
-                            self.__ready.set()
+
+                    if self.__config.enable_stream and self.__stream_ready.is_set():
+                        log.debug('Poller will be paused because streaming mode is active')
+                        self.__ready.wait()  # Block until ready.set() is called
+                        log.debug('Poller resuming ')
+                    else:
+                        self.__ready.set()
                 except Exception as e:
                     log.exception(
                         'Error: Exception encountered when polling flags. %s',
@@ -62,6 +61,7 @@ class PollingProcessor(Thread):
 
                 elapsed = time.time() - start_time
                 if elapsed < self.__config.pull_interval:
+                    log.info("Poller sleeping for " + (self.__config.pull_interval - elapsed).__str__()) + " seconds"
                     time.sleep(self.__config.pull_interval - elapsed)
 
     def stop(self):
