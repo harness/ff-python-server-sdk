@@ -47,7 +47,7 @@ class PollingProcessor(Thread):
                     t1.join()
                     t2.join()
 
-                    if self.__config.enable_stream and\
+                    if self.__config.enable_stream and \
                             self.__stream_ready.is_set():
                         log.debug('Poller will be paused because' +
                                   ' streaming mode is active')
@@ -64,8 +64,8 @@ class PollingProcessor(Thread):
                 elapsed = time.time() - start_time
                 if elapsed < self.__config.pull_interval:
                     log.info("Poller sleeping for " +
-                             (self.__config.pull_interval - elapsed).__str__())\
-                    + " seconds"
+                             (self.__config.pull_interval - elapsed).__str__())
+                    " seconds"
                     time.sleep(self.__config.pull_interval - elapsed)
 
     def stop(self):
