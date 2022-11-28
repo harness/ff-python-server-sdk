@@ -21,7 +21,9 @@ class StreamProcessor(Thread):
     def __init__(self, repository: DataProviderInterface,
                  client: AuthenticatedClient,
                  environment_id: str, api_key: str, token: str,
-                 config: Config, ready: threading.Event, poller: threading.Event,
+                 config: Config,
+                 ready: threading.Event,
+                 poller: threading.Event,
                  cluster: str):
 
         Thread.__init__(self)
@@ -46,7 +48,8 @@ class StreamProcessor(Thread):
         while self._running:
             try:
                 messages = self._connect()
-                self.poller.clear()  # were streaming now, so tell any poller threads calling wait to wait...
+                self.poller.clear()  # were streaming now, so tell any poller
+                # threads calling wait to wait...
                 self._ready.set()
                 retries = 0 # reset the retry counter
                 for msg in messages:
@@ -65,8 +68,9 @@ class StreamProcessor(Thread):
                     self.poller.set()
 
                 # Calculate back of sleep
-                sleep = (BACK_OFF_IN_SECONDS * 2 ** retries + random.uniform(0, 1))
-                log.info(f"retrying stream connection in {sleep.__str__()} seconds")
+                sleep = (BACK_OFF_IN_SECONDS * 2 ** retries +
+                         random.uniform(0, 1))
+                log.info(f"retrying stream connection in {sleep.__str__()}s")
                 time.sleep(sleep)
                 retries += 1
 

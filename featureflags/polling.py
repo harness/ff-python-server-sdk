@@ -29,8 +29,8 @@ class PollingProcessor(Thread):
     def run(self):
         if not self.__running:
             if self.__config.pull_interval < 60:
-                log.warning("Pull Interval must be greater than or equal "
-                            "to 60 seconds, was: " +
+                log.warning("Pull Interval must be greater than or equal to "
+                            "60 seconds, was: " +
                             str(self.__config.pull_interval) +
                             " setting to 60")
                 self.__config.pull_interval = 60
@@ -47,8 +47,10 @@ class PollingProcessor(Thread):
                     t1.join()
                     t2.join()
 
-                    if self.__config.enable_stream and self.__stream_ready.is_set():
-                        log.debug('Poller will be paused because streaming mode is active')
+                    if self.__config.enable_stream and\
+                            self.__stream_ready.is_set():
+                        log.debug('Poller will be paused because' +
+                                  ' streaming mode is active')
                         self.__ready.wait()  # Block until ready.set() is called
                         log.debug('Poller resuming ')
                     else:
@@ -61,7 +63,9 @@ class PollingProcessor(Thread):
 
                 elapsed = time.time() - start_time
                 if elapsed < self.__config.pull_interval:
-                    log.info("Poller sleeping for " + (self.__config.pull_interval - elapsed).__str__()) + " seconds"
+                    log.info("Poller sleeping for " +
+                             (self.__config.pull_interval - elapsed).__str__())\
+                    + " seconds"
                     time.sleep(self.__config.pull_interval - elapsed)
 
     def stop(self):
