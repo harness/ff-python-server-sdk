@@ -51,7 +51,7 @@ class StreamProcessor(Thread):
                 self.poller.clear()  # were streaming now, so tell any poller
                 # threads calling wait to wait...
                 self._ready.set()
-                retries = 0 # reset the retry counter
+                retries = 0  # reset the retry counter
                 for msg in messages:
                     if not self._running:
                         break

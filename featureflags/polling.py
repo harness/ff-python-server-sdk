@@ -51,7 +51,8 @@ class PollingProcessor(Thread):
                             self.__stream_ready.is_set():
                         log.debug('Poller will be paused because' +
                                   ' streaming mode is active')
-                        self.__ready.wait()  # Block until ready.set() is called
+                        #  Block until ready.set() is called
+                        self.__ready.wait()
                         log.debug('Poller resuming ')
                     else:
                         self.__ready.set()
