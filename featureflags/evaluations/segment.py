@@ -109,10 +109,17 @@ class Segment(object):
 
             tags.append(tags_item)
 
-        included = [Target.from_dict(target)
-                    for target in d.pop("included", UNSET)]
-        excluded = [Target.from_dict(target)
-                    for target in d.pop("excluded", UNSET)]
+        # If included list is present and not empty, then extract the values
+        included = []
+        if "included" in d and d["included"]:
+            included = [Target.from_dict(target)
+                        for target in d.pop("included", UNSET)]
+
+        # If excluded list is present and not empty, then extract the values
+        excluded = []
+        if "excluded" in d and d["excluded"]:
+            excluded = [Target.from_dict(target)
+                        for target in d.pop("excluded", UNSET)]
 
         rules: Clauses = Clauses()
         _rules = d.pop("rules", UNSET)

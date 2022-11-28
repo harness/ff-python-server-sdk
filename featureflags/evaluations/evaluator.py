@@ -22,7 +22,6 @@ from featureflags.models.unset import Unset
 from featureflags.repository import QueryInterface
 from featureflags.util import log
 
-
 EMPTY_VARIATION = Variation(identifier="", value=None)
 
 
@@ -114,7 +113,7 @@ class Evaluator(object):
 
                 # Should Target be included via segment rules
                 if segment.rules and self._evaluate_clauses(segment.rules,
-                                                            target):
+                                                                  target):
                     log.debug('Target %s included in segment %s via rules\n',
                               target.name, segment.name)
                     return True
@@ -221,9 +220,9 @@ class Evaluator(object):
 
         for variation_map in var_target_map:
             if not isinstance(variation_map.targets, Unset) and next(
-                (val for val in variation_map.targets
-                    if not isinstance(val, Unset) and val.identifier ==
-                 target.identifier), None) is not None:
+                    (val for val in variation_map.targets
+                     if not isinstance(val, Unset) and val.identifier ==
+                        target.identifier), None) is not None:
                 log.debug("Evaluate variation map with result %s",
                           variation_map.variation)
                 return variation_map.variation
@@ -293,7 +292,7 @@ class Evaluator(object):
                 log.info('Pre requisite flag %s should have the variations %s',
                          config.feature, pqs.variations)
 
-                if not isinstance(variation, Unset) and variation.identifier \
+                if isinstance(variation, Unset) or variation.identifier \
                         not in pqs.variations:
                     return False
                 else:

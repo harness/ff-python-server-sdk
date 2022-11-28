@@ -77,7 +77,8 @@ class Clause(object):
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        id = d.pop("id")
+        # If clause ID is missing, then default to empty
+        id = d.pop("id", "")
 
         attribute = d.pop("attribute")
 
