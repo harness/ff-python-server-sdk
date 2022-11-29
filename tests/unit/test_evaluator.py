@@ -2,7 +2,8 @@ import pytest
 
 from featureflags.evaluations.auth_target import Target
 from featureflags.evaluations.clause import Clause
-from featureflags.evaluations.constants import EQUAL_OPERATOR, STARTS_WITH_OPERATOR
+from featureflags.evaluations.constants import EQUAL_OPERATOR, \
+    STARTS_WITH_OPERATOR
 from featureflags.evaluations.distribution import Distribution
 from featureflags.evaluations.enum import FeatureState
 from featureflags.evaluations.evaluator import Evaluator
@@ -193,10 +194,14 @@ def test_evaluate_clauses(data_provider, target):
     )
 
     testcases = [
-        {"scenario": "Evaluate clauses with no clauses", "input": [], "expected": False},
-        {"scenario": "Evaluate clauses with 2 Clauses both will match", "input": [clause1, clause2], "expected": True},
-        {"scenario": "Evaluate clauses with 2 Clauses only 1 match", "input": [clause1, clause3], "expected": True},
-        {"scenario": "Evaluate clauses with 2 Clauses but no match", "input": [clause3, clause4], "expected": False}
+        {"scenario": "Evaluate clauses with no clauses",
+         "input": [], "expected": False},
+        {"scenario": "Evaluate clauses with 2 Clauses both will match",
+         "input": [clause1, clause2], "expected": True},
+        {"scenario": "Evaluate clauses with 2 Clauses only 1 match",
+         "input": [clause1, clause3], "expected": True},
+        {"scenario": "Evaluate clauses with 2 Clauses but no match",
+         "input": [clause3, clause4], "expected": False}
     ]
 
     for tc in testcases:
