@@ -1,4 +1,4 @@
-pip==19.2.3
+pip==21.1
 bump2version==0.5.11
 wheel==0.33.6
 watchdog==0.9.0
@@ -18,7 +18,7 @@ setuptools~=54.2.0
 httpx~=0.16.1
 attrs~=21.2.0
 
-pyjwt==2.0.1
+pyjwt==2.4.0
 
 openapi-python-client
 requests==2.25.1
