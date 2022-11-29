@@ -1,10 +1,10 @@
-
+import random
 import threading
+import time
 from threading import Thread
 from typing import List, Union
 
 from featureflags.repository import DataProviderInterface
-
 from .api.client import AuthenticatedClient
 from .api.default.get_feature_config_by_identifier import \
     sync as get_feature_config
@@ -14,18 +14,23 @@ from .models.message import Message
 from .sse_client import SSEClient
 from .util import log
 
+BACK_OFF_IN_SECONDS = 5
+
 
 class StreamProcessor(Thread):
     def __init__(self, repository: DataProviderInterface,
                  client: AuthenticatedClient,
                  environment_id: str, api_key: str, token: str,
-                 config: Config, ready: threading.Event,
+                 config: Config,
+                 ready: threading.Event,
+                 poller: threading.Event,
                  cluster: str):
 
         Thread.__init__(self)
         self.daemon = True
         self._running = False
         self._ready = ready
+        self.poller = poller
         self._client = client
         self._environment_id = environment_id
         self._api_key = api_key
@@ -39,10 +44,14 @@ class StreamProcessor(Thread):
         log.info("Starting StreamingProcessor connecting to uri: " +
                  self._stream_url)
         self._running = True
-
+        retries = 0
         while self._running:
             try:
                 messages = self._connect()
+                self.poller.clear()  # were streaming now, so tell any poller
+                # threads calling wait to wait...
+                self._ready.set()
+                retries = 0  # reset the retry counter
                 for msg in messages:
                     if not self._running:
                         break
@@ -53,7 +62,17 @@ class StreamProcessor(Thread):
                     if self._ready.is_set() is False:
                         self._ready.set()
             except Exception as e:
-                log.warning("Unexpected error on stream connection: %s", e)
+                log.error("Unexpected error on stream connection: %s", e)
+                # Signal the poller than it should start due to stream error.
+                if self.poller.is_set() is False:
+                    self.poller.set()
+
+                # Calculate back of sleep
+                sleep = (BACK_OFF_IN_SECONDS * 2 ** retries +
+                         random.uniform(0, 1))
+                log.info(f"retrying stream connection in {sleep.__str__()}s")
+                time.sleep(sleep)
+                retries += 1
 
     def _connect(self) -> SSEClient:
         return SSEClient(self._stream_url, headers={

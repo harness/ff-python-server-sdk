@@ -75,6 +75,7 @@ class CfClient(object):
                 token=self._auth_token,
                 config=self._config,
                 ready=streaming_event,
+                poller=polling_event,
                 cluster=self._cluster,
             )
             self._stream.start()
