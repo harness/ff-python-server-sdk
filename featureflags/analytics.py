@@ -85,7 +85,8 @@ class AnalyticsService(object):
                 event.count = 1
                 self._data[unique_evaluation_key] = event
 
-            # Store unique targets. If the target already exists just ignore it.
+            # Store unique targets. If the target already exists
+            # just ignore it.
             if event.target is not None and not event.target.anonymous:
                 unique_target_key = self.get_target_key(event)
                 if unique_target_key not in self._target_data:
