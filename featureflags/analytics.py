@@ -74,7 +74,7 @@ class AnalyticsService(object):
 
         self._lock.acquire()
         try:
-            # Store unique evaluation events
+            # Store unique evaluation events. We map a unique evaluation event to its count.
             unique_evaluation_key = self.get_key(event)
             if unique_evaluation_key in self._data:
                 self._data[unique_evaluation_key].count += 1
@@ -82,7 +82,7 @@ class AnalyticsService(object):
                 event.count = 1
                 self._data[unique_evaluation_key] = event
 
-            # Store unique targets
+            # Store unique targets. If the target already exists just ignore it.
             unique_target_key = self.get_target_key(event)
             if unique_target_key not in self._target_data:
                 target_name = event.target.name

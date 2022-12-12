@@ -6,13 +6,21 @@ from featureflags.util import log
 
 def main():
     log.debug("Starting example")
-    api_key = "Your API Key"
+    api_key = "545535fb-43c0-448d-b57f-498c378c7a80"
     client = CfClient(api_key)
 
-    target = Target(identifier='harness')
-
+    target = Target(identifier='2')
+    target2 = Target(identifier='3')
+    target3 = Target(identifier='4')
+    target4 = Target(identifier='5')
     while True:
-        result = client.bool_variation('identifier_of_your_bool_flag', target, False)
+        result = client.bool_variation('flag1', target, False)
+        log.debug("Result %s", result)
+        result = client.bool_variation('flag1', target2, False)
+        log.debug("Result %s", result)
+        result = client.bool_variation('flag1', target3, False)
+        log.debug("Result %s", result)
+        result = client.bool_variation('flag1', target4, False)
         log.debug("Result %s", result)
         time.sleep(10)
 
