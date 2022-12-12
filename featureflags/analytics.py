@@ -154,18 +154,14 @@ class AnalyticsService(object):
                     attributes=metric_attributes
                 )
                 metrics_data.append(md)
-            for _, unique_target in self._target_data:
+            for _, unique_target in self._target_data.items():
                 target_attributes: List[KeyValue] = []
-                if not isinstance(event.target.attributes, Unset):
-                    for key, value in event.target.attributes.items():
+                if not isinstance(unique_target.attributes, Unset):
+                    for key, value in unique_target.attributes.items():
                         target_attributes.append(KeyValue(key, value))
-                target_name = event.target.identifier
-                if event.target.name:
-                    target_name = event.target.name
-
                 td = TargetData(
-                    identifier=event.target.identifier,
-                    name=target_name,
+                    identifier=unique_target.identifier,
+                    name=unique_target.name,
                     attributes=target_attributes
                 )
                 target_data.append(td)
