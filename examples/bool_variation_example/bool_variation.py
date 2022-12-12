@@ -10,10 +10,10 @@ def main():
     api_key = "545535fb-43c0-448d-b57f-498c378c7a80"
     client = CfClient(api_key)
 
-    target = Target(identifier='2')
-    target2 = Target(identifier='3')
-    target3 = Target(identifier='4')
-    target4 = Target(identifier='5')
+    target = Target(identifier='2', attributes={"email": "demo@harness.io"})
+    target2 = Target(identifier='3', attributes={"email": "demo@harness.io"})
+    target3 = Target(identifier='4', attributes={"email": "demo@harness.io"})
+    target4 = Target(identifier='5', attributes={"email": "demo@harness.io"})
     while True:
         result = client.bool_variation('flag1', target, False)
         log.debug("Result %s", result)

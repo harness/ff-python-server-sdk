@@ -24,7 +24,7 @@ FF_METRIC_TYPE = 'FFMETRICS'
 FEATURE_IDENTIFIER_ATTRIBUTE = 'featureIdentifier'
 FEATURE_NAME_ATTRIBUTE = 'featureName'
 VARIATION_IDENTIFIER_ATTRIBUTE = 'variationIdentifier'
-VARIATION_VALUE_ATTRIBUTE = 'featureValue'
+VARIATION_VALUE_ATTRIBUTE = 'variationValue'
 TARGET_ATTRIBUTE = 'target'
 SDK_VERSION_ATTRIBUTE = 'SDK_VERSION'
 SDK_VERSION = '1.0.0'
@@ -167,6 +167,7 @@ class AnalyticsService(object):
                 target_data.append(td)
         finally:
             self._data = {}
+            self._target_data = {}
             self._lock.release()
         body: Metrics = Metrics(target_data=target_data,
                                 metrics_data=metrics_data)
