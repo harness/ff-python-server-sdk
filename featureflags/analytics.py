@@ -76,7 +76,8 @@ class AnalyticsService(object):
 
         self._lock.acquire()
         try:
-            # Store unique evaluation events. We map a unique evaluation event to its count.
+            # Store unique evaluation events. We map a unique evaluation
+            # event to its count.
             unique_evaluation_key = self.get_key(event)
             if unique_evaluation_key in self._data:
                 self._data[unique_evaluation_key].count += 1
