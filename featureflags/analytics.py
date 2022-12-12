@@ -1,6 +1,6 @@
 import time
 from threading import Lock, Thread
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import attr
 
@@ -11,12 +11,13 @@ from .api.client import AuthenticatedClient
 from .api.default.post_metrics import sync_detailed as post_metrics
 from .config import Config
 from .evaluations.target import Target
+from .evaluations.target_attributes import TargetAttributes
 from .evaluations.variation import Variation
 from .models.key_value import KeyValue
 from .models.metrics import Metrics
 from .models.metrics_data import MetricsData
 from .models.target_data import TargetData
-from .models.unset import Unset
+from .models.unset import Unset, UNSET
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -41,6 +42,11 @@ class AnalyticsEvent(object):
     variation: Variation
     count: int = 0
 
+@attr.s(auto_attribs=True)
+class MetricTargetData(object):
+    identifier: str
+    name: str
+    attributes: Union[Unset, TargetAttributes] = UNSET
 
 class AnalyticsService(object):
 
@@ -51,6 +57,7 @@ class AnalyticsService(object):
         self._client = client
         self._environment = environment
         self._data: Dict[str, AnalyticsEvent] = {}
+        self._target_data: Dict[str, MetricTargetData] = {}
 
         self._running = False
         self._runner = Thread(target=self._sync)
@@ -67,15 +74,31 @@ class AnalyticsService(object):
 
         self._lock.acquire()
         try:
-            key = self.get_key(event)
-            if key in self._data:
-                self._data[key].count += 1
+            # Store unique evaluation events
+            unique_evaluation_key = self.get_key(event)
+            if unique_evaluation_key in self._data:
+                self._data[unique_evaluation_key].count += 1
             else:
                 event.count = 1
-                self._data[key] = event
+                self._data[unique_evaluation_key] = event
+
+            # Store unique targets
+            unique_target_key = self.get_target_key(event)
+            if unique_target_key not in self._target_data:
+                target_name = event.target.name
+                # If the target has no name use the identifier
+                if not target_name:
+                    target_name = event.target.identifier
+                self._target_data[unique_target_key] = MetricTargetData(
+                    identifier=event.target.identifier,
+                    name=target_name,
+                    attributes=event.target.attributes
+                )
+
         finally:
             self._lock.release()
 
+    # Returns a key for unique evaluations events.
     def get_key(self, event: AnalyticsEvent) -> str:
         return '{feature}-{variation}-{value}-{target}'.format(
             feature=event.flag_identifier,
@@ -83,6 +106,11 @@ class AnalyticsService(object):
             value=event.variation.value,
             target=GLOBAL_TARGET,
         )
+
+    # Returns a key for unique targets. Targets are considered unique
+    # if they have different identifiers.
+    def get_target_key(self, event: AnalyticsEvent) -> str:
+        return event.target.identifier
 
     def _sync(self) -> None:
         if not self._running:
