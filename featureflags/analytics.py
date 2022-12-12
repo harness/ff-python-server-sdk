@@ -17,7 +17,7 @@ from .models.key_value import KeyValue
 from .models.metrics import Metrics
 from .models.metrics_data import MetricsData
 from .models.target_data import TargetData
-from .models.unset import Unset, UNSET
+from .models.unset import Unset
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -47,7 +47,7 @@ class AnalyticsEvent(object):
 class MetricTargetData(object):
     identifier: str
     name: str
-    attributes: Union[Unset, TargetAttributes] = UNSET
+    attributes: Union[Unset, TargetAttributes] = Unset
 
 
 class AnalyticsService(object):
