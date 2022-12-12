@@ -42,11 +42,13 @@ class AnalyticsEvent(object):
     variation: Variation
     count: int = 0
 
+
 @attr.s(auto_attribs=True)
 class MetricTargetData(object):
     identifier: str
     name: str
     attributes: Union[Unset, TargetAttributes] = UNSET
+
 
 class AnalyticsService(object):
 
@@ -83,18 +85,18 @@ class AnalyticsService(object):
                 self._data[unique_evaluation_key] = event
 
             # Store unique targets. If the target already exists just ignore it.
-            unique_target_key = self.get_target_key(event)
-            if unique_target_key not in self._target_data:
-                target_name = event.target.name
-                # If the target has no name use the identifier
-                if not target_name:
-                    target_name = event.target.identifier
-                self._target_data[unique_target_key] = MetricTargetData(
-                    identifier=event.target.identifier,
-                    name=target_name,
-                    attributes=event.target.attributes
-                )
-
+            if event.target is not None and not event.target.anonymous:
+                unique_target_key = self.get_target_key(event)
+                if unique_target_key not in self._target_data:
+                    target_name = event.target.name
+                    # If the target has no name use the identifier
+                    if not target_name:
+                        target_name = event.target.identifier
+                    self._target_data[unique_target_key] = MetricTargetData(
+                        identifier=event.target.identifier,
+                        name=target_name,
+                        attributes=event.target.attributes
+                    )
         finally:
             self._lock.release()
 
@@ -131,22 +133,6 @@ class AnalyticsService(object):
         metrics_data: List[MetricsData] = []
         try:
             for _, event in self._data.items():
-                if event.target is not None and not event.target.anonymous:
-                    target_attributes: List[KeyValue] = []
-                    if not isinstance(event.target.attributes, Unset):
-                        for key, value in event.target.attributes.items():
-                            target_attributes.append(KeyValue(key, value))
-                    target_name = event.target.identifier
-                    if event.target.name:
-                        target_name = event.target.name
-
-                    td = TargetData(
-                        identifier=event.target.identifier,
-                        name=target_name,
-                        attributes=target_attributes
-                    )
-                    target_data.append(td)
-
                 metric_attributes: List[KeyValue] = [
                     KeyValue(FEATURE_IDENTIFIER_ATTRIBUTE,
                              event.flag_identifier),
@@ -168,6 +154,21 @@ class AnalyticsService(object):
                     attributes=metric_attributes
                 )
                 metrics_data.append(md)
+            for _, unique_target in self._target_data:
+                target_attributes: List[KeyValue] = []
+                if not isinstance(event.target.attributes, Unset):
+                    for key, value in event.target.attributes.items():
+                        target_attributes.append(KeyValue(key, value))
+                target_name = event.target.identifier
+                if event.target.name:
+                    target_name = event.target.name
+
+                td = TargetData(
+                    identifier=event.target.identifier,
+                    name=target_name,
+                    attributes=target_attributes
+                )
+                target_data.append(td)
         finally:
             self._data = {}
             self._lock.release()
