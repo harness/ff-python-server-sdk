@@ -48,7 +48,8 @@ class Feature:
                         for segment in source["segments"]]
         targets = []
         if "targets" in source:
-            targets = [Target.from_dict(target) for target in source["targets"]]
+            targets = [Target.from_dict(target) for
+                       target in source["targets"]]
 
         tests = [Test.from_dict(test) for test in source["tests"]]
 

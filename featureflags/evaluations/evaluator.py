@@ -113,7 +113,7 @@ class Evaluator(object):
 
                 # Should Target be included via segment rules
                 if segment.rules and self._evaluate_clauses(segment.rules,
-                                                                  target):
+                                                            target):
                     log.debug('Target %s included in segment %s via rules\n',
                               target.name, segment.name)
                     return True

@@ -118,14 +118,22 @@ class CfClient(object):
     def bool_variation(self, identifier: str, target: Target,
                        default: bool) -> bool:
         variation = self._evaluator.evaluate(identifier, target)
-        if self._config.enable_analytics:
+        # Only register metrics if analytics is enabled,
+        # and sometimes when the SDK starts up we can
+        # evaluate before the flag is cached which results in
+        # an empty identifier.
+        if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
         return variation.bool(default)
 
     def int_variation(self, identifier: str, target: Target,
                       default: int) -> int:
         variation = self._evaluator.evaluate(identifier, target)
-        if self._config.enable_analytics:
+        # Only register metrics if analytics is enabled,
+        # and sometimes when the SDK starts up we can
+        # evaluate before the flag is cached which results in
+        # an empty identifier.
+        if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
         return variation.int(default)
 
@@ -133,7 +141,11 @@ class CfClient(object):
                          default: float) -> float:
         variation = self._evaluator.evaluate(
             identifier, target)
-        if self._config.enable_analytics:
+        # Only register metrics if analytics is enabled,
+        # and sometimes when the SDK starts up we can
+        # evaluate before the flag is cached which results in
+        # an empty identifier.
+        if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
         return variation.number(default)
 
@@ -141,14 +153,22 @@ class CfClient(object):
                          default: str) -> str:
         variation = self._evaluator.evaluate(
             identifier, target)
-        if self._config.enable_analytics:
+        # Only register metrics if analytics is enabled,
+        # and sometimes when the SDK starts up we can
+        # evaluate before the flag is cached which results in
+        # an empty identifier.
+        if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
         return variation.string(default)
 
     def json_variation(self, identifier: str, target: Target,
                        default: Dict[str, Any]) -> Dict[str, Any]:
         variation = self._evaluator.evaluate(identifier, target)
-        if self._config.enable_analytics:
+        # Only register metrics if analytics is enabled,
+        # and sometimes when the SDK starts up we can
+        # evaluate before the flag is cached which results in
+        # an empty identifier.
+        if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
         return variation.json(default)
 
