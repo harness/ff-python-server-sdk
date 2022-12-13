@@ -120,7 +120,7 @@ class CfClient(object):
         variation = self._evaluator.evaluate(identifier, target)
         # Only register metrics if analytics is enabled, and sometime when the SDK
         # starts up we can evaluate before the flag is cached which results in an empty identifier.
-        if self._config.enable_analytics and variation.identifier is not "":
+        if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
         return variation.bool(default)
 
@@ -129,7 +129,7 @@ class CfClient(object):
         variation = self._evaluator.evaluate(identifier, target)
         # Only register metrics if analytics is enabled, and sometime when the SDK
         # starts up we can evaluate before the flag is cached which results in an empty identifier.
-        if self._config.enable_analytics and variation.identifier is not "":
+        if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
         return variation.int(default)
 
@@ -139,7 +139,7 @@ class CfClient(object):
             identifier, target)
         # Only register metrics if analytics is enabled, and sometime when the SDK
         # starts up we can evaluate before the flag is cached which results in an empty identifier.
-        if self._config.enable_analytics and variation.identifier is not "":
+        if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
         return variation.number(default)
 
@@ -149,7 +149,7 @@ class CfClient(object):
             identifier, target)
         # Only register metrics if analytics is enabled, and sometime when the SDK
         # starts up we can evaluate before the flag is cached which results in an empty identifier.
-        if self._config.enable_analytics and variation.identifier is not "":
+        if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
         return variation.string(default)
 
@@ -158,7 +158,7 @@ class CfClient(object):
         variation = self._evaluator.evaluate(identifier, target)
         # Only register metrics if analytics is enabled, and sometime when the SDK
         # starts up we can evaluate before the flag is cached which results in an empty identifier.
-        if self._config.enable_analytics and variation.identifier is not "":
+        if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
         return variation.json(default)
 
