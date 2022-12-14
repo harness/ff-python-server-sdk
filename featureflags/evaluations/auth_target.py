@@ -16,7 +16,7 @@ class Target():
     identifier: str
     name: Union[Unset, str] = UNSET
     anonymous: Union[Unset, bool] = UNSET
-    attributes: Union[Unset, Dict[str, Any]] = UNSET
+    attributes: Union[Unset, Dict[str, str]] = UNSET
 
     def to_dict(self) -> Dict[str, Any]:
         identifier = self.identifier

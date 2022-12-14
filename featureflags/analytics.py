@@ -160,7 +160,8 @@ class AnalyticsService(object):
                 target_attributes: List[KeyValue] = []
                 if not isinstance(unique_target.attributes, Unset):
                     for key, value in unique_target.attributes.items():
-                        target_attributes.append(KeyValue(key, value))
+                        # Attribute values need to be sent as string to ff-server to convert all values to strings.
+                        target_attributes.append(KeyValue(key, str(value)))
                 td = TargetData(
                     identifier=unique_target.identifier,
                     name=unique_target.name,
