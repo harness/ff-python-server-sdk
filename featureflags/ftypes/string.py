@@ -54,4 +54,4 @@ class String(Interface):
         return self.value.lower() <= _value.lower()
 
     def in_list(self, value: typing.List[typing.Any]) -> bool:
-        return self.value.lower() in (val.lower() for val in value)
+        return self.value in value

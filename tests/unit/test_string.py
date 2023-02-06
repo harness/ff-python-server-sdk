@@ -20,7 +20,6 @@ from featureflags.ftypes.string import String
     ],
 )
 def test_type_methods(mocker, arg, input, mocked, method, expected):
-
     m = mocker.patch("featureflags.ftypes.string.get_str_value",
                      return_value=mocked)
     _string = String(value=arg)
@@ -33,11 +32,19 @@ def test_type_methods(mocker, arg, input, mocked, method, expected):
         m.assert_called_with(input)
 
 
-def test_in_list():
+def test_in_list_match():
+    _string = String(value="Harness")
 
-    _string = String(value="harness")
+    got = _string.in_list(["wings", "Harness"])
+    expected = True
+
+    assert got == expected
+
+
+def test_in_list_no_match():
+    _string = String(value="Harness")
 
     got = _string.in_list(["wings", "harness"])
-    expected = True
+    expected = False
 
     assert got == expected
