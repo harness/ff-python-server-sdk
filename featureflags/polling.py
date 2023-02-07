@@ -48,8 +48,7 @@ class PollingProcessor(Thread):
                     t1.join()
                     t2.join()
                     #  Segments and flags have been cached so
-                    #  set the client thread here in case the optional
-                    #  wait_for_initialization method has been called.
+                    #  mark the Client as initialised.
                     self.__wait_for_initialization.set()
                     if self.__config.enable_stream and \
                             self.__stream_ready.is_set():
