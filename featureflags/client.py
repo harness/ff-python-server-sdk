@@ -28,6 +28,7 @@ class CfClient(object):
             config: Optional[Config] = None
     ):
         self._client: Optional[Client] = None
+        self._initialized = threading.Event()
         self._auth_token: Optional[str] = None
         self._environment_id: Optional[str] = None
         self._sdk_key: Optional[str] = sdk_key
@@ -86,6 +87,9 @@ class CfClient(object):
                 client=self._client,
                 environment=self._environment_id
             )
+
+    def wait_for_initialization(self):
+        self._initialized.wait()
 
     def get_environment_id(self):
         return self._environment_id

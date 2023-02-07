@@ -13,7 +13,7 @@ from .util import log
 class PollingProcessor(Thread):
 
     def __init__(self, client: AuthenticatedClient, config: Config,
-                 environment_id: str, ready: Event,
+                 environment_id: str, flags_and_groups_cached: Event, ready: Event,
                  stream_ready: Event,
                  repository: DataProviderInterface) -> None:
         Thread.__init__(self)
@@ -22,6 +22,7 @@ class PollingProcessor(Thread):
         self.__client = client
         self.__config = config
         self.__running = False
+        self.__flags_and_groups_cached = flags_and_groups_cached
         self.__ready = ready
         self.__stream_ready = stream_ready
         self.__repository = repository
