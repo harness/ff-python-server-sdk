@@ -13,7 +13,7 @@ from .util import log
 class PollingProcessor(Thread):
 
     def __init__(self, client: AuthenticatedClient, config: Config,
-                 environment_id: str, flags_and_groups_cached: Event, ready: Event,
+                 environment_id: str, wait_for_initialization: Event, ready: Event,
                  stream_ready: Event,
                  repository: DataProviderInterface) -> None:
         Thread.__init__(self)
@@ -22,7 +22,7 @@ class PollingProcessor(Thread):
         self.__client = client
         self.__config = config
         self.__running = False
-        self.__flags_and_groups_cached = flags_and_groups_cached
+        self.__wait_for_initialization = wait_for_initialization
         self.__ready = ready
         self.__stream_ready = stream_ready
         self.__repository = repository
@@ -47,7 +47,9 @@ class PollingProcessor(Thread):
                     t2.start()
                     t1.join()
                     t2.join()
-
+                    #  Segments and flags have been cached so set the client thread here in case the optional
+                    #  wait_for_initialization method has been called.
+                    self.__wait_for_initialization.set()
                     if self.__config.enable_stream and \
                             self.__stream_ready.is_set():
                         log.debug('Poller will be paused because' +
