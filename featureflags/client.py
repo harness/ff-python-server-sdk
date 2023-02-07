@@ -28,7 +28,8 @@ class CfClient(object):
             config: Optional[Config] = None
     ):
         self._client: Optional[Client] = None
-        #  The Client is considered initialized when flags and groups are loaded into cache.
+        #  The Client is considered initialized when flags and groups
+        #  are loaded into cache.
         self._initialized = threading.Event()
         self._auth_token: Optional[str] = None
         self._environment_id: Optional[str] = None
@@ -62,8 +63,9 @@ class CfClient(object):
             client=self._client,
             config=self._config,
             environment_id=self._environment_id,
-            #  PollingProcessor is responsible for doing the initial flag/group fetch and cache. So we allocate it
-            #  the responsibility for setting the Client is_initialized variable.
+            #  PollingProcessor is responsible for doing the initial
+            #  flag/group fetch and cache. So we allocate it the responsibility
+            #  for setting the Client is_initialized variable.
             wait_for_initialization=self._initialized,
             ready=polling_event,
             stream_ready=streaming_event,

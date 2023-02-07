@@ -13,8 +13,8 @@ from .util import log
 class PollingProcessor(Thread):
 
     def __init__(self, client: AuthenticatedClient, config: Config,
-                 environment_id: str, wait_for_initialization: Event, ready: Event,
-                 stream_ready: Event,
+                 environment_id: str, wait_for_initialization: Event,
+                 ready: Event, stream_ready: Event,
                  repository: DataProviderInterface) -> None:
         Thread.__init__(self)
         self.daemon = True
@@ -47,7 +47,8 @@ class PollingProcessor(Thread):
                     t2.start()
                     t1.join()
                     t2.join()
-                    #  Segments and flags have been cached so set the client thread here in case the optional
+                    #  Segments and flags have been cached so
+                    #  set the client thread here in case the optional
                     #  wait_for_initialization method has been called.
                     self.__wait_for_initialization.set()
                     if self.__config.enable_stream and \
