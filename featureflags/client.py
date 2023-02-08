@@ -95,6 +95,7 @@ class CfClient(object):
             )
 
     def wait_for_initialization(self):
+        log.debug("Waiting for initialization to finish")
         self._initialized.wait()
 
     def is_initialized(self):
