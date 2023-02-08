@@ -50,6 +50,7 @@ class PollingProcessor(Thread):
                     #  Segments and flags have been cached so
                     #  mark the Client as initialised.
                     self.__wait_for_initialization.set()
+                    log.debug("CfClient initialized")
                     if self.__config.enable_stream and \
                             self.__stream_ready.is_set():
                         log.debug('Poller will be paused because' +
