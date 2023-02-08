@@ -35,31 +35,33 @@ class PollingProcessor(Thread):
                             str(self.__config.pull_interval) +
                             " setting to 60")
                 self.__config.pull_interval = 60
+
+            self.__running = True
+            #  Get initial flags and groups
+            try:
+                log.info("Fetching initial target segments and flags")
+                self.retrieve_flags_and_segments()
+                log.info("Initial target segments and flags fetched. "
+                         "PollingProcessor will start in: " +
+                         str(self.__config.pull_interval) + " seconds")
+                #  Segments and flags have been cached so
+                #  mark the Client as initialised.
+                self.__wait_for_initialization.set()
+                log.debug("CfClient initialized")
+            except Exception as ex:
+                log.exception(
+                    'Error: Exception encountered when '
+                    'getting initial flags and segments. %s',
+                    ex
+                )
+            #  Sleep for an interval before going into the polling loop.
+            time.sleep(self.__config.pull_interval)
             log.info("Starting PollingProcessor with request interval: " +
                      str(self.__config.pull_interval))
-            self.__running = True
             while self.__running:
                 start_time = time.time()
                 try:
-                    t1 = Thread(target=self.__retrieve_segments)
-                    t2 = Thread(target=self.__retrieve_flags)
-                    t1.start()
-                    t2.start()
-                    t1.join()
-                    t2.join()
-                    #  Segments and flags have been cached so
-                    #  mark the Client as initialised.
-                    self.__wait_for_initialization.set()
-                    log.debug("CfClient initialized")
-                    if self.__config.enable_stream and \
-                            self.__stream_ready.is_set():
-                        log.debug('Poller will be paused because' +
-                                  ' streaming mode is active')
-                        #  Block until ready.set() is called
-                        self.__ready.wait()
-                        log.debug('Poller resuming ')
-                    else:
-                        self.__ready.set()
+                    self.polling_interval()
                 except Exception as e:
                     log.exception(
                         'Error: Exception encountered when polling flags. %s',
@@ -73,9 +75,29 @@ class PollingProcessor(Thread):
                     " seconds"
                     time.sleep(self.__config.pull_interval - elapsed)
 
+    def polling_interval(self):
+        if self.__config.enable_stream and \
+                self.__stream_ready.is_set():
+            log.debug('Poller will be paused because' +
+                      ' streaming mode is active')
+            #  Block until ready.set() is called
+            self.__ready.wait()
+            log.debug('Poller resuming ')
+        else:
+            self.retrieve_flags_and_segments()
+            self.__ready.set()
+
     def stop(self):
         log.info("Stopping PollingProcessor")
         self.__running = False
+
+    def retrieve_flags_and_segments(self):
+        t1 = Thread(target=self.__retrieve_segments)
+        t2 = Thread(target=self.__retrieve_flags)
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
 
     def __retrieve_flags(self):
         log.debug("Loading feature flags")
