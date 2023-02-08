@@ -13,8 +13,8 @@ from .util import log
 class PollingProcessor(Thread):
 
     def __init__(self, client: AuthenticatedClient, config: Config,
-                 environment_id: str, ready: Event,
-                 stream_ready: Event,
+                 environment_id: str, wait_for_initialization: Event,
+                 ready: Event, stream_ready: Event,
                  repository: DataProviderInterface) -> None:
         Thread.__init__(self)
         self.daemon = True
@@ -22,6 +22,7 @@ class PollingProcessor(Thread):
         self.__client = client
         self.__config = config
         self.__running = False
+        self.__wait_for_initialization = wait_for_initialization
         self.__ready = ready
         self.__stream_ready = stream_ready
         self.__repository = repository
@@ -34,19 +35,32 @@ class PollingProcessor(Thread):
                             str(self.__config.pull_interval) +
                             " setting to 60")
                 self.__config.pull_interval = 60
+
+            self.__running = True
+            #  Get initial flags and groups
+            try:
+                log.info("Fetching initial target segments and flags")
+                self.retrieve_flags_and_segments()
+                log.info("Initial target segments and flags fetched. "
+                         "PollingProcessor will start in: " +
+                         str(self.__config.pull_interval) + " seconds")
+                #  Segments and flags have been cached so
+                #  mark the Client as initialised.
+                self.__wait_for_initialization.set()
+                log.debug("CfClient initialized")
+            except Exception as ex:
+                log.exception(
+                    'Error: Exception encountered when '
+                    'getting initial flags and segments. %s',
+                    ex
+                )
+            #  Sleep for an interval before going into the polling loop.
+            time.sleep(self.__config.pull_interval)
             log.info("Starting PollingProcessor with request interval: " +
                      str(self.__config.pull_interval))
-            self.__running = True
             while self.__running:
                 start_time = time.time()
                 try:
-                    t1 = Thread(target=self.__retrieve_segments)
-                    t2 = Thread(target=self.__retrieve_flags)
-                    t1.start()
-                    t2.start()
-                    t1.join()
-                    t2.join()
-
                     if self.__config.enable_stream and \
                             self.__stream_ready.is_set():
                         log.debug('Poller will be paused because' +
@@ -55,6 +69,7 @@ class PollingProcessor(Thread):
                         self.__ready.wait()
                         log.debug('Poller resuming ')
                     else:
+                        self.retrieve_flags_and_segments()
                         self.__ready.set()
                 except Exception as e:
                     log.exception(
@@ -72,6 +87,14 @@ class PollingProcessor(Thread):
     def stop(self):
         log.info("Stopping PollingProcessor")
         self.__running = False
+
+    def retrieve_flags_and_segments(self):
+        t1 = Thread(target=self.__retrieve_segments)
+        t2 = Thread(target=self.__retrieve_flags)
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
 
     def __retrieve_flags(self):
         log.debug("Loading feature flags")
