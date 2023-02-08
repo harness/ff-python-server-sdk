@@ -61,7 +61,16 @@ class PollingProcessor(Thread):
             while self.__running:
                 start_time = time.time()
                 try:
-                    self.polling_interval()
+                    if self.__config.enable_stream and \
+                            self.__stream_ready.is_set():
+                        log.debug('Poller will be paused because' +
+                                  ' streaming mode is active')
+                        #  Block until ready.set() is called
+                        self.__ready.wait()
+                        log.debug('Poller resuming ')
+                    else:
+                        self.retrieve_flags_and_segments()
+                        self.__ready.set()
                 except Exception as e:
                     log.exception(
                         'Error: Exception encountered when polling flags. %s',
@@ -74,18 +83,6 @@ class PollingProcessor(Thread):
                              (self.__config.pull_interval - elapsed).__str__())
                     " seconds"
                     time.sleep(self.__config.pull_interval - elapsed)
-
-    def polling_interval(self):
-        if self.__config.enable_stream and \
-                self.__stream_ready.is_set():
-            log.debug('Poller will be paused because' +
-                      ' streaming mode is active')
-            #  Block until ready.set() is called
-            self.__ready.wait()
-            log.debug('Poller resuming ')
-        else:
-            self.retrieve_flags_and_segments()
-            self.__ready.set()
 
     def stop(self):
         log.info("Stopping PollingProcessor")
