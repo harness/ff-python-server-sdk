@@ -65,6 +65,7 @@ class PollingProcessor(Thread):
                             self.__stream_ready.is_set():
                         log.debug('Poller will be paused because' +
                                   ' streaming mode is active')
+                        self.retrieve_flags_and_segments()  # on stream disconnect, make sure flags are in sync before pausing
                         #  Block until ready.set() is called
                         self.__ready.wait()
                         log.debug('Poller resuming ')

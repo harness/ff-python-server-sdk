@@ -48,6 +48,9 @@ class SSEClient(object):
         # The 'Accept' header is not required, but explicit > implicit
         self.requests_kwargs["headers"]["Accept"] = "text/event-stream"
 
+        # If we haven't gotten any heartbeats from the server in 60 seconds, then we assume the socket has died
+        self.requests_kwargs["timeout"] = 60
+
         # Keep data here as it streams in
         self.buf: str = ""
 
