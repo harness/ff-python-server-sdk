@@ -166,7 +166,7 @@ def multiple_responses(monkeypatch):
     fake_get.assert_called_once_with(
         "http://blah.com",
         headers={"Accept": "text/event-stream", "Cache-Control": "no-cache"},
-        stream=True,
+        stream=True, timeout=60
     )
 
 
@@ -244,7 +244,7 @@ def unicode_multibyte_responses(monkeypatch):
     fake_get.assert_called_once_with(
         "http://blah.com",
         headers={"Accept": "text/event-stream", "Cache-Control": "no-cache"},
-        stream=True,
+        stream=True, timeout=60
     )
 
 

@@ -24,7 +24,7 @@ def main():
     # Loop forever reporting the state of the flag
     while True:
         result = client.bool_variation(flagName, target, False)
-        log.info("Flag variation %s", result)
+        log.info("%s flag variation %s", flagName, result)
         time.sleep(10)
            
     close()
