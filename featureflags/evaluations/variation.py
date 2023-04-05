@@ -19,43 +19,53 @@ class Variation(object):
     description: Union[Unset, str] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
-    def bool(self, target: Target, flag_identifier: str,  default: bool = False) -> bool:
+    def bool(self, target: Target, flag_identifier: str,
+             default: bool = False) -> bool:
         if self.value:
             return self.value.lower() == "true"
         log.error(
-            "Failed to evaluate bool variation for %s and the default variation '%s' is being returned",
+            "Failed to evaluate bool variation for %s and the "
+            "default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
 
-    def string(self, target: Target, flag_identifier: str, default: str) -> str:
+    def string(self, target: Target, flag_identifier: str,
+               default: str) -> str:
         if self.value:
             return self.value
         log.error(
-            "Failed to evaluate string variation for %s and the default variation '%s' is being returned",
+            "Failed to evaluate string variation for %s and the "
+            "default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
 
-    def number(self, target: Target, flag_identifier: str,  default: float) -> float:
+    def number(self, target: Target, flag_identifier: str,
+               default: float) -> float:
         if self.value:
             return float(self.value)
         log.error(
-            "Failed to evaluate number variation for %s and the default variation '%s' is being returned",
+            "Failed to evaluate number variation for %s and the "
+            "default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
 
-    def int(self, target: Target, flag_identifier: str, default: int) -> int:
+    def int(self, target: Target, flag_identifier: str,
+            default: int) -> int:
         if self.value:
             return int(self.value)
         log.error(
-            "Failed to evaluate int variation for %s and the default variation '%s' is being returned",
+            "Failed to evaluate int variation for %s and the "
+            "default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
 
-    def json(self, target: Target, flag_identifier: str, default: dict) -> dict:
+    def json(self, target: Target, flag_identifier: str,
+             default: dict) -> dict:
         if self.value:
             return json.loads(self.value)
         log.error(
-            "Failed to evaluate json variation for %s and the default variation '%s' is being returned",
+            "Failed to evaluate json variation for %s and the "
+            "default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
 
