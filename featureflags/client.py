@@ -138,7 +138,7 @@ class CfClient(object):
         # an empty identifier.
         if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
-        return variation.bool(default)
+        return variation.bool(target, identifier, default)
 
     def int_variation(self, identifier: str, target: Target,
                       default: int) -> int:
@@ -149,7 +149,7 @@ class CfClient(object):
         # an empty identifier.
         if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
-        return variation.int(default)
+        return variation.int(target, identifier, default)
 
     def number_variation(self, identifier: str, target: Target,
                          default: float) -> float:
@@ -161,7 +161,7 @@ class CfClient(object):
         # an empty identifier.
         if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
-        return variation.number(default)
+        return variation.number(target, identifier, default)
 
     def string_variation(self, identifier: str, target: Target,
                          default: str) -> str:
@@ -173,7 +173,7 @@ class CfClient(object):
         # an empty identifier.
         if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
-        return variation.string(default)
+        return variation.string(target, identifier, default)
 
     def json_variation(self, identifier: str, target: Target,
                        default: Dict[str, Any]) -> Dict[str, Any]:
@@ -184,7 +184,7 @@ class CfClient(object):
         # an empty identifier.
         if self._config.enable_analytics and variation.identifier != "":
             self._analytics.enqueue(target, identifier, variation)
-        return variation.json(default)
+        return variation.json(target, identifier, default)
 
     def close(self):
         log.info('closing sdk client')
