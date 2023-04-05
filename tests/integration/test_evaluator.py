@@ -128,15 +128,18 @@ def test_evaluator(tc: TestCase):
 
     switch_kind = {
         FeatureConfigKind.BOOLEAN:
-            lambda: evaluator.evaluate(tc.flag, target).bool(target, tc.flag, default=False),
+            lambda: evaluator.evaluate(tc.flag, target)
+            .bool(target, tc.flag, default=False),
         FeatureConfigKind.STRING:
             lambda: evaluator.evaluate(tc.flag, target).string(
                 target, tc.flag,
                 default="failed"),
         FeatureConfigKind.INT:
-            lambda: evaluator.evaluate(tc.flag, target).number(target, tc.flag, default=0.100),
+            lambda: evaluator.evaluate(tc.flag, target)
+            .number(target, tc.flag, default=0.100),
         FeatureConfigKind.JSON:
-            lambda: evaluator.evaluate(tc.flag, target).json(target, tc.flag, default={}),
+            lambda: evaluator.evaluate(tc.flag, target)
+            .json(target, tc.flag, default={}),
     }
 
     kind = repository.get_flag(tc.flag).kind
