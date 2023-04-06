@@ -54,6 +54,8 @@ class PollingProcessor(Thread):
                     'getting initial flags and segments. %s',
                     ex
                 )
+                raise
+
             #  Sleep for an interval before going into the polling loop.
             time.sleep(self.__config.pull_interval)
             log.info("Starting PollingProcessor with request interval: " +
@@ -78,6 +80,7 @@ class PollingProcessor(Thread):
                         'Error: Exception encountered when polling flags. %s',
                         e
                     )
+                    raise
 
                 elapsed = time.time() - start_time
                 if elapsed < self.__config.pull_interval:
