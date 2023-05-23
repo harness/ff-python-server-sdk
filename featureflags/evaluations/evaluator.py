@@ -295,8 +295,8 @@ class Evaluator(object):
                 if isinstance(variation, Unset) or variation.identifier \
                         not in pqs.variations:
                     return False
-                else:
-                    return self._check_prerequisite(config, target)
+                elif not self._check_prerequisite(config, target):
+                    return False
         return True
 
     def evaluate(self, identifier: str, target: Target) -> Variation:
