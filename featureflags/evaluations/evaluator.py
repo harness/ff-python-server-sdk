@@ -295,6 +295,7 @@ class Evaluator(object):
                 if isinstance(variation, Unset) or variation.identifier \
                         not in pqs.variations:
                     return False
+                # Check for any nested prerequisites 
                 elif not self._check_prerequisite(config, target):
                     return False
         return True
