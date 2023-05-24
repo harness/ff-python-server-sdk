@@ -65,15 +65,13 @@ def main():
     client = CfClient(apiKey)
 
     # Create a target (different targets can get different results based on rules.  This include a custom attribute 'location')
-    target = Target(identifier='pythonSDK', name="PythonSDK", attributes={"location": "emea"})
+    target = Target(identifier='HT_1', name="Harness_Target_1", attributes={"location": "emea"})
 
     # Loop forever reporting the state of the flag
     while True:
         result = client.bool_variation(flagName, target, False)
         log.info("Flag variation %s", result)
         time.sleep(10)
-
-    close()
 
 
 if __name__ == "__main__":
