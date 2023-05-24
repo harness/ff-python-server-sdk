@@ -9,10 +9,10 @@ def main():
     api_key = "Your API key"
     client = CfClient(api_key)
 
-    target = Target(identifier='harness')
+    target = Target(identifier='HT_1', name="Harness_Target_1", attributes={"location": "emea"})
 
     for x in range(10):
-        result = client.bool_variation('your_flag_identifier', target, False)
+        result = client.bool_variation('harnessappdemodarkmode', target, False)
         log.debug("Result %s", result)
         time.sleep(10)
 
