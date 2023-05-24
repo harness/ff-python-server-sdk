@@ -7,7 +7,7 @@ import time
 
 
 # API Key
-apiKey = os.getenv('FF_API_KEY', "")
+api_key = os.getenv('FF_API_KEY', "")
 
 # Flag Name
 flagName = os.getenv('FF_FLAG_NAME', "harnessappdemodarkmode")
@@ -15,11 +15,11 @@ flagName = os.getenv('FF_FLAG_NAME', "harnessappdemodarkmode")
 def main():
     log.info("Harness SDK Getting Started")
     # Create a Feature Flag Client
-    client = CfClient(apiKey)
+    client = CfClient(api_key)
 
 
     # Create a target (different targets can get different results based on rules)
-    target = Target(identifier='pythonSDK', name="PythonSDK", attributes={"location": "emea"})
+    target = Target(identifier='HT_1', name="Harness_Target_1", attributes={"location": "emea"})
 
     # Loop forever reporting the state of the flag
     while True:
@@ -27,7 +27,6 @@ def main():
         log.info("%s flag variation %s", flagName, result)
         time.sleep(10)
            
-    close()
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ def main():
     api_key = "Your API Key"
     client = CfClient(api_key)
 
-    target = Target(identifier='harness')
+    target = Target(identifier='HT_1', name="Harness_Target_1", attributes={"location": "emea"})
 
     while True:
         result = client.bool_variation('identifier_of_your_bool_flag', target, False)
