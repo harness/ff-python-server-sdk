@@ -110,13 +110,16 @@ class SSEClient(object):
 
             except (StopIteration, requests.RequestException, EOFError) as e:
                 if isinstance(e, StopIteration):
-                    log.error("Error when iterating through stream messages, attempting to resume")
+                    log.error("Error when iterating through stream messages, "
+                              "attempting to resume")
 
                 if isinstance(e, EOFError):
-                    log.error("Received unexpected EOF from stream, attempting to reconnect")
+                    log.error("Received unexpected EOF from stream, "
+                              "attempting to reconnect")
 
                 if isinstance(e, requests.RequestException):
-                    log.error("Error encountered in stream, attempting to reconnect: %s", e)
+                    log.error("Error encountered in stream, "
+                              "attempting to reconnect: %s", e)
 
                 time.sleep(self.retry / 1000.0)
                 self._connect()
