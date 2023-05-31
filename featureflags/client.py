@@ -133,7 +133,7 @@ class CfClient(object):
             "Harness-SDK-Info": f'Python {VERSION} Server',
             "Harness-EnvironmentID": self._environment_id,
             "Harness-AccountID": decoded["accountID"]}
-        self._client.with_headers(additional_headers)
+        self._client = self._client.with_headers(additional_headers)
 
     def bool_variation(self, identifier: str, target: Target,
                        default: bool) -> bool:
