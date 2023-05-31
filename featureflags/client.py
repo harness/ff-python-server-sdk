@@ -127,7 +127,13 @@ class CfClient(object):
                 'cluster': self._cluster
             }
         )
-        self._client.with_headers({"User-Agent": "PythonSDK/" + VERSION})
+        # Additional headers used to track usage
+        additional_headers = {
+            "User-Agent": "PythonSDK/" + VERSION,
+            "Harness-SDK-Info": f'Python {VERSION} Server',
+            "Harness-EnvironmentID": self._environment_id,
+            "Harness-AccountID": decoded["accountID"]}
+        self._client = self._client.with_headers(additional_headers)
 
     def bool_variation(self, identifier: str, target: Target,
                        default: bool) -> bool:
