@@ -34,8 +34,8 @@ class Variation(object):
         if self.value:
             return self.value
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate string variation for %s and the "
-            "default variation '%s' is being returned",
+            "SDK_EVAL_6001: Failed to evaluate string variation for %s and the"
+            " default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
 
@@ -44,8 +44,8 @@ class Variation(object):
         if self.value:
             return float(self.value)
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate number variation for %s and the "
-            "default variation '%s' is being returned",
+            "SDK_EVAL_6001: Failed to evaluate number variation for %s and the"
+            " default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
 
