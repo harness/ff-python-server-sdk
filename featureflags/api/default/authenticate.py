@@ -10,9 +10,9 @@ from tenacity import retry, retry_if_result
 
 
 def _get_kwargs(
-    *,
-    client: Client,
-    json_body: AuthenticationRequest,
+        *,
+        client: Client,
+        json_body: AuthenticationRequest,
 ) -> Dict[str, Any]:
     url = "{}/client/auth".format(client.base_url)
 
@@ -31,7 +31,7 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, response: httpx.Response
+        *, response: httpx.Response
 ) -> Optional[Union[AuthenticationResponse, None]]:
     if response.status_code == 200:
         response_200 = AuthenticationResponse.from_dict(response.json())
@@ -57,7 +57,7 @@ def _parse_response(
 
 
 def _build_response(
-    *, response: httpx.Response
+        *, response: httpx.Response
 ) -> Response[Union[AuthenticationResponse, None]]:
     return Response(
         status_code=response.status_code,
@@ -68,9 +68,9 @@ def _build_response(
 
 
 def sync_detailed(
-    *,
-    client: Client,
-    json_body: AuthenticationRequest,
+        *,
+        client: Client,
+        json_body: AuthenticationRequest,
 ) -> Response[Union[AuthenticationResponse, None]]:
     kwargs = _get_kwargs(
         client=client,
@@ -99,9 +99,11 @@ def handle_http_result(response):
 
 
 # @retry(stop_max_attempt_number=3, retry_on_result=handle_http_result)
-@retry(retry=
-       (retry_if_result(lambda response: response.status_code != 200) and
-        retry_if_result(handle_http_result)))
+@retry(
+    retry=(
+        retry_if_result(lambda response: response.status_code != 200) and
+        retry_if_result(handle_http_result))
+)
 def _post_request(kwargs):
     return httpx.post(
         **kwargs,
@@ -109,9 +111,9 @@ def _post_request(kwargs):
 
 
 def sync(
-    *,
-    client: Client,
-    json_body: AuthenticationRequest,
+        *,
+        client: Client,
+        json_body: AuthenticationRequest,
 ) -> Optional[Union[AuthenticationResponse, None]]:
     """Used to retrieve all target segments for certain account id."""
 
@@ -121,14 +123,10 @@ def sync(
     ).parsed
 
 
-
-
-
-
 async def asyncio_detailed(
-    *,
-    client: Client,
-    json_body: AuthenticationRequest,
+        *,
+        client: Client,
+        json_body: AuthenticationRequest,
 ) -> Response[Union[AuthenticationResponse, None]]:
     kwargs = _get_kwargs(
         client=client,
@@ -142,9 +140,9 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    *,
-    client: Client,
-    json_body: AuthenticationRequest,
+        *,
+        client: Client,
+        json_body: AuthenticationRequest,
 ) -> Optional[Union[AuthenticationResponse, None]]:
     """Used to retrieve all target segments for certain account id."""
 
