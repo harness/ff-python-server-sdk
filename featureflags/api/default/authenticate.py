@@ -6,7 +6,7 @@ from featureflags.api.client import Client
 from featureflags.api.types import Response
 from featureflags.models.authentication_request import AuthenticationRequest
 from featureflags.models.authentication_response import AuthenticationResponse
-from retrying import retry
+from tenacity import retry, retry_if_result
 
 
 def _get_kwargs(
@@ -82,7 +82,7 @@ def sync_detailed(
     return _build_response(response=response)
 
 
-def should_retry_http_code(response):
+def handle_http_result(response):
     # 408 request timeout
     # 425 too early
     # 429 too many requests
@@ -98,7 +98,10 @@ def should_retry_http_code(response):
         return False
 
 
-@retry(stop_max_attempt_number=3, retry_on_result=should_retry_http_code)
+# @retry(stop_max_attempt_number=3, retry_on_result=handle_http_result)
+@retry(retry=
+       (retry_if_result(lambda response: response.status_code != 200) and
+        retry_if_result(handle_http_result)))
 def _post_request(kwargs):
     return httpx.post(
         **kwargs,
