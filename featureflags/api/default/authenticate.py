@@ -1,4 +1,5 @@
 from typing import Any, Dict, Optional, Union
+from featureflags.util import log
 
 import httpx
 
@@ -91,7 +92,8 @@ def handle_http_result(response):
     # 503 service unavailable
     # 504 gateway timeout
     #  -1 OpenAPI error (timeout etc.)
-    if response.status_code in [408, 425, 429, 500, 502, 503, 504, -1]:
+    code = response.status_code
+    if code in [403, 425, 429, 500, 502, 503, 504, -1]:
         return True
     else:
         return False
@@ -100,8 +102,13 @@ def handle_http_result(response):
 @retry(
     wait=wait_exponential(multiplier=1, min=4, max=10),
     retry=(
-        retry_if_result(lambda response: response.status_code != 200) and
-        retry_if_result(handle_http_result))
+            retry_if_result(lambda response: response.status_code != 200) and
+            retry_if_result(handle_http_result)),
+    # before_sleep=lambda retry_state: log.warning(f"Attempt #{
+    # retry_state.outcome.result()}"),
+    before_sleep=lambda retry_state: log.warning(
+        f'Client authentication attempt #{retry_state.attempt_number} '
+        f'received :{retry_state.outcome.result()} Retrying...')
 )
 def _post_request(kwargs):
     return httpx.post(
