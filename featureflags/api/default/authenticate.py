@@ -37,7 +37,7 @@ def _parse_response(
     if response.status_code == 200:
         response_200 = AuthenticationResponse.from_dict(response.json())
     else:
-        return None
+        raise Exception('Authentication failed on an unrecoverable error')
 
 
 def _build_response(
