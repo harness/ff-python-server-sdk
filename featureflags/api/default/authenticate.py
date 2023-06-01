@@ -91,8 +91,7 @@ def handle_http_result(response):
     # 503 service unavailable
     # 504 gateway timeout
     #  -1 OpenAPI error (timeout etc.)
-    code = response.status_code
-    if code in [404, 425, 429, 500, 502, 503, 504, -1]:
+    if response.status_code in [404, 425, 429, 500, 502, 503, 504, -1]:
         return True
     else:
         return False
