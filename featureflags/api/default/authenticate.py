@@ -36,25 +36,8 @@ def _parse_response(
 ) -> Optional[Union[AuthenticationResponse, None]]:
     if response.status_code == 200:
         response_200 = AuthenticationResponse.from_dict(response.json())
-
-        return response_200
-    if response.status_code == 401:
-        response_401 = None
-
-        return response_401
-    if response.status_code == 403:
-        response_403 = None
-
-        return response_403
-    if response.status_code == 404:
-        response_404 = None
-
-        return response_404
-    if response.status_code == 500:
-        response_500 = None
-
-        return response_500
-    return None
+    else:
+        return None
 
 
 def _build_response(
@@ -93,9 +76,11 @@ def handle_http_result(response):
     # 504 gateway timeout
     #  -1 OpenAPI error (timeout etc.)
     code = response.status_code
-    if code in [403, 425, 429, 500, 502, 503, 504, -1]:
+    if code in [408, 425, 429, 500, 502, 503, 504, -1]:
         return True
     else:
+        log.error(f'Authentication failed with HTTP code #{code} and '
+                  'will not attempt to reconnect')
         return False
 
 
