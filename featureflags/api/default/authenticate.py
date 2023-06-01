@@ -104,8 +104,6 @@ def handle_http_result(response):
     retry=(
             retry_if_result(lambda response: response.status_code != 200) and
             retry_if_result(handle_http_result)),
-    # before_sleep=lambda retry_state: log.warning(f"Attempt #{
-    # retry_state.outcome.result()}"),
     before_sleep=lambda retry_state: log.warning(
         f'Client authentication attempt #{retry_state.attempt_number} '
         f'got {retry_state.outcome.result()} Retrying...')
