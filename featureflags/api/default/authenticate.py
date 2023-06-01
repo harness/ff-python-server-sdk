@@ -6,6 +6,7 @@ from featureflags.api.client import Client
 from featureflags.api.types import Response
 from featureflags.models.authentication_request import AuthenticationRequest
 from featureflags.models.authentication_response import AuthenticationResponse
+from retrying import retry
 
 
 def _get_kwargs(
@@ -76,11 +77,32 @@ def sync_detailed(
         json_body=json_body,
     )
 
+    response = _post_request(kwargs)
+
+    return _build_response(response=response)
+
+
+def should_retry_http_code(code):
+    # 408 request timeout
+    # 425 too early
+    # 429 too many requests
+    # 500 internal server error
+    # 502 bad gateway
+    # 503 service unavailable
+    # 504 gateway timeout
+    #  -1 OpenAPI error (timeout etc.)
+    if code == 408 | 425 | 429 | 500 | 502 | 503 | 504 | -1:
+        return True
+    else:
+        return False
+
+
+@retry(stop_max_attempt_number=3, retry_on_result=should_retry_http_code)
+def _post_request(kwargs):
     response = httpx.post(
         **kwargs,
     )
-
-    return _build_response(response=response)
+    return response
 
 
 def sync(
@@ -96,19 +118,7 @@ def sync(
     ).parsed
 
 
-def should_retry_http_code(code):
-    # 408 request timeout
-    # 425 too early
-    # 429 too many requests
-    # 500 internal server error
-    # 502 bad gateway
-    # 503 service unavailable
-    # 504 gateway timeout
-    #  -1 OpenAPI error (timeout etc)
-    if code == 408 | 425 | 429 | 500 | 502 | 503 | 504 | -1:
-        return True
-    else:
-        return False
+
 
 
 
