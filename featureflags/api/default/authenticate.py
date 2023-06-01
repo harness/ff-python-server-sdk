@@ -82,7 +82,7 @@ def sync_detailed(
     return _build_response(response=response)
 
 
-def should_retry_http_code(code):
+def should_retry_http_code(response):
     # 408 request timeout
     # 425 too early
     # 429 too many requests
@@ -91,7 +91,8 @@ def should_retry_http_code(code):
     # 503 service unavailable
     # 504 gateway timeout
     #  -1 OpenAPI error (timeout etc.)
-    if code == 408 | 425 | 429 | 500 | 502 | 503 | 504 | -1:
+    code = response.status_code
+    if code in [404, 425, 429, 500, 502, 503, 504, -1]:
         return True
     else:
         return False
@@ -99,10 +100,9 @@ def should_retry_http_code(code):
 
 @retry(stop_max_attempt_number=3, retry_on_result=should_retry_http_code)
 def _post_request(kwargs):
-    response = httpx.post(
+    return httpx.post(
         **kwargs,
     )
-    return response
 
 
 def sync(
