@@ -98,7 +98,6 @@ def handle_http_result(response):
         return False
 
 
-# @retry(stop_max_attempt_number=3, retry_on_result=handle_http_result)
 @retry(
     retry=(
         retry_if_result(lambda response: response.status_code != 200) and
