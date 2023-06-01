@@ -96,6 +96,22 @@ def sync(
     ).parsed
 
 
+def should_retry_http_code(code):
+    # 408 request timeout
+    # 425 too early
+    # 429 too many requests
+    # 500 internal server error
+    # 502 bad gateway
+    # 503 service unavailable
+    # 504 gateway timeout
+    #  -1 OpenAPI error (timeout etc)
+    if code == 408 | 425 | 429 | 500 | 502 | 503 | 504 | -1:
+        return True
+    else:
+        return False
+
+
+
 async def asyncio_detailed(
     *,
     client: Client,
