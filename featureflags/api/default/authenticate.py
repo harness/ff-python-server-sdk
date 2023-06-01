@@ -6,7 +6,7 @@ from featureflags.api.client import Client
 from featureflags.api.types import Response
 from featureflags.models.authentication_request import AuthenticationRequest
 from featureflags.models.authentication_response import AuthenticationResponse
-from tenacity import retry, retry_if_result
+from tenacity import retry, retry_if_result, wait_exponential
 
 
 def _get_kwargs(
@@ -98,6 +98,7 @@ def handle_http_result(response):
 
 
 @retry(
+    wait=wait_exponential(multiplier=1, min=4, max=10),
     retry=(
         retry_if_result(lambda response: response.status_code != 200) and
         retry_if_result(handle_http_result))
