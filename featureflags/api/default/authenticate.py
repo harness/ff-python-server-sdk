@@ -108,7 +108,7 @@ def handle_http_result(response):
     # retry_state.outcome.result()}"),
     before_sleep=lambda retry_state: log.warning(
         f'Client authentication attempt #{retry_state.attempt_number} '
-        f'received :{retry_state.outcome.result()} Retrying...')
+        f'got {retry_state.outcome.result()} Retrying...')
 )
 def _post_request(kwargs):
     return httpx.post(
