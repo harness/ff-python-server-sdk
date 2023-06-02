@@ -56,45 +56,54 @@ class CfClient(object):
         self.run()
 
     def run(self):
-        self.authenticate()
+        try:
+            self.authenticate()
+            streaming_event = threading.Event()
+            polling_event = threading.Event()
 
-        streaming_event = threading.Event()
-        polling_event = threading.Event()
-
-        self._polling_processor = PollingProcessor(
-            client=self._client,
-            config=self._config,
-            environment_id=self._environment_id,
-            #  PollingProcessor is responsible for doing the initial
-            #  flag/group fetch and cache. So we allocate it the responsibility
-            #  for setting the Client is_initialized variable.
-            wait_for_initialization=self._initialized,
-            ready=polling_event,
-            stream_ready=streaming_event,
-            repository=self._repository
-        )
-        self._polling_processor.start()
-
-        if self._config.enable_stream:
-            self._stream = StreamProcessor(
-                repository=self._repository,
+            self._polling_processor = PollingProcessor(
                 client=self._client,
+                config=self._config,
                 environment_id=self._environment_id,
-                api_key=self._sdk_key,
-                token=self._auth_token,
-                config=self._config,
-                ready=streaming_event,
-                poller=polling_event,
-                cluster=self._cluster,
+                #  PollingProcessor is responsible for doing the initial
+                #  flag/group fetch and cache. So we allocate it the
+                #  responsibility
+                #  for setting the Client is_initialized variable.
+                wait_for_initialization=self._initialized,
+                ready=polling_event,
+                stream_ready=streaming_event,
+                repository=self._repository
             )
-            self._stream.start()
+            self._polling_processor.start()
 
-        if self._config.enable_analytics:
-            self._analytics = AnalyticsService(
-                config=self._config,
-                client=self._client,
-                environment=self._environment_id
-            )
+            if self._config.enable_stream:
+                self._stream = StreamProcessor(
+                    repository=self._repository,
+                    client=self._client,
+                    environment_id=self._environment_id,
+                    api_key=self._sdk_key,
+                    token=self._auth_token,
+                    config=self._config,
+                    ready=streaming_event,
+                    poller=polling_event,
+                    cluster=self._cluster,
+                )
+                self._stream.start()
+
+            if self._config.enable_analytics:
+                self._analytics = AnalyticsService(
+                    config=self._config,
+                    client=self._client,
+                    environment=self._environment_id
+                )
+
+        except tenacity.RetryError:
+            log.error(
+                "Authentication failed and max retries have been exceeded - "
+                "defaults will be served.")
+        except UnrecoverableAuthenticationException:
+            log.error(
+                "Authentication failed - defaults will be served.")
 
     def wait_for_initialization(self):
         log.debug("Waiting for initialization to finish")
@@ -113,38 +122,30 @@ class CfClient(object):
             max_auth_retries=self._config.max_auth_retries
         )
         body = AuthenticationRequest(api_key=self._sdk_key)
-        try:
-            response = authenticate(client=client, json_body=body)
-            self._auth_token = response.auth_token
+        response = authenticate(client=client, json_body=body)
+        self._auth_token = response.auth_token
 
-            decoded = decode(self._auth_token, options={
-                "verify_signature": False})
-            self._environment_id = decoded["environment"]
-            self._cluster = decoded["clusterIdentifier"]
-            if not self._cluster:
-                self._cluster = '1'
-            self._client = AuthenticatedClient(
-                base_url=self._config.base_url,
-                events_url=self._config.events_url,
-                token=self._auth_token,
-                params={
-                    'cluster': self._cluster
-                }
-            )
-            # Additional headers used to track usage
-            additional_headers = {
-                "User-Agent": "PythonSDK/" + VERSION,
-                "Harness-SDK-Info": f'Python {VERSION} Server',
-                "Harness-EnvironmentID": self._environment_id,
-                "Harness-AccountID": decoded["accountID"]}
-            self._client = self._client.with_headers(additional_headers)
-        except tenacity.RetryError:
-            log.error(
-                "Authentication failed and max retries have been exceeded - "
-                "defaults will be served.")
-        except UnrecoverableAuthenticationException:
-            log.error(
-                "Authentication failed - defaults will be served.")
+        decoded = decode(self._auth_token, options={
+            "verify_signature": False})
+        self._environment_id = decoded["environment"]
+        self._cluster = decoded["clusterIdentifier"]
+        if not self._cluster:
+            self._cluster = '1'
+        self._client = AuthenticatedClient(
+            base_url=self._config.base_url,
+            events_url=self._config.events_url,
+            token=self._auth_token,
+            params={
+                'cluster': self._cluster
+            }
+        )
+        # Additional headers used to track usage
+        additional_headers = {
+            "User-Agent": "PythonSDK/" + VERSION,
+            "Harness-SDK-Info": f'Python {VERSION} Server',
+            "Harness-EnvironmentID": self._environment_id,
+            "Harness-AccountID": decoded["accountID"]}
+        self._client = self._client.with_headers(additional_headers)
 
     def bool_variation(self, identifier: str, target: Target,
                        default: bool) -> bool:
