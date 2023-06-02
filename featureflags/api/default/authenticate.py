@@ -78,7 +78,7 @@ def handle_http_result(response):
     # 503 service unavailable
     # 504 gateway timeout
     code = response.status_code
-    if code in [408, 425, 429, 500, 502, 503, 504]:
+    if code in [409, 425, 429, 500, 502, 503, 504]:
         return True
     else:
         log.error(f'Authentication failed with HTTP code #{code} and '
@@ -96,7 +96,8 @@ def _post_request(kwargs, max_auth_retries):
         before_sleep=lambda retry_state: log.warning(
             f'Authentication attempt #{retry_state.attempt_number} '
             f'got {retry_state.outcome.result()} Retrying...'),
-        stop=stop_after_attempt(max_auth_retries))
+        stop=stop_after_attempt(max_auth_retries),
+    )
     return retryer(httpx.post, **kwargs)
 
 
