@@ -72,8 +72,6 @@ def sync_detailed(
     return _build_response(response=response)
 
 
-
-
 def handle_http_result(response):
     # 408 request timeout
     # 425 too early
@@ -95,9 +93,9 @@ def handle_http_result(response):
 def _post_request(kwargs, max_auth_retries):
     retryer = Retrying(
         wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry=(
-                retry_if_result(
-                    lambda response: response.status_code != 200) ),
+        retry=(retry_if_result(
+            lambda response: response.status_code != 200
+            and handle_http_result)),
         before_sleep=lambda retry_state: log.warning(
             f'SDK_AUTH_2002: Authentication attempt #'
             f'{retry_state.attempt_number} '
