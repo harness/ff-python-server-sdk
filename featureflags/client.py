@@ -3,9 +3,9 @@
 import threading
 from typing import Any, Callable, Dict, Optional
 
+from tenacity import RetryError
 from jwt import decode
 
-import featureflags.api.default.authenticate
 from featureflags.analytics import AnalyticsService
 from featureflags.evaluations.evaluator import Evaluator
 from featureflags.repository import Repository
@@ -96,7 +96,7 @@ class CfClient(object):
                     environment=self._environment_id
                 )
 
-        except tenacity.RetryError:
+        except RetryError:
             log.error(
                 "Authentication failed and max retries have been exceeded - "
                 "defaults will be served.")
