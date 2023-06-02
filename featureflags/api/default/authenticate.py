@@ -67,11 +67,11 @@ def sync_detailed(
         client=client,
         json_body=json_body,
     )
-
     max_auth_retries = client.get_max_auth_retries()
     response = _post_request(kwargs, max_auth_retries)
-
     return _build_response(response=response)
+
+
 
 
 def handle_http_result(response):
