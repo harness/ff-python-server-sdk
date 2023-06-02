@@ -11,6 +11,10 @@ from tenacity import retry, retry_if_result, wait_exponential, \
     stop_after_attempt, Retrying
 
 
+class UnrecoverableAuthenticationException(Exception):
+    pass
+
+
 def _get_kwargs(
         *,
         client: Client,
@@ -39,7 +43,8 @@ def _parse_response(
     if response.status_code == 200:
         response_200 = AuthenticationResponse.from_dict(response.json())
     else:
-        raise Exception('Authentication failed on an unrecoverable error')
+        raise UnrecoverableAuthenticationException(
+            f'Authentication failed on an unrecoverable error: {response}')
 
 
 def _build_response(
@@ -78,7 +83,7 @@ def handle_http_result(response):
     # 503 service unavailable
     # 504 gateway timeout
     code = response.status_code
-    if code in [409, 425, 429, 500, 502, 503, 504]:
+    if code in [403, 425, 429, 500, 502, 503, 504]:
         return True
     else:
         log.error(f'Authentication failed with HTTP code #{code} and '

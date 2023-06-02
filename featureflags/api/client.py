@@ -13,6 +13,7 @@ class Client:
     cookies: Dict[str, str] = attr.ib(factory=dict, kw_only=True)
     headers: Dict[str, str] = attr.ib(factory=dict, kw_only=True)
     timeout: float = attr.ib(5.0, kw_only=True)
+    max_auth_retries: int
 
     def get_headers(self) -> Dict[str, str]:
         """Get headers to be used in all endpoints"""
@@ -34,6 +35,9 @@ class Client:
 
     def get_timeout(self) -> float:
         return self.timeout
+
+    def get_max_auth_retries(self) -> int:
+        return self.max_auth_retries
 
     def with_timeout(self, timeout: float) -> "Client":
         """

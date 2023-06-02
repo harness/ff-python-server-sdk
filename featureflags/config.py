@@ -25,7 +25,8 @@ class Config(object):
             cache: Cache = None,
             store: object = None,
             enable_stream: bool = True,
-            enable_analytics: bool = True
+            enable_analytics: bool = True,
+            max_auth_retries: int = 10
     ):
         self.base_url = base_url
         self.events_url = events_url
@@ -38,6 +39,7 @@ class Config(object):
         self.store = store
         self.enable_stream = enable_stream
         self.enable_analytics = enable_analytics
+        self.max_auth_retries = max_auth_retries
 
 
 default_config = Config()
@@ -74,5 +76,12 @@ def with_analytics_enabled(value: bool) -> Callable:
 def with_pull_interval(value: int) -> Callable:
     def func(config: Config) -> None:
         config.pull_interval = value
+
+    return func
+
+
+def with_max_auth_retries(value: int) -> Callable:
+    def func(config: Config) -> None:
+        config.max_auth_retries = value
 
     return func

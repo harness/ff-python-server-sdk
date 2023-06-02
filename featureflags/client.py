@@ -3,14 +3,17 @@
 import threading
 from typing import Any, Callable, Dict, Optional
 
+import tenacity
 from jwt import decode
 
+import featureflags.api.default.authenticate
 from featureflags.analytics import AnalyticsService
 from featureflags.evaluations.evaluator import Evaluator
 from featureflags.repository import Repository
 
 from .api.client import AuthenticatedClient, Client
 from .api.default.authenticate import AuthenticationRequest
+from .api.default.authenticate import UnrecoverableAuthenticationException
 from .api.default.authenticate import sync as authenticate
 from .config import Config, default_config
 from .evaluations.auth_target import Target
@@ -51,7 +54,6 @@ class CfClient(object):
         self._evaluator = Evaluator(self._repository)
 
         self.run()
-
 
     def run(self):
         self.authenticate()
@@ -107,33 +109,42 @@ class CfClient(object):
     def authenticate(self):
         client = Client(
             base_url=self._config.base_url,
-            events_url=self._config.events_url
+            events_url=self._config.events_url,
+            max_auth_retries=self._config.max_auth_retries
         )
         body = AuthenticationRequest(api_key=self._sdk_key)
-        response = authenticate(client=client, json_body=body)
-        self._auth_token = response.auth_token
+        try:
+            response = authenticate(client=client, json_body=body)
+            self._auth_token = response.auth_token
 
-        decoded = decode(self._auth_token, options={
-            "verify_signature": False})
-        self._environment_id = decoded["environment"]
-        self._cluster = decoded["clusterIdentifier"]
-        if not self._cluster:
-            self._cluster = '1'
-        self._client = AuthenticatedClient(
-            base_url=self._config.base_url,
-            events_url=self._config.events_url,
-            token=self._auth_token,
-            params={
-                'cluster': self._cluster
-            }
-        )
-        # Additional headers used to track usage
-        additional_headers = {
-            "User-Agent": "PythonSDK/" + VERSION,
-            "Harness-SDK-Info": f'Python {VERSION} Server',
-            "Harness-EnvironmentID": self._environment_id,
-            "Harness-AccountID": decoded["accountID"]}
-        self._client = self._client.with_headers(additional_headers)
+            decoded = decode(self._auth_token, options={
+                "verify_signature": False})
+            self._environment_id = decoded["environment"]
+            self._cluster = decoded["clusterIdentifier"]
+            if not self._cluster:
+                self._cluster = '1'
+            self._client = AuthenticatedClient(
+                base_url=self._config.base_url,
+                events_url=self._config.events_url,
+                token=self._auth_token,
+                params={
+                    'cluster': self._cluster
+                }
+            )
+            # Additional headers used to track usage
+            additional_headers = {
+                "User-Agent": "PythonSDK/" + VERSION,
+                "Harness-SDK-Info": f'Python {VERSION} Server',
+                "Harness-EnvironmentID": self._environment_id,
+                "Harness-AccountID": decoded["accountID"]}
+            self._client = self._client.with_headers(additional_headers)
+        except tenacity.RetryError:
+            log.error(
+                "Authentication failed and max retries have been exceeded - "
+                "defaults will be served.")
+        except UnrecoverableAuthenticationException:
+            log.error(
+                "Authentication failed - defaults will be served.")
 
     def bool_variation(self, identifier: str, target: Target,
                        default: bool) -> bool:
