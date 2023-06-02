@@ -7,7 +7,7 @@ from featureflags.api.client import Client
 from featureflags.api.types import Response
 from featureflags.models.authentication_request import AuthenticationRequest
 from featureflags.models.authentication_response import AuthenticationResponse
-from tenacity import retry, retry_if_result, wait_exponential, \
+from tenacity import retry_if_result, wait_exponential, \
     stop_after_attempt, Retrying
 
 

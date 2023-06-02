@@ -3,7 +3,6 @@
 import threading
 from typing import Any, Callable, Dict, Optional
 
-import tenacity
 from jwt import decode
 
 import featureflags.api.default.authenticate
