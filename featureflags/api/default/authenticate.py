@@ -7,7 +7,8 @@ from featureflags.api.client import Client
 from featureflags.api.types import Response
 from featureflags.models.authentication_request import AuthenticationRequest
 from featureflags.models.authentication_response import AuthenticationResponse
-from tenacity import retry, retry_if_result, wait_exponential
+from tenacity import retry, retry_if_result, wait_exponential, \
+    stop_after_attempt, Retrying
 
 
 def _get_kwargs(
@@ -31,6 +32,7 @@ def _get_kwargs(
     }
 
 
+# TODO fix response for else condition
 def _parse_response(
         *, response: httpx.Response
 ) -> Optional[Union[AuthenticationResponse, None]]:
@@ -61,7 +63,8 @@ def sync_detailed(
         json_body=json_body,
     )
 
-    response = _post_request(kwargs)
+    max_auth_retries = client.get_max_auth_retries()
+    response = _post_request(kwargs, max_auth_retries)
 
     return _build_response(response=response)
 
@@ -75,7 +78,7 @@ def handle_http_result(response):
     # 503 service unavailable
     # 504 gateway timeout
     code = response.status_code
-    if code in [408, 425, 429, 500, 502, 503, 504, -1]:
+    if code in [408, 425, 429, 500, 502, 503, 504]:
         return True
     else:
         log.error(f'Authentication failed with HTTP code #{code} and '
@@ -83,19 +86,18 @@ def handle_http_result(response):
         return False
 
 
-@retry(
-    wait=wait_exponential(multiplier=1, min=4, max=10),
-    retry=(
-            retry_if_result(lambda response: response.status_code != 200) and
-            retry_if_result(handle_http_result)),
-    before_sleep=lambda retry_state: log.warning(
-        f'Authentication attempt #{retry_state.attempt_number} '
-        f'got {retry_state.outcome.result()} Retrying...')
-)
-def _post_request(kwargs):
-    return httpx.post(
-        **kwargs,
-    )
+def _post_request(kwargs, max_auth_retries):
+    retryer = Retrying(
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        retry=(
+                retry_if_result(
+                    lambda response: response.status_code != 200) and
+                retry_if_result(handle_http_result)),
+        before_sleep=lambda retry_state: log.warning(
+            f'Authentication attempt #{retry_state.attempt_number} '
+            f'got {retry_state.outcome.result()} Retrying...'),
+        stop=stop_after_attempt(max_auth_retries))
+    return retryer(httpx.post, **kwargs)
 
 
 def sync(
