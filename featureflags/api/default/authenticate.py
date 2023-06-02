@@ -73,15 +73,8 @@ def sync_detailed(
 
 
 def handle_http_result(response):
-    # 408 request timeout
-    # 425 too early
-    # 429 too many requests
-    # 500 internal server error
-    # 502 bad gateway
-    # 503 service unavailable
-    # 504 gateway timeout
     code = response.status_code
-    if code in [408, 425, 429, 500, 502, 503, 504]:
+    if code in {408, 425, 429, 500, 502, 503, 504}:
         return True
     else:
         log.error(
