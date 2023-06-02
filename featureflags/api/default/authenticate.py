@@ -36,7 +36,6 @@ def _get_kwargs(
     }
 
 
-# TODO fix response for else condition
 def _parse_response(
         *, response: httpx.Response
 ) -> Optional[Union[AuthenticationResponse, None]]:
