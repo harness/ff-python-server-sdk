@@ -101,9 +101,15 @@ class CfClient(object):
             log.error(
                 "Authentication failed and max retries have been exceeded - "
                 "defaults will be served.")
+            # Mark the client as initialized in case wait_for_initialization
+            # is called. The SDK has already logged that authentication
+            # failed and defaults will be returned.
+            self._initialized.set()
         except UnrecoverableAuthenticationException:
             log.error(
                 "Authentication failed - defaults will be served.")
+            # Same again, just mark the client as initailized.
+            self._initialized.set()
 
     def wait_for_initialization(self):
         log.debug("Waiting for initialization to finish")
