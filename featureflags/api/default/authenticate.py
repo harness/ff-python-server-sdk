@@ -41,7 +41,7 @@ def _parse_response(
         *, response: httpx.Response
 ) -> Optional[Union[AuthenticationResponse, None]]:
     if response.status_code == 200:
-        response_200 = AuthenticationResponse.from_dict(response.json())
+        return AuthenticationResponse.from_dict(response.json())
     else:
         raise UnrecoverableAuthenticationException(
             f'Authentication failed on an unrecoverable error: {response}')
@@ -86,8 +86,9 @@ def handle_http_result(response):
     if code in [408, 425, 429, 500, 502, 503, 504]:
         return True
     else:
-        log.error(f'Authentication failed with HTTP code #{code} and '
-                  'will not attempt to reconnect')
+        log.error(
+            f'SDK_AUTH_2001: Authentication failed with HTTP code #{code} and '
+            'will not attempt to reconnect')
         return False
 
 
@@ -96,10 +97,10 @@ def _post_request(kwargs, max_auth_retries):
         wait=wait_exponential(multiplier=1, min=4, max=10),
         retry=(
                 retry_if_result(
-                    lambda response: response.status_code != 200) and
-                retry_if_result(handle_http_result)),
+                    lambda response: response.status_code != 200) ),
         before_sleep=lambda retry_state: log.warning(
-            f'Authentication attempt #{retry_state.attempt_number} '
+            f'SDK_AUTH_2002: Authentication attempt #'
+            f'{retry_state.attempt_number} '
             f'got {retry_state.outcome.result()} Retrying...'),
         stop=stop_after_attempt(max_auth_retries),
     )

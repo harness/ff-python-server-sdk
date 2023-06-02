@@ -143,7 +143,8 @@ class CfClient(object):
             token=self._auth_token,
             params={
                 'cluster': self._cluster
-            }
+            },
+            max_auth_retries=self._config.max_auth_retries
         )
         # Additional headers used to track usage
         additional_headers = {
