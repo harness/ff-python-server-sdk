@@ -17,7 +17,8 @@ requirements = [
     "pyjwt>=2.4.0",
     "attrs>=21.2.0",
     "mmh3>=3.0.0",
-    "requests>=2.25.1"
+    "requests>=2.25.1",
+    "tenacity==8.2.2"
 ]
 
 setup_requirements = [
