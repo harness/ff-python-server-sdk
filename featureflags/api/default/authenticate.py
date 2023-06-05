@@ -1,4 +1,5 @@
 from typing import Any, Dict, Optional, Union
+from featureflags.util import log
 
 import httpx
 
@@ -6,12 +7,18 @@ from featureflags.api.client import Client
 from featureflags.api.types import Response
 from featureflags.models.authentication_request import AuthenticationRequest
 from featureflags.models.authentication_response import AuthenticationResponse
+from tenacity import retry_if_result, wait_exponential, \
+    stop_after_attempt, Retrying, retry_all
+
+
+class UnrecoverableAuthenticationException(Exception):
+    pass
 
 
 def _get_kwargs(
-    *,
-    client: Client,
-    json_body: AuthenticationRequest,
+        *,
+        client: Client,
+        json_body: AuthenticationRequest,
 ) -> Dict[str, Any]:
     url = "{}/client/auth".format(client.base_url)
 
@@ -30,33 +37,17 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, response: httpx.Response
+        *, response: httpx.Response
 ) -> Optional[Union[AuthenticationResponse, None]]:
     if response.status_code == 200:
-        response_200 = AuthenticationResponse.from_dict(response.json())
-
-        return response_200
-    if response.status_code == 401:
-        response_401 = None
-
-        return response_401
-    if response.status_code == 403:
-        response_403 = None
-
-        return response_403
-    if response.status_code == 404:
-        response_404 = None
-
-        return response_404
-    if response.status_code == 500:
-        response_500 = None
-
-        return response_500
-    return None
+        return AuthenticationResponse.from_dict(response.json())
+    else:
+        raise UnrecoverableAuthenticationException(
+            f'Authentication failed on an unrecoverable error: {response}')
 
 
 def _build_response(
-    *, response: httpx.Response
+        *, response: httpx.Response
 ) -> Response[Union[AuthenticationResponse, None]]:
     return Response(
         status_code=response.status_code,
@@ -67,26 +58,50 @@ def _build_response(
 
 
 def sync_detailed(
-    *,
-    client: Client,
-    json_body: AuthenticationRequest,
+        *,
+        client: Client,
+        json_body: AuthenticationRequest,
 ) -> Response[Union[AuthenticationResponse, None]]:
     kwargs = _get_kwargs(
         client=client,
         json_body=json_body,
     )
-
-    response = httpx.post(
-        **kwargs,
-    )
-
+    max_auth_retries = client.get_max_auth_retries()
+    response = _post_request(kwargs, max_auth_retries)
     return _build_response(response=response)
 
 
+def handle_http_result(response):
+    code = response.status_code
+    if code in {408, 425, 429, 500, 502, 503, 504}:
+        return True
+    else:
+        log.error(
+            f'SDK_AUTH_2001: Authentication failed with HTTP code #{code} and '
+            'will not attempt to reconnect')
+        return False
+
+
+def _post_request(kwargs, max_auth_retries):
+    retryer = Retrying(
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        retry=retry_all(
+            retry_if_result(lambda response: response.status_code != 200),
+            retry_if_result(handle_http_result)
+        ),
+        before_sleep=lambda retry_state: log.warning(
+            f'SDK_AUTH_2002: Authentication attempt #'
+            f'{retry_state.attempt_number} '
+            f'got {retry_state.outcome.result()} Retrying...'),
+        stop=stop_after_attempt(max_auth_retries),
+    )
+    return retryer(httpx.post, **kwargs)
+
+
 def sync(
-    *,
-    client: Client,
-    json_body: AuthenticationRequest,
+        *,
+        client: Client,
+        json_body: AuthenticationRequest,
 ) -> Optional[Union[AuthenticationResponse, None]]:
     """Used to retrieve all target segments for certain account id."""
 
@@ -97,9 +112,9 @@ def sync(
 
 
 async def asyncio_detailed(
-    *,
-    client: Client,
-    json_body: AuthenticationRequest,
+        *,
+        client: Client,
+        json_body: AuthenticationRequest,
 ) -> Response[Union[AuthenticationResponse, None]]:
     kwargs = _get_kwargs(
         client=client,
@@ -113,9 +128,9 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    *,
-    client: Client,
-    json_body: AuthenticationRequest,
+        *,
+        client: Client,
+        json_body: AuthenticationRequest,
 ) -> Optional[Union[AuthenticationResponse, None]]:
     """Used to retrieve all target segments for certain account id."""
 

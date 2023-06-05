@@ -3,6 +3,7 @@
 import threading
 from typing import Any, Callable, Dict, Optional
 
+from tenacity import RetryError
 from jwt import decode
 
 from featureflags.analytics import AnalyticsService
@@ -11,6 +12,7 @@ from featureflags.repository import Repository
 
 from .api.client import AuthenticatedClient, Client
 from .api.default.authenticate import AuthenticationRequest
+from .api.default.authenticate import UnrecoverableAuthenticationException
 from .api.default.authenticate import sync as authenticate
 from .config import Config, default_config
 from .evaluations.auth_target import Target
@@ -52,47 +54,61 @@ class CfClient(object):
 
         self.run()
 
-
     def run(self):
-        self.authenticate()
+        try:
+            self.authenticate()
+            streaming_event = threading.Event()
+            polling_event = threading.Event()
 
-        streaming_event = threading.Event()
-        polling_event = threading.Event()
-
-        self._polling_processor = PollingProcessor(
-            client=self._client,
-            config=self._config,
-            environment_id=self._environment_id,
-            #  PollingProcessor is responsible for doing the initial
-            #  flag/group fetch and cache. So we allocate it the responsibility
-            #  for setting the Client is_initialized variable.
-            wait_for_initialization=self._initialized,
-            ready=polling_event,
-            stream_ready=streaming_event,
-            repository=self._repository
-        )
-        self._polling_processor.start()
-
-        if self._config.enable_stream:
-            self._stream = StreamProcessor(
-                repository=self._repository,
+            self._polling_processor = PollingProcessor(
                 client=self._client,
+                config=self._config,
                 environment_id=self._environment_id,
-                api_key=self._sdk_key,
-                token=self._auth_token,
-                config=self._config,
-                ready=streaming_event,
-                poller=polling_event,
-                cluster=self._cluster,
+                #  PollingProcessor is responsible for doing the initial
+                #  flag/group fetch and cache. So we allocate it the
+                #  responsibility
+                #  for setting the Client is_initialized variable.
+                wait_for_initialization=self._initialized,
+                ready=polling_event,
+                stream_ready=streaming_event,
+                repository=self._repository
             )
-            self._stream.start()
+            self._polling_processor.start()
 
-        if self._config.enable_analytics:
-            self._analytics = AnalyticsService(
-                config=self._config,
-                client=self._client,
-                environment=self._environment_id
-            )
+            if self._config.enable_stream:
+                self._stream = StreamProcessor(
+                    repository=self._repository,
+                    client=self._client,
+                    environment_id=self._environment_id,
+                    api_key=self._sdk_key,
+                    token=self._auth_token,
+                    config=self._config,
+                    ready=streaming_event,
+                    poller=polling_event,
+                    cluster=self._cluster,
+                )
+                self._stream.start()
+
+            if self._config.enable_analytics:
+                self._analytics = AnalyticsService(
+                    config=self._config,
+                    client=self._client,
+                    environment=self._environment_id
+                )
+
+        except RetryError:
+            log.error(
+                "Authentication failed and max retries have been exceeded - "
+                "defaults will be served.")
+            # Mark the client as initialized in case wait_for_initialization
+            # is called. The SDK has already logged that authentication
+            # failed and defaults will be returned.
+            self._initialized.set()
+        except UnrecoverableAuthenticationException:
+            log.error(
+                "Authentication failed - defaults will be served.")
+            # Same again, just mark the client as initailized.
+            self._initialized.set()
 
     def wait_for_initialization(self):
         log.debug("Waiting for initialization to finish")
@@ -107,7 +123,8 @@ class CfClient(object):
     def authenticate(self):
         client = Client(
             base_url=self._config.base_url,
-            events_url=self._config.events_url
+            events_url=self._config.events_url,
+            max_auth_retries=self._config.max_auth_retries
         )
         body = AuthenticationRequest(api_key=self._sdk_key)
         response = authenticate(client=client, json_body=body)
@@ -125,7 +142,8 @@ class CfClient(object):
             token=self._auth_token,
             params={
                 'cluster': self._cluster
-            }
+            },
+            max_auth_retries=self._config.max_auth_retries
         )
         # Additional headers used to track usage
         additional_headers = {
