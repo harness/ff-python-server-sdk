@@ -14,7 +14,7 @@ def get_sdk_code_message(key):
         2000: "Authenticated ok",
         2001: "Authentication failed with a non-recoverable error - defaults "
               "will be served",
-        2003: "Retrying to authenticate",
+        2003: "Authentication attempt",
         # SDK_POLL_4xxx
         4000: "Polling started, intervalMs:",
         4001: "Polling stopped",
@@ -84,8 +84,8 @@ def warn_auth_failed_srv_defaults():
     log.warning(sdk_err_msg(2001))
 
 
-def warn_auth_retying(attempt):
-    log.warning(sdk_err_msg(2003, f", attempt {attempt}"))
+def warn_auth_retying(attempt, error):
+    log.warning(sdk_err_msg(2003, f"attempt: {attempt}, got error: {error}"))
 
 
 def warn_stream_disconnected(reason):

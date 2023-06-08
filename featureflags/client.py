@@ -59,6 +59,7 @@ class CfClient(object):
     def run(self):
         try:
             self.authenticate()
+            sdk_codes.info_sdk_auth_ok()
             streaming_event = threading.Event()
             polling_event = threading.Event()
 
@@ -113,7 +114,7 @@ class CfClient(object):
             self._initialized.set()
 
     def wait_for_initialization(self):
-        log.debug("Waiting for initialization to finish")
+        sdk_codes.info_sdk_init_waiting()
         self._initialized.wait()
 
     def is_initialized(self):
