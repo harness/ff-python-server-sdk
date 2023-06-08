@@ -16,6 +16,7 @@ def test_logs_dont_raise_exception():
     sdk_codes.info_stream_event_received("")
     sdk_codes.info_metrics_thread_started()
     sdk_codes.warn_auth_failed_srv_defaults()
+    sdk_codes.warn_auth_failed_exceed_retries()
     sdk_codes.warn_auth_retying(1, "some error")
     sdk_codes.warn_stream_disconnected("example reason")
     sdk_codes.warn_post_metrics_failed("example reason")

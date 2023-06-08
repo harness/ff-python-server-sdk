@@ -79,7 +79,7 @@ def handle_http_result(response):
         return True
     else:
         log.error(
-            f'SDK_AUTH_2001: Authentication failed with HTTP code #{code} and '
+            f'Authentication received HTTP code #{code} and '
             'will not attempt to reconnect')
         return False
 
@@ -91,11 +91,9 @@ def _post_request(kwargs, max_auth_retries):
             retry_if_result(lambda response: response.status_code != 200),
             retry_if_result(handle_http_result)
         ),
-        before_sleep=lambda retry_state: warn_auth_retying(retry_state.attempt_number, retry_state.retry_state.outcome.result()),
-        # before_sleep=lambda retry_state: log.warning(
-        #     f'SDK_AUTH_2002: Authentication attempt #'
-        #     f'{retry_state.attempt_number} '
-        #     f'got {retry_state.outcome.result()} Retrying...'),
+        before_sleep=lambda retry_state: warn_auth_retying(
+            retry_state.attempt_number,
+            retry_state.retry_state.outcome.result()),
         stop=stop_after_attempt(max_auth_retries),
     )
     return retryer(httpx.post, **kwargs)

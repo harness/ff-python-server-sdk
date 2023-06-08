@@ -100,16 +100,13 @@ class CfClient(object):
                 )
 
         except RetryError:
-            log.error(
-                "Authentication failed and max retries have been exceeded - "
-                "defaults will be served.")
+            sdk_codes.warn_auth_failed_exceed_retries()
             # Mark the client as initialized in case wait_for_initialization
             # is called. The SDK has already logged that authentication
             # failed and defaults will be returned.
             self._initialized.set()
         except UnrecoverableAuthenticationException:
-            log.error(
-                "Authentication failed - defaults will be served.")
+            sdk_codes.warn_auth_failed_srv_defaults()
             # Same again, just mark the client as initailized.
             self._initialized.set()
 
