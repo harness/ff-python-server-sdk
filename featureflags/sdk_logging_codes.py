@@ -9,6 +9,7 @@ def get_sdk_code_message(key):
               "authentication error:",
         1002: "The SDK has failed to initialize due to a missing or empty "
               "API key",
+        1003: "The SDK is waiting for initialization to complete",
         # SDK_AUTH_2xxx
         2000: "Authenticated ok",
         2001: "Authentication failed with a non-recoverable error - defaults "
@@ -53,6 +54,10 @@ def info_poll_started(duration_sec):
 
 def info_sdk_init_ok():
     log.info(sdk_err_msg(1000))
+
+
+def info_sdk_init_waiting():
+    log.info(sdk_err_msg(1003))
 
 
 def info_sdk_auth_ok():
