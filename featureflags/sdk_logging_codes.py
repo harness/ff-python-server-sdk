@@ -25,6 +25,7 @@ def get_sdk_code_message(key):
         5001: "SSE stream disconnected, reason:",
         5002: "SSE event received: ",
         5003: "SSE retrying to connect in",
+        5004: "SSE stopped",
         # SDK_EVAL_6xxx
         6000: "Evaluated variation successfully",
         6001: "Default variation was served",
@@ -77,6 +78,10 @@ def info_stream_connected():
 
 def info_stream_event_received(event_json):
     log.info(sdk_err_msg(5002, event_json))
+
+
+def info_stream_stopped():
+    log.info(sdk_err_msg(5004))
 
 
 def info_metrics_thread_started(interval):

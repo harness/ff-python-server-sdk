@@ -12,7 +12,8 @@ from .api.default.get_segment_by_identifier import sync as get_target_segment
 from .config import Config
 from .models.message import Message
 from .sdk_logging_codes import info_stream_connected, \
-    info_stream_event_received, warn_stream_disconnected, warn_stream_retrying
+    info_stream_event_received, warn_stream_disconnected, warn_stream_retrying, \
+    info_polling_stopped
 from .sse_client import SSEClient
 from .util import log
 
@@ -108,6 +109,9 @@ class StreamProcessor(Thread):
         for processor in self._msg_processors:
             processor.stop()
         self._running = False
+        info_polling_stopped("Client was closed")
+        info("Client was closed")
+
 
 
 class FlagMsgProcessor(Thread):
