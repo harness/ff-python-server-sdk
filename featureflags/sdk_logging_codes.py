@@ -26,8 +26,8 @@ def get_sdk_code_message(key):
         5002: "SSE event received: ",
         5003: "SSE retrying to connect in",
         5004: "SSE stopped",
-        # SDK_EVAL_6xxx - these are hardcoded in `variation.py` for more
-        # custom messages
+        # SDK_EVAL_6xxx - these are hardcoded in `variation.py` as they
+        # are more complex
         # SDK_METRICS_7xxx
         7000: "Metrics thread started with request interval:",
         7001: "Metrics thread exited",
