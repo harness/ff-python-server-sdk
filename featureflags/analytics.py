@@ -18,6 +18,8 @@ from .models.metrics import Metrics
 from .models.metrics_data import MetricsData
 from .models.target_data import TargetData
 from .models.unset import Unset
+from .sdk_logging_codes import info_metrics_thread_started, \
+    info_metrics_success, warn_post_metrics_failed
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -118,8 +120,8 @@ class AnalyticsService(object):
 
     def _sync(self) -> None:
         if not self._running:
-            log.info("Starting AnalyticsService with request interval: %d",
-                     self._config.events_sync_interval)
+            info_metrics_thread_started(
+                f'{self._config.events_sync_interval}s')
             self._running = True
             while self._running:
                 time.sleep(self._config.events_sync_interval)
@@ -179,12 +181,9 @@ class AnalyticsService(object):
                                 environment=self._environment, json_body=body)
         log.debug('Metrics server returns: %d', response.status_code)
         if response.status_code >= 400:
-            log.error(
-                'Error while sending metrics data with status code: %d',
-                response.status_code
-            )
+            warn_post_metrics_failed(response.status_code)
             return
-        log.info('Metrics data sent to server')
+        info_metrics_success()
         return
 
     def close(self) -> None:

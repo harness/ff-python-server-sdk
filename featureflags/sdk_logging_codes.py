@@ -29,9 +29,10 @@ def get_sdk_code_message(key):
         6000: "Evaluated variation successfully",
         6001: "Default variation was served",
         # SDK_METRICS_7xxx
-        7000: "Metrics thread started",
+        7000: "Metrics thread started with request interval:",
         7001: "Metrics thread exited",
         7002: "Posting metrics failed, reason:",
+        7003: "Metrics posted successfully",
     }
     if key in sdk_codes:
         return sdk_codes[key]
@@ -78,8 +79,12 @@ def info_stream_event_received(event_json):
     log.info(sdk_err_msg(5002, event_json))
 
 
-def info_metrics_thread_started():
-    log.info(sdk_err_msg(7000))
+def info_metrics_thread_started(interval):
+    log.info(sdk_err_msg(7000, interval))
+
+
+def info_metrics_success():
+    log.info(sdk_err_msg(7003))
 
 
 def warn_auth_failed_srv_defaults():
