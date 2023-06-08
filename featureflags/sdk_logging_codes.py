@@ -19,7 +19,7 @@ def get_sdk_code_message(key):
               "defaults will be servied",
         # SDK_POLL_4xxx
         4000: "Polling started, intervalMs:",
-        4001: "Polling stopped",
+        4001: "Polling stopped, reason:",
         # SDK_STREAM_5xxx
         5000: "SSE stream connected ok",
         5001: "SSE stream disconnected, reason:",
@@ -66,8 +66,8 @@ def info_sdk_auth_ok():
     log.info(sdk_err_msg(2000))
 
 
-def info_polling_stopped():
-    log.info(sdk_err_msg(4001))
+def info_polling_stopped(reason):
+    log.info(sdk_err_msg(4001, reason))
 
 
 def info_stream_connected():

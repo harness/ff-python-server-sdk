@@ -7,6 +7,7 @@ from featureflags.repository import DataProviderInterface
 from .api.default.get_all_segments import sync as retrieve_segments
 from .api.default.get_feature_config import sync as retrieve_flags
 from .config import Config
+from .sdk_logging_codes import info_poll_started, info_polling_stopped
 from .util import log
 
 
@@ -47,7 +48,6 @@ class PollingProcessor(Thread):
                 #  Segments and flags have been cached so
                 #  mark the Client as initialised.
                 self.__wait_for_initialization.set()
-                log.debug("CfClient initialized")
             except Exception as ex:
                 log.exception(
                     'Error: Exception encountered when '
@@ -56,15 +56,13 @@ class PollingProcessor(Thread):
                 )
             #  Sleep for an interval before going into the polling loop.
             time.sleep(self.__config.pull_interval)
-            log.info("Starting PollingProcessor with request interval: " +
-                     str(self.__config.pull_interval))
+            info_poll_started(self.__config.pull_interval)
             while self.__running:
                 start_time = time.time()
                 try:
                     if self.__config.enable_stream and \
                             self.__stream_ready.is_set():
-                        log.debug('Poller will be paused because' +
-                                  ' streaming mode is active')
+                        info_polling_stopped('streaming mode is active')
                         # on stream disconnect, make sure flags are in sync
                         self.retrieve_flags_and_segments()
                         #  Block until ready.set() is called
