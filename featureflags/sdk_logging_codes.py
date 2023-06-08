@@ -37,7 +37,7 @@ def get_sdk_code_message(key):
 
 
 def sdk_err_msg(error_code, append_text=""):
-    return f"SDKCODE:{error_code}): {get_sdk_code_message(error_code)} " \
+    return f"SDKCODE:{error_code}: {get_sdk_code_message(error_code)} " \
            f"{append_text} "
 
 
