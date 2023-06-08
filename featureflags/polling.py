@@ -7,7 +7,8 @@ from featureflags.repository import DataProviderInterface
 from .api.default.get_all_segments import sync as retrieve_segments
 from .api.default.get_feature_config import sync as retrieve_flags
 from .config import Config
-from .sdk_logging_codes import info_poll_started, info_polling_stopped
+from .sdk_logging_codes import info_poll_started, info_polling_stopped, \
+    info_sdk_init_ok
 from .util import log
 
 
@@ -48,6 +49,7 @@ class PollingProcessor(Thread):
                 #  Segments and flags have been cached so
                 #  mark the Client as initialised.
                 self.__wait_for_initialization.set()
+                info_sdk_init_ok()
             except Exception as ex:
                 log.exception(
                     'Error: Exception encountered when '

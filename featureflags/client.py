@@ -54,7 +54,6 @@ class CfClient(object):
         self._evaluator = Evaluator(self._repository)
 
         self.run()
-        sdk_codes.info_sdk_init_ok()
 
     def run(self):
         try:
