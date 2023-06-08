@@ -100,6 +100,10 @@ def warn_stream_disconnected(reason):
     log.warning(sdk_err_msg(5001, reason))
 
 
+def warn_stream_retrying(seconds):
+    log.warning(sdk_err_msg(5003, seconds))
+
+
 def warn_post_metrics_failed(reason):
     log.warning(sdk_err_msg(7002, reason))
 

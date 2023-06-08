@@ -11,6 +11,8 @@ from .api.default.get_feature_config_by_identifier import \
 from .api.default.get_segment_by_identifier import sync as get_target_segment
 from .config import Config
 from .models.message import Message
+from .sdk_logging_codes import info_stream_connected, \
+    info_stream_event_received, warn_stream_disconnected, warn_stream_retrying
 from .sse_client import SSEClient
 from .util import log
 
@@ -48,6 +50,7 @@ class StreamProcessor(Thread):
         while self._running:
             try:
                 messages = self._connect()
+                info_stream_connected()
                 self.poller.clear()  # were streaming now, so tell any poller
                 # threads calling wait to wait...
                 self._ready.set()
@@ -56,13 +59,13 @@ class StreamProcessor(Thread):
                     if not self._running:
                         break
                     if msg.data:
-                        log.info("message received %s", msg.data)
+                        info_stream_event_received(msg.data)
                         message = Message.from_str(msg.data)
                         self.process_message(message)
                     if self._ready.is_set() is False:
                         self._ready.set()
             except Exception as e:
-                log.error("Unexpected error on stream connection: %s", e)
+                warn_stream_disconnected(e)
                 # Signal the poller than it should start due to stream error.
                 if self.poller.is_set() is False:
                     self.poller.set()
@@ -70,7 +73,7 @@ class StreamProcessor(Thread):
                 # Calculate back of sleep
                 sleep = (BACK_OFF_IN_SECONDS * 2 ** retries +
                          random.uniform(0, 1))
-                log.info(f"retrying stream connection in {sleep.__str__()}s")
+                warn_stream_retrying(f'{sleep.__str__()}s')
                 time.sleep(sleep)
                 retries += 1
 
