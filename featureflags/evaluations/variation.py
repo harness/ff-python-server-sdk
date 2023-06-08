@@ -22,7 +22,12 @@ class Variation(object):
     def bool(self, target: Target, flag_identifier: str,
              default: bool = False) -> bool:
         if self.value:
-            return self.value.lower() == "true"
+            result = self.value.lower() == "true"
+            log.info(
+                "SDK_EVAL_6000: Evaluated bool variation successfully:"
+                "%s", {"result": result, "flag identifier": flag_identifier,
+                       "target": target.identifier})
+            return result
         log.error(
             "SDK_EVAL_6001: Failed to evaluate bool variation for %s and the "
             "default variation '%s' is being returned",
@@ -32,7 +37,12 @@ class Variation(object):
     def string(self, target: Target, flag_identifier: str,
                default: str) -> str:
         if self.value:
-            return self.value
+            result = self.value
+            log.info(
+                "SDK_EVAL_6000: Evaluated string variation successfully:"
+                "%s", {"result": result, "flag identifier": flag_identifier,
+                       "target": target.identifier})
+            return result
         log.error(
             "SDK_EVAL_6001: Failed to evaluate string variation for %s and the"
             " default variation '%s' is being returned",
@@ -42,7 +52,12 @@ class Variation(object):
     def number(self, target: Target, flag_identifier: str,
                default: float) -> float:
         if self.value:
-            return float(self.value)
+            result = float(self.value)
+            log.info(
+                "SDK_EVAL_6000: Evaluated number variation successfully:"
+                "%s", {"result": result, "flag identifier": flag_identifier,
+                       "target": target.identifier})
+            return result
         log.error(
             "SDK_EVAL_6001: Failed to evaluate number variation for %s and the"
             " default variation '%s' is being returned",
@@ -52,7 +67,12 @@ class Variation(object):
     def int(self, target: Target, flag_identifier: str,
             default: int) -> int:
         if self.value:
-            return int(self.value)
+            result = int(self.value)
+            log.info(
+                "SDK_EVAL_6000: Evaluated number variation successfully:"
+                "%s", {"result": result, "flag identifier": flag_identifier,
+                       "target": target.identifier})
+            return result
         log.error(
             "SDK_EVAL_6001: Failed to evaluate int variation for %s and the "
             "default variation '%s' is being returned",
@@ -62,7 +82,12 @@ class Variation(object):
     def json(self, target: Target, flag_identifier: str,
              default: dict) -> dict:
         if self.value:
-            return json.loads(self.value)
+            result = json.loads(self.value)
+            log.info(
+                "SDK_EVAL_6000: Evaluated json variation successfully:"
+                "%s", {"result": result, "flag identifier": flag_identifier,
+                       "target": target.identifier})
+            return result
         log.error(
             "SDK_EVAL_6001: Failed to evaluate json variation for %s and the "
             "default variation '%s' is being returned",
