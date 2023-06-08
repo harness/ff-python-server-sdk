@@ -91,7 +91,7 @@ def warn_post_metrics_failed(reason):
     log.warning(sdk_err_msg(7002, reason))
 
 
-def warn_default_variation_served(identifier, target, default):
+def warn_default_variation_served(flag, target, default):
     log.warning(sdk_err_msg(6001,
-                            f"identifier={identifier}, "
-                            f"target={target.identifier}, default={default}"))
+                            f"flag={flag}, "
+                            f"target={target}, default={default}"))
