@@ -7,6 +7,8 @@ def test_logs_dont_raise_exception():
     sdk_codes.info_poll_started(60)
     sdk_codes.info_sdk_init_ok()
     sdk_codes.info_sdk_init_waiting()
+    sdk_codes.info_sdk_start_close()
+    sdk_codes.info_sdk_close_success()
     sdk_codes.info_sdk_auth_ok()
     sdk_codes.info_polling_stopped("streaming active")
     sdk_codes.info_stream_connected()

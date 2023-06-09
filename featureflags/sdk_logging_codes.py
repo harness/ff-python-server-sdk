@@ -15,6 +15,9 @@ def get_sdk_code_message(key):
         2001: "Authentication failed with a non-recoverable error",
         2002: "Authentication attempt",
         2003: "Authentication failed and max retries have been exceeded",
+        # SDK_CLOSE_3xxx
+        3000: "Closing SDK",
+        3001: "SDK Closed successfully",
         # SDK_POLL_4xxx
         4000: "Polling started, intervalMs:",
         4001: "Polling stopped, reason:",
@@ -58,6 +61,14 @@ def info_sdk_init_ok():
 
 def info_sdk_init_waiting():
     log.info(sdk_err_msg(1003))
+
+
+def info_sdk_start_close():
+    log.info(sdk_err_msg(3000))
+
+
+def info_sdk_close_success():
+    log.info(sdk_err_msg(3001))
 
 
 def info_sdk_auth_ok():

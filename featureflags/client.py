@@ -229,14 +229,14 @@ class CfClient(object):
         return variation.json(target, identifier, default)
 
     def close(self):
-        log.info('closing sdk client')
+        sdk_codes.info_sdk_start_close()
         self._polling_processor.stop()
         if self._config.enable_stream:
             self._stream.stop()
 
         if self._config.enable_analytics:
             self._analytics.close()
-        log.info('All threads finished')
+        sdk_codes.info_sdk_close_success()
 
     def __enter__(self):
         return self
