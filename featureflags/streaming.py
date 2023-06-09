@@ -101,7 +101,6 @@ class StreamProcessor(Thread):
             )
         if processor:
             processor.start()
-            self._msg_processors.append(processor)
 
     def stop(self):
         self._running = False
