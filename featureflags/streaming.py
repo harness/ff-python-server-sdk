@@ -14,7 +14,7 @@ from .models.message import Message
 from .sdk_logging_codes import info_stream_connected, \
     info_stream_event_received, warn_stream_disconnected, \
     warn_stream_retrying, \
-    info_polling_stopped
+    info_polling_stopped, info_stream_stopped
 from .sse_client import SSEClient
 from .util import log
 
@@ -40,8 +40,6 @@ class StreamProcessor(Thread):
         self._api_key = api_key
         self._token = token
         self._stream_url = f'{config.base_url}/stream?cluster={cluster}'
-        self._msg_processors: List[Union[FlagMsgProcessor,
-                                         SegmentMsgProcessor]] = []
         self._repository = repository
 
     def run(self):
@@ -106,11 +104,8 @@ class StreamProcessor(Thread):
             self._msg_processors.append(processor)
 
     def stop(self):
-        log.info("Stopping stream processor and msg processors")
-        for processor in self._msg_processors:
-            processor.stop()
         self._running = False
-        info_polling_stopped("Client was closed")
+        info_stream_stopped()
 
 
 class FlagMsgProcessor(Thread):

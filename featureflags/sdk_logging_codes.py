@@ -99,6 +99,10 @@ def info_metrics_success():
     log.info(sdk_err_msg(7003))
 
 
+def info_metrics_thread_existed():
+    log.info(sdk_err_msg(7001))
+
+
 def info_eval_success():
     log.info(sdk_err_msg(6000))
 

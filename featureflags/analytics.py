@@ -19,7 +19,7 @@ from .models.metrics_data import MetricsData
 from .models.target_data import TargetData
 from .models.unset import Unset
 from .sdk_logging_codes import info_metrics_thread_started, \
-    info_metrics_success, warn_post_metrics_failed
+    info_metrics_success, warn_post_metrics_failed, info_metrics_thread_existed
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -190,6 +190,7 @@ class AnalyticsService(object):
         self._running = False
         if len(self._data) > 0:
             self._send_data()
+        info_metrics_thread_existed()
 
     def __enter__(self):
         return self

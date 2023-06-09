@@ -88,8 +88,9 @@ class PollingProcessor(Thread):
                     time.sleep(self.__config.pull_interval - elapsed)
 
     def stop(self):
-        log.info("Stopping PollingProcessor")
         self.__running = False
+        info_polling_stopped("Client was closed")
+
 
     def retrieve_flags_and_segments(self):
         t1 = Thread(target=self.__retrieve_segments)
