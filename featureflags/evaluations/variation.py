@@ -24,7 +24,7 @@ class Variation(object):
         if self.value:
             result = self.value.lower() == "true"
             log.info(
-                "SDK_EVAL_6000: Evaluated bool variation successfully:"
+                "SDKCODE:6000: Evaluated bool variation successfully:"
                 "%s", {"result": result, "flag identifier": flag_identifier,
                        "target": target.identifier})
             return result
@@ -39,7 +39,7 @@ class Variation(object):
         if self.value:
             result = self.value
             log.info(
-                "SDK_EVAL_6000: Evaluated string variation successfully:"
+                "SDKCODE:6000: Evaluated string variation successfully:"
                 "%s", {"result": result, "flag identifier": flag_identifier,
                        "target": target.identifier})
             return result
@@ -54,7 +54,7 @@ class Variation(object):
         if self.value:
             result = float(self.value)
             log.info(
-                "SDK_EVAL_6000: Evaluated number variation successfully:"
+                "SDKCODE:6000: Evaluated number variation successfully:"
                 "%s", {"result": result, "flag identifier": flag_identifier,
                        "target": target.identifier})
             return result
@@ -69,7 +69,7 @@ class Variation(object):
         if self.value:
             result = int(self.value)
             log.info(
-                "SDK_EVAL_6000: Evaluated number variation successfully:"
+                "SDKCODE:6000: Evaluated number variation successfully:"
                 "%s", {"result": result, "flag identifier": flag_identifier,
                        "target": target.identifier})
             return result
@@ -84,7 +84,7 @@ class Variation(object):
         if self.value:
             result = json.loads(self.value)
             log.info(
-                "SDK_EVAL_6000: Evaluated json variation successfully:"
+                "SDKCODE:6000: Evaluated json variation successfully:"
                 "%s", {"result": result, "flag identifier": flag_identifier,
                        "target": target.identifier})
             return result
