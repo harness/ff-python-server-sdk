@@ -24,6 +24,10 @@ from .util import log
 VERSION: str = "1.0"
 
 
+class MissingOrEmptyAPIKeyException(Exception):
+    pass
+
+
 class CfClient(object):
     def __init__(
             self, sdk_key: str,
@@ -34,6 +38,9 @@ class CfClient(object):
         #  The Client is considered initialized when flags and groups
         #  are loaded into cache.
         self._initialized = threading.Event()
+        # Keep track if initialization has failed due to authentication
+        # or a missing/empty API key.
+        self._initialized_failed = False
         self._auth_token: Optional[str] = None
         self._environment_id: Optional[str] = None
         self._sdk_key: Optional[str] = sdk_key
@@ -57,6 +64,8 @@ class CfClient(object):
 
     def run(self):
         try:
+            if self._sdk_key is None or self._sdk_key == "":
+                raise MissingOrEmptyAPIKeyException()
             self.authenticate()
             sdk_codes.info_sdk_auth_ok()
             streaming_event = threading.Event()
@@ -100,20 +109,30 @@ class CfClient(object):
 
         except RetryError:
             sdk_codes.warn_auth_failed_exceed_retries()
-            # Mark the client as initialized in case wait_for_initialization
-            # is called. The SDK has already logged that authentication
-            # failed and defaults will be returned.
+            sdk_codes.warn_failed_init_auth_error()
+            self._initialized_failed = True
+            # We just need to unblock the thread here
+            # in case wait_for_intialization was called. The SDK has already
+            # logged that authentication failed and defaults will be returned.
             self._initialized.set()
         except UnrecoverableAuthenticationException:
+            self._initialized_failed = True
             sdk_codes.warn_auth_failed_srv_defaults()
-            # Same again, just mark the client as initailized.
+            sdk_codes.warn_failed_init_auth_error()
+            # Same again, unblock the thread.
+            self._initialized.set()
+        except MissingOrEmptyAPIKeyException:
+            self._initialized_failed = True
+            sdk_codes.wan_missing_sdk_key()
+            # And again, unblock the thread.
             self._initialized.set()
 
     def wait_for_initialization(self):
-        sdk_codes.info_sdk_init_waiting()
         self._initialized.wait()
 
     def is_initialized(self):
+        if self._initialized_failed:
+            return False
         return self._initialized.is_set()
 
     def get_environment_id(self):

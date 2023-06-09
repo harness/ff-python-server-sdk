@@ -5,18 +5,16 @@ def get_sdk_code_message(key):
     sdk_codes = {
         # SDK_INIT_1xxx
         1000: "The SDK has successfully initialized",
-        1001: "The SDK has failed to initialize due to the following "
-              "authentication error:",
+        1001: "The SDK has failed to initialize due to an authentication "
+              "error - defaults will be served",
         1002: "The SDK has failed to initialize due to a missing or empty "
-              "API key",
+              "API key - defaults will be served",
         1003: "The SDK is waiting for initialization to complete",
         # SDK_AUTH_2xxx
         2000: "Authenticated ok",
-        2001: "Authentication failed with a non-recoverable error - defaults "
-              "will be served",
+        2001: "Authentication failed with a non-recoverable error",
         2002: "Authentication attempt",
-        2003: "Authentication failed and max retries have been exceeded - "
-              "defaults will be servied",
+        2003: "Authentication failed and max retries have been exceeded",
         # SDK_POLL_4xxx
         4000: "Polling started, intervalMs:",
         4001: "Polling stopped, reason:",
@@ -45,10 +43,9 @@ def sdk_err_msg(error_code, append_text=""):
            f"{append_text} "
 
 
-def raise_missing_sdk_key():
+def wan_missing_sdk_key():
     msg = sdk_err_msg(1002)
-    log.error(msg)
-    raise Exception(msg)
+    log.warning(msg)
 
 
 def info_poll_started(duration_sec):
@@ -97,6 +94,10 @@ def info_eval_success():
 
 def warn_auth_failed_srv_defaults():
     log.warning(sdk_err_msg(2001))
+
+
+def warn_failed_init_auth_error():
+    log.warning(sdk_err_msg(1001))
 
 
 def warn_auth_failed_exceed_retries():
