@@ -19,7 +19,6 @@ from .evaluations.auth_target import Target
 from .polling import PollingProcessor
 from .streaming import StreamProcessor
 import featureflags.sdk_logging_codes as sdk_codes
-from .util import log
 
 VERSION: str = "1.0"
 
