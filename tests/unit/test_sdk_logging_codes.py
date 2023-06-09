@@ -1,7 +1,4 @@
-import pytest
-
 import featureflags.sdk_logging_codes as sdk_codes
-from featureflags.util import log
 from featureflags.evaluations.auth_target import Target
 
 
