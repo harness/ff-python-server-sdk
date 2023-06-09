@@ -2,7 +2,7 @@ import random
 import threading
 import time
 from threading import Thread
-from typing import List, Union
+from typing import Union
 
 from featureflags.repository import DataProviderInterface
 from .api.client import AuthenticatedClient
@@ -13,8 +13,7 @@ from .config import Config
 from .models.message import Message
 from .sdk_logging_codes import info_stream_connected, \
     info_stream_event_received, warn_stream_disconnected, \
-    warn_stream_retrying, \
-    info_polling_stopped, info_stream_stopped
+    warn_stream_retrying, info_stream_stopped
 from .sse_client import SSEClient
 from .util import log
 
