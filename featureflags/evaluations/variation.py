@@ -22,51 +22,76 @@ class Variation(object):
     def bool(self, target: Target, flag_identifier: str,
              default: bool = False) -> bool:
         if self.value:
-            return self.value.lower() == "true"
+            result = self.value.lower() == "true"
+            log.info(
+                "SDKCODE:6000: Evaluated bool variation successfully:"
+                "%s", {"result": result, "flag identifier": flag_identifier,
+                       "target": target})
+            return result
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate bool variation for %s and the "
+            "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
             "default variation '%s' is being returned",
-            {"target": target.identifier, "flag": flag_identifier}, default)
+            {"target": target, "flag": flag_identifier}, default)
         return default
 
     def string(self, target: Target, flag_identifier: str,
                default: str) -> str:
         if self.value:
-            return self.value
+            result = self.value
+            log.info(
+                "SDKCODE:6000: Evaluated string variation successfully:"
+                "%s", {"result": result, "flag identifier": flag_identifier,
+                       "target": target})
+            return result
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate string variation for %s and the"
+            "SDKCODE:6001: Failed to evaluate string variation for %s and the"
             " default variation '%s' is being returned",
-            {"target": target.identifier, "flag": flag_identifier}, default)
+            {"target": target, "flag": flag_identifier}, default)
         return default
 
     def number(self, target: Target, flag_identifier: str,
                default: float) -> float:
         if self.value:
-            return float(self.value)
+            result = float(self.value)
+            log.info(
+                "SDKCODE:6000: Evaluated number variation successfully:"
+                "%s", {"result": result, "flag identifier": flag_identifier,
+                       "target": target})
+            return result
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate number variation for %s and the"
+            "SDKCODE:6001: Failed to evaluate number variation for %s and the"
             " default variation '%s' is being returned",
-            {"target": target.identifier, "flag": flag_identifier}, default)
+            {"target": target, "flag": flag_identifier}, default)
         return default
 
     def int(self, target: Target, flag_identifier: str,
             default: int) -> int:
         if self.value:
-            return int(self.value)
+            result = int(self.value)
+            log.info(
+                "SDKCODE:6000: Evaluated number variation successfully:"
+                "%s", {"result": result, "flag identifier": flag_identifier,
+                       "target": target})
+            return result
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate int variation for %s and the "
+            "SDKCODE:6001: Failed to evaluate int variation for %s and the "
             "default variation '%s' is being returned",
-            {"target": target.identifier, "flag": flag_identifier}, default)
+            {"target": target, "flag": flag_identifier}, default)
         return default
 
     def json(self, target: Target, flag_identifier: str,
              default: dict) -> dict:
         if self.value:
-            return json.loads(self.value)
+            result = json.loads(self.value)
+            log.info(
+                "SDKCODE:6000: Evaluated json variation successfully:"
+                "%s", {"result": result, "flag identifier": flag_identifier,
+                       "target": target})
+            return result
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate json variation for %s and the "
+            "SDKCODE:6001: Failed to evaluate json variation for %s and the "
             "default variation '%s' is being returned",
-            {"target": target.identifier, "flag": flag_identifier}, default)
+            {"target": target, "flag": flag_identifier}, default)
         return default
 
     def to_dict(self) -> Dict[str, Any]:

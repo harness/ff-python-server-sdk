@@ -18,9 +18,13 @@ from .config import Config, default_config
 from .evaluations.auth_target import Target
 from .polling import PollingProcessor
 from .streaming import StreamProcessor
-from .util import log
+import featureflags.sdk_logging_codes as sdk_codes
 
 VERSION: str = "1.0"
+
+
+class MissingOrEmptyAPIKeyException(Exception):
+    pass
 
 
 class CfClient(object):
@@ -33,6 +37,9 @@ class CfClient(object):
         #  The Client is considered initialized when flags and groups
         #  are loaded into cache.
         self._initialized = threading.Event()
+        # Keep track if initialization has failed due to authentication
+        # or a missing/empty API key.
+        self._initialized_failed = False
         self._auth_token: Optional[str] = None
         self._environment_id: Optional[str] = None
         self._sdk_key: Optional[str] = sdk_key
@@ -56,7 +63,10 @@ class CfClient(object):
 
     def run(self):
         try:
+            if self._sdk_key is None or self._sdk_key == "":
+                raise MissingOrEmptyAPIKeyException()
             self.authenticate()
+            sdk_codes.info_sdk_auth_ok()
             streaming_event = threading.Event()
             polling_event = threading.Event()
 
@@ -97,24 +107,31 @@ class CfClient(object):
                 )
 
         except RetryError:
-            log.error(
-                "Authentication failed and max retries have been exceeded - "
-                "defaults will be served.")
-            # Mark the client as initialized in case wait_for_initialization
-            # is called. The SDK has already logged that authentication
-            # failed and defaults will be returned.
+            sdk_codes.warn_auth_failed_exceed_retries()
+            sdk_codes.warn_failed_init_auth_error()
+            self._initialized_failed = True
+            # We just need to unblock the thread here
+            # in case wait_for_intialization was called. The SDK has already
+            # logged that authentication failed and defaults will be returned.
             self._initialized.set()
         except UnrecoverableAuthenticationException:
-            log.error(
-                "Authentication failed - defaults will be served.")
-            # Same again, just mark the client as initailized.
+            self._initialized_failed = True
+            sdk_codes.warn_auth_failed_srv_defaults()
+            sdk_codes.warn_failed_init_auth_error()
+            # Same again, unblock the thread.
+            self._initialized.set()
+        except MissingOrEmptyAPIKeyException:
+            self._initialized_failed = True
+            sdk_codes.wan_missing_sdk_key()
+            # And again, unblock the thread.
             self._initialized.set()
 
     def wait_for_initialization(self):
-        log.debug("Waiting for initialization to finish")
         self._initialized.wait()
 
     def is_initialized(self):
+        if self._initialized_failed:
+            return False
         return self._initialized.is_set()
 
     def get_environment_id(self):
@@ -211,14 +228,14 @@ class CfClient(object):
         return variation.json(target, identifier, default)
 
     def close(self):
-        log.info('closing sdk client')
+        sdk_codes.info_sdk_start_close()
         self._polling_processor.stop()
         if self._config.enable_stream:
             self._stream.stop()
 
         if self._config.enable_analytics:
             self._analytics.close()
-        log.info('All threads finished')
+        sdk_codes.info_sdk_close_success()
 
     def __enter__(self):
         return self
