@@ -11,7 +11,7 @@ def get_sdk_code_message(key):
               "API key - defaults will be served",
         1003: "The SDK is waiting for initialization to complete",
         # SDK_AUTH_2xxx
-        2000: "Authenticated ok",
+        2000: "Authentication was successful",
         2001: "Authentication failed with a non-recoverable error",
         2002: "Authentication attempt",
         2003: "Authentication failed and max retries have been exceeded",
@@ -19,7 +19,7 @@ def get_sdk_code_message(key):
         4000: "Polling started, intervalMs:",
         4001: "Polling stopped, reason:",
         # SDK_STREAM_5xxx
-        5000: "SSE stream connected ok",
+        5000: "SSE stream successfully connected",
         5001: "SSE stream disconnected, reason:",
         5002: "SSE event received: ",
         5003: "SSE retrying to connect in",
