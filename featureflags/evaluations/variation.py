@@ -29,7 +29,7 @@ class Variation(object):
                        "target": target.identifier})
             return result
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate bool variation for %s and the "
+            "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
             "default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
@@ -44,7 +44,7 @@ class Variation(object):
                        "target": target.identifier})
             return result
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate string variation for %s and the"
+            "SDKCODE:6001: Failed to evaluate string variation for %s and the"
             " default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
@@ -59,7 +59,7 @@ class Variation(object):
                        "target": target.identifier})
             return result
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate number variation for %s and the"
+            "SDKCODE:6001: Failed to evaluate number variation for %s and the"
             " default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
@@ -74,7 +74,7 @@ class Variation(object):
                        "target": target.identifier})
             return result
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate int variation for %s and the "
+            "SDKCODE:6001: Failed to evaluate int variation for %s and the "
             "default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
@@ -89,7 +89,7 @@ class Variation(object):
                        "target": target.identifier})
             return result
         log.error(
-            "SDK_EVAL_6001: Failed to evaluate json variation for %s and the "
+            "SDKCODE:6001: Failed to evaluate json variation for %s and the "
             "default variation '%s' is being returned",
             {"target": target.identifier, "flag": flag_identifier}, default)
         return default
