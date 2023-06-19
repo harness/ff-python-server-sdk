@@ -26,7 +26,9 @@ class Config(object):
             store: object = None,
             enable_stream: bool = True,
             enable_analytics: bool = True,
-            max_auth_retries: int = 10
+            max_auth_retries: int = 10,
+            # Used for Harness On-Premises
+            custom_ca_certificates: str = None
     ):
         self.base_url = base_url
         self.events_url = events_url
@@ -40,6 +42,7 @@ class Config(object):
         self.enable_stream = enable_stream
         self.enable_analytics = enable_analytics
         self.max_auth_retries = max_auth_retries
+        self.custom_ca_certificates = custom_ca_certificates
 
 
 default_config = Config()
@@ -83,5 +86,12 @@ def with_pull_interval(value: int) -> Callable:
 def with_max_auth_retries(value: int) -> Callable:
     def func(config: Config) -> None:
         config.max_auth_retries = value
+
+    return func
+
+
+def with_custom_ca_certificate(value: str) -> Callable:
+    def func(config: Config) -> None:
+        config.custom_ca_certificates = value
 
     return func

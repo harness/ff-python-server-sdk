@@ -1,3 +1,5 @@
+import logging
+import ssl
 from typing import Dict
 
 import attr
@@ -14,6 +16,8 @@ class Client:
     headers: Dict[str, str] = attr.ib(factory=dict, kw_only=True)
     timeout: float = attr.ib(5.0, kw_only=True)
     max_auth_retries: int
+    # Used for on-prem
+    ssl_context: ssl.SSLContext = attr.ib(factory=ssl.SSLContext, kw_only=True)
 
     def get_headers(self) -> Dict[str, str]:
         """Get headers to be used in all endpoints"""
@@ -33,8 +37,25 @@ class Client:
         """Get a new client matching this one with additional cookies"""
         return attr.evolve(self, cookies={**self.cookies, **cookies})
 
+    def with_ssl_context(self, ca_file: str) -> "Client":
+        """Get a new client matching this one with custom CA certifications"""
+        # Create an SSL context
+        context = ssl.create_default_context()
+
+        # Add custom root CA certificates
+        context.load_verify_locations(cafile=ca_file)
+
+        # Disable pre-bundled certificates
+        context.verify_mode = ssl.CERT_NONE
+
+        # Return a new client with the modified SSL context
+        return attr.evolve(self, ssl_context=context)
+
     def get_timeout(self) -> float:
         return self.timeout
+
+    def get_ssl_context(self) -> ssl.SSLContext:
+        return self.ssl_context
 
     def get_max_auth_retries(self) -> int:
         return self.max_auth_retries

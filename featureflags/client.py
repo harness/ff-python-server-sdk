@@ -1,5 +1,5 @@
 """Client for interacting with Harness FF server"""
-
+import ssl
 import threading
 from typing import Any, Callable, Dict, Optional
 
@@ -45,6 +45,9 @@ class CfClient(object):
         self._sdk_key: Optional[str] = sdk_key
         self._config: Config = default_config
         self._cluster: str = '1'
+        # Used for on prem
+        self._ssl_context = None
+
 
         if config:
             self._config = config
@@ -129,6 +132,18 @@ class CfClient(object):
     def wait_for_initialization(self):
         self._initialized.wait()
 
+    # def set_ssl_context(self, ca_file: str):
+    #     context = ssl.create_default_context()
+    #
+    #     # Add custom root CA certificates
+    #     context.load_verify_locations(cafile=ca_file)
+    #
+    #     # Disable pre-bundled certificates
+    #     context.verify_mode = ssl.CERT_REQUIRED
+    #
+    #     self._ssl_context = context
+
+
     def is_initialized(self):
         if self._initialized_failed:
             return False
@@ -138,12 +153,19 @@ class CfClient(object):
         return self._environment_id
 
     def authenticate(self):
+
         client = Client(
             base_url=self._config.base_url,
             events_url=self._config.events_url,
-            max_auth_retries=self._config.max_auth_retries
+            max_auth_retries=self._config.max_auth_retries,
         )
+
+        trusted_ca_file = self._config.custom_ca_certificates
+        if trusted_ca_file:
+            client = client.with_ssl_context(trusted_ca_file)
+
         body = AuthenticationRequest(api_key=self._sdk_key)
+
         response = authenticate(client=client, json_body=body)
         self._auth_token = response.auth_token
 
