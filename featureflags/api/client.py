@@ -45,9 +45,6 @@ class Client:
         # Add custom root CA certificates
         context.load_verify_locations(cafile=ca_file)
 
-        # Disable pre-bundled certificates
-        context.verify_mode = ssl.CERT_NONE
-
         # Return a new client with the modified SSL context
         return attr.evolve(self, ssl_context=context)
 
