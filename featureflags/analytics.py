@@ -63,6 +63,7 @@ class AnalyticsService(object):
         self._environment = environment
         self._data: Dict[str, AnalyticsEvent] = {}
         self._target_data: Dict[str, MetricTargetData] = {}
+        self.max_target_data_exceeded = False
 
         self._running = False
         self._runner = Thread(target=self._sync)
@@ -95,8 +96,12 @@ class AnalyticsService(object):
             # should get registered eventually on subsequent evaluations.
             # We want to eventually use a batching solution
             # to avoid this.
-            if len(self._target_data) >= 50000:
-                info_metrics_target_exceeded()
+            max_target_size = 50000
+            if len(self._target_data) >= max_target_size:
+                # Only log the info code once per interval
+                if not self.max_target_data_exceeded:
+                    info_metrics_target_exceeded()
+                    self.max_target_data_exceeded = True
                 return
 
             # Store unique targets. If the target already exists
