@@ -34,8 +34,8 @@ def get_sdk_code_message(key):
         7001: "Metrics thread exited",
         7002: "Posting metrics failed, reason:",
         7003: "Metrics posted successfully",
-        7004: "Target metrics exceeded max size, remaining targets for this"
-              "analytics interval will not be sent in metrics payload",
+        7004: "Target metrics exceeded max size, remaining targets for this "
+              "analytics interval will not be sent",
     }
     if key in sdk_codes:
         return sdk_codes[key]
