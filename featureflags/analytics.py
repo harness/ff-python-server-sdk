@@ -89,26 +89,28 @@ class AnalyticsService(object):
                 event.count = 1
                 self._data[unique_evaluation_key] = event
 
-            # Temporary workaround for FFM-8231 - limit max size of target
-            # metrics to 50k, which ff-server can process in around
-            # 18 seconds. This possibly prevent some targets from getting
-            # registered and showing in the UI, but in theory, they
-            # should get registered eventually on subsequent evaluations.
-            # We want to eventually use a batching solution
-            # to avoid this.
-            max_target_size = 50000
-            if len(self._target_data) >= max_target_size:
-                # Only log the info code once per interval
-                if not self.max_target_data_exceeded:
-                    info_metrics_target_exceeded()
-                    self.max_target_data_exceeded = True
-                return
-
             # Store unique targets. If the target already exists
             # just ignore it.
             if event.target is not None and not event.target.anonymous:
                 unique_target_key = self.get_target_key(event)
                 if unique_target_key not in self._target_data:
+                    # Temporary workaround for FFM-8231 - limit max size of
+                    # target
+                    # metrics to 50k, which ff-server can process in around
+                    # 18 seconds. This possibly prevent some targets from
+                    # getting
+                    # registered and showing in the UI, but in theory, they
+                    # should get registered eventually on subsequent
+                    # evaluations.
+                    # We want to eventually use a batching solution
+                    # to avoid this.
+                    max_target_size = 50000
+                    if len(self._target_data) >= max_target_size:
+                        # Only log the info code once per interval
+                        if not self.max_target_data_exceeded:
+                            info_metrics_target_exceeded()
+                            self.max_target_data_exceeded = True
+                        return
                     target_name = event.target.name
                     # If the target has no name use the identifier
                     if not target_name:
