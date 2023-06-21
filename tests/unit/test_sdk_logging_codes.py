@@ -17,6 +17,7 @@ def test_logs_dont_raise_exception():
     sdk_codes.info_metrics_thread_started(10)
     sdk_codes.info_metrics_thread_existed()
     sdk_codes.info_metrics_success()
+    sdk_codes.info_metrics_target_exceeded()
     sdk_codes.warn_auth_failed_srv_defaults()
     sdk_codes.warn_failed_init_auth_error()
     sdk_codes.warn_auth_failed_exceed_retries()
