@@ -19,7 +19,8 @@ from .models.metrics_data import MetricsData
 from .models.target_data import TargetData
 from .models.unset import Unset
 from .sdk_logging_codes import info_metrics_thread_started, \
-    info_metrics_success, warn_post_metrics_failed, info_metrics_thread_existed
+    info_metrics_success, warn_post_metrics_failed, \
+    info_metrics_thread_existed, info_metrics_target_exceeded
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -62,6 +63,7 @@ class AnalyticsService(object):
         self._environment = environment
         self._data: Dict[str, AnalyticsEvent] = {}
         self._target_data: Dict[str, MetricTargetData] = {}
+        self.max_target_data_exceeded = False
 
         self._running = False
         self._runner = Thread(target=self._sync)
@@ -92,6 +94,23 @@ class AnalyticsService(object):
             if event.target is not None and not event.target.anonymous:
                 unique_target_key = self.get_target_key(event)
                 if unique_target_key not in self._target_data:
+                    # Temporary workaround for FFM-8231 - limit max size of
+                    # target
+                    # metrics to 50k, which ff-server can process in around
+                    # 18 seconds. This possibly prevent some targets from
+                    # getting
+                    # registered and showing in the UI, but in theory, they
+                    # should get registered eventually on subsequent
+                    # evaluations.
+                    # We want to eventually use a batching solution
+                    # to avoid this.
+                    max_target_size = 50000
+                    if len(self._target_data) >= max_target_size:
+                        # Only log the info code once per interval
+                        if not self.max_target_data_exceeded:
+                            info_metrics_target_exceeded()
+                            self.max_target_data_exceeded = True
+                        return
                     target_name = event.target.name
                     # If the target has no name use the identifier
                     if not target_name:
@@ -174,7 +193,9 @@ class AnalyticsService(object):
         finally:
             self._data = {}
             self._target_data = {}
+            self.max_target_data_exceeded = False
             self._lock.release()
+
         body: Metrics = Metrics(target_data=target_data,
                                 metrics_data=metrics_data)
         response = post_metrics(client=self._client,

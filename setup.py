@@ -13,7 +13,7 @@ with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
 requirements = [
-    "httpx>=0.23.0",
+    "httpx>=0.24.1",
     "pyjwt>=2.4.0",
     "attrs>=21.2.0",
     "mmh3>=3.0.0",
@@ -57,6 +57,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/harness/ff-python-server-sdk",
-    version='1.1.15',
+    version='1.1.16',
     zip_safe=False,
 )
