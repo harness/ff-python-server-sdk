@@ -19,7 +19,8 @@ from .models.metrics_data import MetricsData
 from .models.target_data import TargetData
 from .models.unset import Unset
 from .sdk_logging_codes import info_metrics_thread_started, \
-    info_metrics_success, warn_post_metrics_failed, info_metrics_thread_existed
+    info_metrics_success, warn_post_metrics_failed, \
+    info_metrics_thread_existed, info_metrics_target_exceeded
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -95,7 +96,7 @@ class AnalyticsService(object):
             # We want to eventually use a batching solution
             # to avoid this.
             if len(self._target_data) >= 50000:
-
+                info_metrics_target_exceeded()
                 return
 
             # Store unique targets. If the target already exists
