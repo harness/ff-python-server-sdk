@@ -87,6 +87,16 @@ class AnalyticsService(object):
                 event.count = 1
                 self._data[unique_evaluation_key] = event
 
+            # Temporary workaround for FFM-8231 - limit max size of target
+            # metrics to 40k, which ff-server can process in around
+            # 15 seconds. This possibly prevent some targets from getting
+            # registered and showing in the UI, but in theory, they
+            # should get registered eventually on subsequent evaluations.
+            # We want to eventually use a batching solution
+            # to avoid this.
+            if len(self._target_data) >= 50000:
+                return
+
             # Store unique targets. If the target already exists
             # just ignore it.
             if event.target is not None and not event.target.anonymous:
@@ -175,6 +185,7 @@ class AnalyticsService(object):
             self._data = {}
             self._target_data = {}
             self._lock.release()
+
         body: Metrics = Metrics(target_data=target_data,
                                 metrics_data=metrics_data)
         response = post_metrics(client=self._client,
