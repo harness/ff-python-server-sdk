@@ -91,7 +91,7 @@ class AnalyticsService(object):
 
             # Temporary workaround for FFM-8231 - limit max size of target
             # metrics to 50k, which ff-server can process in around
-            # 15 seconds. This possibly prevent some targets from getting
+            # 18 seconds. This possibly prevent some targets from getting
             # registered and showing in the UI, but in theory, they
             # should get registered eventually on subsequent evaluations.
             # We want to eventually use a batching solution
