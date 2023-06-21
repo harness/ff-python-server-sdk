@@ -191,6 +191,7 @@ class AnalyticsService(object):
         finally:
             self._data = {}
             self._target_data = {}
+            self.max_target_data_exceeded = False
             self._lock.release()
 
         body: Metrics = Metrics(target_data=target_data,
