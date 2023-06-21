@@ -12,7 +12,7 @@ class Client:
     params: Dict[str, str] = attr.ib(factory=dict, kw_only=True)
     cookies: Dict[str, str] = attr.ib(factory=dict, kw_only=True)
     headers: Dict[str, str] = attr.ib(factory=dict, kw_only=True)
-    timeout: float = attr.ib(5.0, kw_only=True)
+    timeout: float = attr.ib(30.0, kw_only=True)
     max_auth_retries: int
 
     def get_headers(self) -> Dict[str, str]:

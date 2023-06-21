@@ -95,6 +95,7 @@ class AnalyticsService(object):
             # We want to eventually use a batching solution
             # to avoid this.
             if len(self._target_data) >= 50000:
+
                 return
 
             # Store unique targets. If the target already exists
