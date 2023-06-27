@@ -191,7 +191,7 @@ class AnalyticsService(object):
 
             target_data_batches: List[List[TargetData]] = []
             target_data_batch_index = 0
-            for batch in self._target_data_batches:
+            for batch in self._target_data_batches[1:]:
                 target_data_batches.append([])
                 for _, unique_target in batch.items():
                     self.process_target(
@@ -221,9 +221,15 @@ class AnalyticsService(object):
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 # Submit the tasks for processing target data batches
                 # concurrently
-                futures = [
-                    executor.submit(self.process_target_data_batch, batch)
-                    for batch in target_data_batches]
+                futures = []
+                for batch in target_data_batches:
+                    # Staggering requests over 0.02 seconds mean that we will
+                    # send 200 requests every four seconds, in order that the
+                    # backend isn't hit too hard.
+                    time.sleep(0.02)
+                    future = executor.submit(self.process_target_data_batch,
+                                             batch)
+                    futures.append(future)
 
                 # Wait for all futures to complete
                 concurrent.futures.wait(futures)
