@@ -243,7 +243,7 @@ class AnalyticsService(object):
                     # Wait for all batches to complete
                     concurrent.futures.wait(futures)
 
-                    # Log unique status codes
+                    # Get unique status codes
                     for future in futures:
                         status_code = future.result()
                         if status_code in unique_responses_codes:
@@ -251,6 +251,7 @@ class AnalyticsService(object):
                         else:
                             unique_responses_codes[status_code] = 1
 
+                # Log any error codes
                 for unique_code, count in unique_responses_codes.items():
                     if response.status_code >= 400:
                         warn_post_metrics_target_batch_failed(
