@@ -209,10 +209,26 @@ class AnalyticsService(object):
                                 metrics_data=metrics_data)
         response = post_metrics(client=self._client,
                                 environment=self._environment, json_body=body)
+
+
+        # Send any target data batches we have on top of the
+        # targets that were sent in the first request
+        if target_data_batches[0]:
+            unique_responses_codes = set()
+            log.debug('Sending %s target batches', len(target_data_batches))
+            for target_data_batch in target_data_batches:
+                response = post_metrics(client=self._client,
+                                        environment=self._environment,
+                                        json_body=body)
+                unique_responses_codes.add(response.status_code)
+
         log.debug('Metrics server returns: %d', response.status_code)
         if response.status_code >= 400:
             warn_post_metrics_failed(response.status_code)
             return
+
+
+
         info_metrics_success()
         return
 
