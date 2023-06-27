@@ -260,7 +260,7 @@ class AnalyticsService(object):
 
                 info_metrics_target_batch_success(
                     f'{len(target_data_batches)} batches successful')
-                info_metrics_success()
+            info_metrics_success()
         except httpx.RequestError as ex:
             warn_post_metrics_failed(ex)
 
