@@ -262,8 +262,6 @@ class AnalyticsService(object):
                     f'{len(target_data_batches)} batches successful')
                 info_metrics_success()
         except httpx.RequestError as ex:
-            # Handle specific HTTP errors (e.g., 404, 500) from
-            # post_metrics
             warn_post_metrics_failed(ex)
 
         return
