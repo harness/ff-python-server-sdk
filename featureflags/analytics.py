@@ -248,7 +248,7 @@ class AnalyticsService(object):
                     else:
                         unique_responses_codes[status_code] = 1
 
-            for unique_code, count in unique_responses_codes:
+            for unique_code, count in unique_responses_codes.items():
                 if response.status_code >= 400:
                     warn_post_metrics_target_batch_failed(
                         f'{count} batches received code {unique_code}')
