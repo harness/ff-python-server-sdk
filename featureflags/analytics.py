@@ -215,7 +215,7 @@ class AnalyticsService(object):
                                 environment=self._environment, json_body=body)
 
         log.debug('Metrics server returns: %d', response.status_code)
-        if len(target_data_batches) > 1:
+        if len(target_data_batches) > 0:
             log.info('Sending %s target batches to metrics',
                      len(target_data_batches))
             unique_responses_codes = {}
