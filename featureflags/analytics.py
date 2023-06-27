@@ -4,6 +4,7 @@ from typing import Dict, List, Union
 import concurrent.futures
 
 import attr
+import httpx
 
 from featureflags.models.metrics_data_metrics_type import \
     MetricsDataMetricsType
@@ -212,51 +213,60 @@ class AnalyticsService(object):
 
         body: Metrics = Metrics(target_data=target_data,
                                 metrics_data=metrics_data)
-        response = post_metrics(client=self._client,
-                                environment=self._environment, json_body=body)
+        try:
+            response = post_metrics(client=self._client,
+                                    environment=self._environment,
+                                    json_body=body)
 
-        log.debug('Metrics server returns: %d', response.status_code)
-        if response.status_code >= 400:
-            warn_post_metrics_failed(response.status_code)
-            return
-        if len(target_data_batches) > 0:
-            log.info('Sending %s target batches to metrics',
-                     len(target_data_batches))
-            unique_responses_codes = {}
+            log.debug('Metrics server returns: %d', response.status_code)
+            if response.status_code >= 400:
+                warn_post_metrics_failed(response.status_code)
+                return
+            if len(target_data_batches) > 0:
+                log.info('Sending %s target batches to metrics',
+                         len(target_data_batches))
+                unique_responses_codes = {}
 
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                # Submit the tasks for processing target data batches
-                # concurrently
-                futures = []
-                for batch in target_data_batches:
-                    # Staggering requests over 0.02 seconds mean that we will
-                    # send 200 requests every four seconds, in order that the
-                    # backend isn't hit too hard.
-                    time.sleep(0.02)
-                    future = executor.submit(self.process_target_data_batch,
-                                             batch)
-                    futures.append(future)
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    # Submit the tasks for processing target data batches
+                    # concurrently
+                    futures = []
+                    for batch in target_data_batches:
+                        # Staggering requests over 0.02 seconds mean that we
+                        # will
+                        # send 200 requests every four seconds, in order
+                        # that the
+                        # backend isn't hit too hard.
+                        time.sleep(0.02)
+                        future = executor.submit(
+                            self.process_target_data_batch,
+                            batch)
+                        futures.append(future)
 
-                # Wait for all batches to complete
-                concurrent.futures.wait(futures)
+                    # Wait for all batches to complete
+                    concurrent.futures.wait(futures)
 
-                # Log unique status codes
-                for future in futures:
-                    status_code = future.result()
-                    if status_code in unique_responses_codes:
-                        unique_responses_codes[status_code] += 1
-                    else:
-                        unique_responses_codes[status_code] = 1
+                    # Log unique status codes
+                    for future in futures:
+                        status_code = future.result()
+                        if status_code in unique_responses_codes:
+                            unique_responses_codes[status_code] += 1
+                        else:
+                            unique_responses_codes[status_code] = 1
 
-            for unique_code, count in unique_responses_codes.items():
-                if response.status_code >= 400:
-                    warn_post_metrics_target_batch_failed(
-                        f'{count} batches received code {unique_code}')
-                    return
+                for unique_code, count in unique_responses_codes.items():
+                    if response.status_code >= 400:
+                        warn_post_metrics_target_batch_failed(
+                            f'{count} batches received code {unique_code}')
+                        return
 
-            info_metrics_target_batch_success(
-                f'{len(target_data_batches)} batches successful')
-            info_metrics_success()
+                info_metrics_target_batch_success(
+                    f'{len(target_data_batches)} batches successful')
+                info_metrics_success()
+        except httpx.RequestError as ex:
+            # Handle specific HTTP errors (e.g., 404, 500) from
+            # post_metrics
+            warn_post_metrics_failed(ex)
 
         return
 
