@@ -121,8 +121,6 @@ class AnalyticsService(object):
                            self._current_batch_index]) >= self._max_batch_size:
                     self._target_data_batches.append({})
                     self._current_batch_index += 1
-                        # current_batch = self._target_data_batches[
-                        #     self._current_batch_index]
 
                 target_name = event.target.name
                 # If the target has no name use the identifier
