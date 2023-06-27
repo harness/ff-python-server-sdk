@@ -227,9 +227,8 @@ class AnalyticsService(object):
                          len(target_data_batches))
                 unique_responses_codes = {}
 
+                # Process batches concurrently
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    # Submit the tasks for processing target data batches
-                    # concurrently
                     futures = []
                     for batch in target_data_batches:
                         # Staggering requests over 0.02 seconds mean that we
