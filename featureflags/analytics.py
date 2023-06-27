@@ -100,12 +100,6 @@ class AnalyticsService(object):
                         self._max_batch_size:
                     return
 
-            # if self._current_batch_index >= self._max_number_of_batches:
-            #     if len(self._target_data_batches[
-            #                self._current_batch_index]) >= \
-            #             self._max_batch_size:
-            #         return
-
             if event.target is not None and not event.target.anonymous:
                 unique_target_key = self.get_target_key(event)
 
