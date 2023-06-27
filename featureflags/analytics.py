@@ -191,6 +191,8 @@ class AnalyticsService(object):
 
             target_data_batches: List[List[TargetData]] = []
             target_data_batch_index = 0
+            # We've already accounted for the first batch, so start processing
+            # from the second batch onwards
             for batch in self._target_data_batches[1:]:
                 target_data_batches.append([])
                 for _, unique_target in batch.items():
@@ -213,7 +215,7 @@ class AnalyticsService(object):
                                 environment=self._environment, json_body=body)
 
         log.debug('Metrics server returns: %d', response.status_code)
-        if target_data_batches[0]:
+        if len(target_data_batches) > 1:
             log.info('Sending %s target batches to metrics',
                      len(target_data_batches))
             unique_responses_codes = {}
