@@ -233,10 +233,8 @@ class AnalyticsService(object):
                     futures = []
                     for batch in target_data_batches:
                         # Staggering requests over 0.02 seconds mean that we
-                        # will
-                        # send 200 requests every four seconds, in order
-                        # that the
-                        # backend isn't hit too hard.
+                        # will send 200 requests every four seconds, so that
+                        # the backend isn't hit too hard.
                         time.sleep(0.02)
                         future = executor.submit(
                             self.process_target_data_batch,
