@@ -92,43 +92,37 @@ class AnalyticsService(object):
                 event.count = 1
                 self._data[unique_evaluation_key] = event
 
-            # Store unique targets. If the target already exists
-            # just ignore it.
+
             if event.target is not None and not event.target.anonymous:
                 unique_target_key = self.get_target_key(event)
-                # TODO - check if key is in any of the batches
-                if unique_target_key not in self._target_data:
-                    # Temporary workaround for FFM-8231 - limit max size of
-                    # target
-                    # metrics to 50k, which ff-server can process in around
-                    # 18 seconds. This possibly prevent some targets from
-                    # getting
-                    # registered and showing in the UI, but in theory, they
-                    # should get registered eventually on subsequent
-                    # evaluations.
-                    # We want to eventually use a batching solution
-                    # to avoid this.
 
-                    # If we've exceeded the max batch size for the current
-                    # batch, then create a new batch and start using it.
+                # Store unique targets. If the target already exists
+                # in any of the batches, don't continue processing it
+                for batch in self._target_data:
+                    if unique_target_key in batch:
+                        return
+
+
+                # If we've exceeded the max batch size for the current
+                # batch, then create a new batch and start using it.
+                current_batch = self._target_data[
+                    self._current_batch_index]
+
+                if len(current_batch) >= self._max_batch_size:
+                    self._target_data.append({})
+                    self._current_batch_index += 1
                     current_batch = self._target_data[
                         self._current_batch_index]
 
-                    if len(current_batch) >= self._max_batch_size:
-                        self._target_data.append({})
-                        self._current_batch_index += 1
-                        current_batch = self._target_data[
-                            self._current_batch_index]
-
-                    target_name = event.target.name
-                    # If the target has no name use the identifier
-                    if not target_name:
-                        target_name = event.target.identifier
-                    current_batch[unique_target_key] = MetricTargetData(
-                        identifier=event.target.identifier,
-                        name=target_name,
-                        attributes=event.target.attributes
-                    )
+                target_name = event.target.name
+                # If the target has no name use the identifier
+                if not target_name:
+                    target_name = event.target.identifier
+                current_batch[unique_target_key] = MetricTargetData(
+                    identifier=event.target.identifier,
+                    name=target_name,
+                    attributes=event.target.attributes
+                )
         finally:
             self._lock.release()
 
