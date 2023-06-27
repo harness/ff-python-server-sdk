@@ -62,7 +62,10 @@ class AnalyticsService(object):
         self._client = client
         self._environment = environment
         self._data: Dict[str, AnalyticsEvent] = {}
-        self._target_data: Dict[str, MetricTargetData] = {}
+        self._target_data: List[Dict[str, MetricTargetData]] = [{}]
+        self._max_number_of_batches = 20
+        self._max_batch_size = 1000
+        self._current_batch_index = 0
         self.max_target_data_exceeded = False
 
         self._running = False
@@ -93,6 +96,7 @@ class AnalyticsService(object):
             # just ignore it.
             if event.target is not None and not event.target.anonymous:
                 unique_target_key = self.get_target_key(event)
+                # TODO - check if key is in any of the batches
                 if unique_target_key not in self._target_data:
                     # Temporary workaround for FFM-8231 - limit max size of
                     # target
@@ -104,18 +108,23 @@ class AnalyticsService(object):
                     # evaluations.
                     # We want to eventually use a batching solution
                     # to avoid this.
-                    max_target_size = 50000
-                    if len(self._target_data) >= max_target_size:
-                        # Only log the info code once per interval
-                        if not self.max_target_data_exceeded:
-                            info_metrics_target_exceeded()
-                            self.max_target_data_exceeded = True
-                        return
+
+                    # If we've exceeded the max batch size for the current
+                    # batch, then create a new batch and start using it.
+                    current_batch = self._target_data[
+                        self._current_batch_index]
+
+                    if len(current_batch) >= self._max_batch_size:
+                        self._target_data.append({})
+                        self._current_batch_index += 1
+                        current_batch = self._target_data[
+                            self._current_batch_index]
+
                     target_name = event.target.name
                     # If the target has no name use the identifier
                     if not target_name:
                         target_name = event.target.identifier
-                    self._target_data[unique_target_key] = MetricTargetData(
+                    current_batch[unique_target_key] = MetricTargetData(
                         identifier=event.target.identifier,
                         name=target_name,
                         attributes=event.target.attributes
