@@ -264,7 +264,6 @@ class AnalyticsService(object):
         except httpx.RequestError as ex:
             warn_post_metrics_failed(ex)
 
-        return
 
     def process_target_data_batch(self, target_data_batch):
         batch_request_body: Metrics = Metrics(

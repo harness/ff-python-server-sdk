@@ -36,8 +36,8 @@ def get_sdk_code_message(key):
         7003: "Metrics posted successfully",
         7004: "Target metrics exceeded max size, remaining targets for this "
               "analytics interval will not be sent",
-        7005: "Target metrics batches succeeded: ",
-        7006: "Target metrics batch/batches failed: ",
+        7005: "Target metrics batches succeeded:",
+        7006: "Target metrics batch/batches failed:",
     }
     if key in sdk_codes:
         return sdk_codes[key]
