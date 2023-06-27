@@ -34,12 +34,12 @@ class Config(object):
         self.pull_interval = pull_interval
         self.persist_interval = persist_interval
         if events_sync_interval < EVENTS_SYNC_INTERVAL:
-            log.warning("Metrics events sync interval cannot be lower than"
+            log.warning("Metrics events sync interval cannot be lower than "
                         "60 seconds. Default of 60 seconds will be used")
+            self.events_sync_interval = EVENTS_SYNC_INTERVAL
         else:
             self.events_sync_interval = events_sync_interval
 
-        self.events_sync_interval = events_sync_interval
         self.cache = cache
         if self.cache is None:
             self.cache = LRUCache()

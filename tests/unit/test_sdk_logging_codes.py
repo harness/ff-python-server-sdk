@@ -26,4 +26,5 @@ def test_logs_dont_raise_exception():
     sdk_codes.warn_stream_disconnected("example reason")
     sdk_codes.warn_stream_retrying(5)
     sdk_codes.warn_post_metrics_failed("example reason")
+    sdk_codes.warn_post_metrics_target_batch_failed("example reason")
     sdk_codes.warn_default_variation_served("identifier", target, "default")
