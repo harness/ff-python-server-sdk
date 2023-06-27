@@ -186,19 +186,20 @@ class AnalyticsService(object):
                     attributes=metric_attributes
                 )
                 metrics_data.append(md)
-            for _, unique_target in self._target_data.items():
-                target_attributes: List[KeyValue] = []
-                if not isinstance(unique_target.attributes, Unset):
-                    for key, value in unique_target.attributes.items():
-                        # Attribute values need to be sent as string to
-                        # ff-server so convert all values to strings.
-                        target_attributes.append(KeyValue(key, str(value)))
-                td = TargetData(
-                    identifier=unique_target.identifier,
-                    name=unique_target.name,
-                    attributes=target_attributes
-                )
-                target_data.append(td)
+            for batch in self._target_data:
+                for _, unique_target in batch.items():
+                    target_attributes: List[KeyValue] = []
+                    if not isinstance(unique_target.attributes, Unset):
+                        for key, value in unique_target.attributes.items():
+                            # Attribute values need to be sent as string to
+                            # ff-server so convert all values to strings.
+                            target_attributes.append(KeyValue(key, str(value)))
+                    td = TargetData(
+                        identifier=unique_target.identifier,
+                        name=unique_target.name,
+                        attributes=target_attributes
+                    )
+                    target_data.append(td)
         finally:
             self._data = {}
             self._target_data = {}
