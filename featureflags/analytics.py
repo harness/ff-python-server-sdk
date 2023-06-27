@@ -189,14 +189,14 @@ class AnalyticsService(object):
             for _, unique_target in self._target_data_batches[0].items():
                 self.process_target(target_data, unique_target)
 
-            target_data_batches: List[List[TargetData]] = [[]]
+            target_data_batches: List[List[TargetData]] = []
             target_data_batch_index = 0
             for batch in self._target_data_batches:
+                target_data_batches.append([])
                 for _, unique_target in batch.items():
                     self.process_target(
                         target_data_batches[target_data_batch_index],
                         unique_target)
-                target_data_batches.append([])
                 target_data_batch_index += 1
 
 

@@ -12,7 +12,7 @@ MINUTE = 60
 PULL_INTERVAL = 1 * MINUTE
 PERSIST_INTERVAL = 1 * MINUTE
 # TODO change back to a minute
-EVENTS_SYNC_INTERVAL = 5
+EVENTS_SYNC_INTERVAL = 10
 
 
 class Config(object):
