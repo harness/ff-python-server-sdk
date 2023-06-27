@@ -21,7 +21,8 @@ from .models.target_data import TargetData
 from .models.unset import Unset
 from .sdk_logging_codes import info_metrics_thread_started, \
     info_metrics_success, warn_post_metrics_failed, \
-    info_metrics_thread_existed, info_metrics_target_exceeded
+    info_metrics_thread_existed, info_metrics_target_exceeded, \
+    warn_post_metrics_target_batch_failed, info_metrics_target_batch_success
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -215,6 +216,9 @@ class AnalyticsService(object):
                                 environment=self._environment, json_body=body)
 
         log.debug('Metrics server returns: %d', response.status_code)
+        if response.status_code >= 400:
+            warn_post_metrics_failed(response.status_code)
+            return
         if len(target_data_batches) > 0:
             log.info('Sending %s target batches to metrics',
                      len(target_data_batches))
@@ -233,10 +237,10 @@ class AnalyticsService(object):
                                              batch)
                     futures.append(future)
 
-                # Wait for all futures to complete
+                # Wait for all batches to complete
                 concurrent.futures.wait(futures)
 
-                # Retrieve the results
+                # Log unique status codes
                 for future in futures:
                     status_code = future.result()
                     if status_code in unique_responses_codes:
@@ -244,7 +248,16 @@ class AnalyticsService(object):
                     else:
                         unique_responses_codes[status_code] = 1
 
-        info_metrics_success()
+            for unique_code, count in unique_responses_codes:
+                if response.status_code >= 400:
+                    warn_post_metrics_target_batch_failed(
+                        f'{count} batches received code {unique_code}')
+                    return
+
+            info_metrics_target_batch_success(
+                f'{len(target_data_batches)} batches successful')
+            info_metrics_success()
+
         return
 
     def process_target_data_batch(self, target_data_batch):
