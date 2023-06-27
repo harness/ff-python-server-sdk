@@ -101,6 +101,9 @@ class AnalyticsService(object):
                 if len(self._target_data_batches[
                            self._current_batch_index]) >= \
                         self._max_batch_size:
+                    if not self.max_target_data_exceeded:
+                        self.max_target_data_exceeded = True
+                        info_metrics_target_exceeded()
                     return
 
             if event.target is not None and not event.target.anonymous:
