@@ -63,7 +63,7 @@ class AnalyticsService(object):
         self._environment = environment
         self._data: Dict[str, AnalyticsEvent] = {}
         self._target_data_batches: List[Dict[str, MetricTargetData]] = [{}]
-        self._max_number_of_batches = 20
+        self._max_number_of_batches = 200
         self._max_batch_size = 1000
         self._current_batch_index = 0
         self.max_target_data_exceeded = False
