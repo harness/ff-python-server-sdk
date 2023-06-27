@@ -195,6 +195,7 @@ class AnalyticsService(object):
                     self.process_target(
                         target_data_batches[target_data_batch_index],
                         unique_target)
+                target_data_batches.append([])
                 target_data_batch_index += 1
 
 
@@ -210,24 +211,29 @@ class AnalyticsService(object):
         response = post_metrics(client=self._client,
                                 environment=self._environment, json_body=body)
 
-
-        # Send any target data batches we have on top of the
-        # targets that were sent in the first request
-        if target_data_batches[0]:
-            unique_responses_codes = set()
-            log.debug('Sending %s target batches', len(target_data_batches))
-            for target_data_batch in target_data_batches:
-                response = post_metrics(client=self._client,
-                                        environment=self._environment,
-                                        json_body=body)
-                unique_responses_codes.add(response.status_code)
-
         log.debug('Metrics server returns: %d', response.status_code)
         if response.status_code >= 400:
             warn_post_metrics_failed(response.status_code)
             return
 
+        # Send any target data batches we have on top of the
+        # targets that were sent in the first request
+        if target_data_batches[0]:
+            log.info('Sending %s target batches to metrics',
+                     len(target_data_batches))
+            unique_responses_codes = {}
+            for target_data_batch in target_data_batches:
+                batch_request_body: Metrics = \
+                    Metrics(target_data=target_data_batch,
+                            metrics_data=[])
 
+                response = post_metrics(client=self._client,
+                                        environment=self._environment,
+                                        json_body=batch_request_body)
+                if response.status_code in unique_responses_codes:
+                    unique_responses_codes[response.status_code] += 1
+                else:
+                    unique_responses_codes[response.status_code] = 1
 
         info_metrics_success()
         return
