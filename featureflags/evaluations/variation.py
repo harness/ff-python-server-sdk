@@ -23,7 +23,7 @@ class Variation(object):
              default: bool = False) -> bool:
         if self.value:
             result = self.value.lower() == "true"
-            log.info(
+            log.debug(
                 "SDKCODE:6000: Evaluated bool variation successfully:"
                 "%s", {"result": result, "flag identifier": flag_identifier,
                        "target": target})
