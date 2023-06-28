@@ -259,10 +259,10 @@ class AnalyticsService(object):
                     if response.status_code >= 400:
                         warn_post_metrics_target_batch_failed(
                             f'{count} batches received code {unique_code}')
-                        return
+                    info_metrics_target_batch_success(
+                        f'{count} batches successful')
 
-                info_metrics_target_batch_success(
-                    f'{len(target_data_batches)} batches successful')
+
             info_metrics_success()
         except httpx.RequestError as ex:
             warn_post_metrics_failed(ex)
