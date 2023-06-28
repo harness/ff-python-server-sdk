@@ -57,6 +57,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/harness/ff-python-server-sdk",
-    version='1.1.16',
+    version='1.2.0',
     zip_safe=False,
 )

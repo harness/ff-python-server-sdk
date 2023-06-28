@@ -1,8 +1,10 @@
 import time
 from threading import Lock, Thread
 from typing import Dict, List, Union
+import concurrent.futures
 
 import attr
+import httpx
 
 from featureflags.models.metrics_data_metrics_type import \
     MetricsDataMetricsType
@@ -20,7 +22,8 @@ from .models.target_data import TargetData
 from .models.unset import Unset
 from .sdk_logging_codes import info_metrics_thread_started, \
     info_metrics_success, warn_post_metrics_failed, \
-    info_metrics_thread_existed, info_metrics_target_exceeded
+    info_metrics_thread_existed, info_metrics_target_exceeded, \
+    warn_post_metrics_target_batch_failed, info_metrics_target_batch_success
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -62,7 +65,10 @@ class AnalyticsService(object):
         self._client = client
         self._environment = environment
         self._data: Dict[str, AnalyticsEvent] = {}
-        self._target_data: Dict[str, MetricTargetData] = {}
+        self._target_data_batches: List[Dict[str, MetricTargetData]] = [{}]
+        self._max_number_of_batches = 200
+        self._max_batch_size = 1000
+        self._current_batch_index = 0
         self.max_target_data_exceeded = False
 
         self._running = False
@@ -89,37 +95,45 @@ class AnalyticsService(object):
                 event.count = 1
                 self._data[unique_evaluation_key] = event
 
-            # Store unique targets. If the target already exists
-            # just ignore it.
+            # Check if we're on our final batch - if we are, and we've
+            # exceeded the max batch size just return early.
+            if len(self._target_data_batches) >= self._max_number_of_batches:
+                if len(self._target_data_batches[
+                           self._current_batch_index]) >= \
+                        self._max_batch_size:
+                    if not self.max_target_data_exceeded:
+                        self.max_target_data_exceeded = True
+                        info_metrics_target_exceeded()
+                    return
+
             if event.target is not None and not event.target.anonymous:
                 unique_target_key = self.get_target_key(event)
-                if unique_target_key not in self._target_data:
-                    # Temporary workaround for FFM-8231 - limit max size of
-                    # target
-                    # metrics to 50k, which ff-server can process in around
-                    # 18 seconds. This possibly prevent some targets from
-                    # getting
-                    # registered and showing in the UI, but in theory, they
-                    # should get registered eventually on subsequent
-                    # evaluations.
-                    # We want to eventually use a batching solution
-                    # to avoid this.
-                    max_target_size = 50000
-                    if len(self._target_data) >= max_target_size:
-                        # Only log the info code once per interval
-                        if not self.max_target_data_exceeded:
-                            info_metrics_target_exceeded()
-                            self.max_target_data_exceeded = True
+
+                # Store unique targets. If the target already exists
+                # in any of the batches, don't continue processing it
+                for batch in self._target_data_batches:
+                    if unique_target_key in batch:
                         return
-                    target_name = event.target.name
-                    # If the target has no name use the identifier
-                    if not target_name:
-                        target_name = event.target.identifier
-                    self._target_data[unique_target_key] = MetricTargetData(
+
+                # If we've exceeded the max batch size for the current
+                # batch, then create a new batch and start using it.
+                if len(self._target_data_batches[
+                           self._current_batch_index]) >= self._max_batch_size:
+                    self._target_data_batches.append({})
+                    self._current_batch_index += 1
+
+                target_name = event.target.name
+                # If the target has no name use the identifier
+                if not target_name:
+                    target_name = event.target.identifier
+                self._target_data_batches[
+                    self._current_batch_index][unique_target_key] = \
+                    MetricTargetData(
                         identifier=event.target.identifier,
                         name=target_name,
                         attributes=event.target.attributes
                     )
+
         finally:
             self._lock.release()
 
@@ -177,35 +191,106 @@ class AnalyticsService(object):
                     attributes=metric_attributes
                 )
                 metrics_data.append(md)
-            for _, unique_target in self._target_data.items():
-                target_attributes: List[KeyValue] = []
-                if not isinstance(unique_target.attributes, Unset):
-                    for key, value in unique_target.attributes.items():
-                        # Attribute values need to be sent as string to
-                        # ff-server so convert all values to strings.
-                        target_attributes.append(KeyValue(key, str(value)))
-                td = TargetData(
-                    identifier=unique_target.identifier,
-                    name=unique_target.name,
-                    attributes=target_attributes
-                )
-                target_data.append(td)
+            for _, unique_target in self._target_data_batches[0].items():
+                self.process_target(target_data, unique_target)
+
+            target_data_batches: List[List[TargetData]] = []
+            target_data_batch_index = 0
+            # We've already accounted for the first batch, so start processing
+            # from the second batch onwards
+            for batch in self._target_data_batches[1:]:
+                target_data_batches.append([])
+                for _, unique_target in batch.items():
+                    self.process_target(
+                        target_data_batches[target_data_batch_index],
+                        unique_target)
+                target_data_batch_index += 1
+
+
         finally:
             self._data = {}
-            self._target_data = {}
+            self._target_data_batches = [{}]
+            self._current_batch_index = 0
             self.max_target_data_exceeded = False
             self._lock.release()
 
         body: Metrics = Metrics(target_data=target_data,
                                 metrics_data=metrics_data)
-        response = post_metrics(client=self._client,
-                                environment=self._environment, json_body=body)
-        log.debug('Metrics server returns: %d', response.status_code)
-        if response.status_code >= 400:
-            warn_post_metrics_failed(response.status_code)
-            return
-        info_metrics_success()
-        return
+        try:
+            response = post_metrics(client=self._client,
+                                    environment=self._environment,
+                                    json_body=body)
+
+            log.debug('Metrics server returns: %d', response.status_code)
+            if response.status_code >= 400:
+                warn_post_metrics_failed(response.status_code)
+                return
+            if len(target_data_batches) > 0:
+                log.info('Sending %s target batches to metrics',
+                         len(target_data_batches))
+                unique_responses_codes = {}
+
+                # Process batches concurrently
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    futures = []
+                    for batch in target_data_batches:
+                        # Staggering requests over 0.02 seconds mean that we
+                        # will send 200 requests every four seconds, so that
+                        # the backend isn't hit too hard.
+                        time.sleep(0.02)
+                        future = executor.submit(
+                            self.process_target_data_batch,
+                            batch)
+                        futures.append(future)
+
+                    # Wait for all batches to complete
+                    concurrent.futures.wait(futures)
+
+                    # Get unique status codes
+                    for future in futures:
+                        status_code = future.result()
+                        if status_code in unique_responses_codes:
+                            unique_responses_codes[status_code] += 1
+                        else:
+                            unique_responses_codes[status_code] = 1
+
+                # Log any error codes
+                for unique_code, count in unique_responses_codes.items():
+                    if response.status_code >= 400:
+                        warn_post_metrics_target_batch_failed(
+                            f'{count} batches received code {unique_code}')
+                    info_metrics_target_batch_success(
+                        f'{count} batches successful')
+
+
+            info_metrics_success()
+        except httpx.RequestError as ex:
+            warn_post_metrics_failed(ex)
+
+
+    def process_target_data_batch(self, target_data_batch):
+        batch_request_body: Metrics = Metrics(
+            target_data=target_data_batch, metrics_data=[]
+        )
+        response = post_metrics(
+            client=self._client, environment=self._environment,
+            json_body=batch_request_body
+        )
+        return response.status_code
+
+    def process_target(self, target_data, unique_target):
+        target_attributes: List[KeyValue] = []
+        if not isinstance(unique_target.attributes, Unset):
+            for key, value in unique_target.attributes.items():
+                # Attribute values need to be sent as string to
+                # ff-server so convert all values to strings.
+                target_attributes.append(KeyValue(key, str(value)))
+        td = TargetData(
+            identifier=unique_target.identifier,
+            name=unique_target.name,
+            attributes=target_attributes
+        )
+        target_data.append(td)
 
     def close(self) -> None:
         self._running = False

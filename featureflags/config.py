@@ -5,6 +5,7 @@ from typing import Callable
 
 from .interface import Cache
 from .lru_cache import LRUCache
+from .util import log
 
 BASE_URL = "https://config.ff.harness.io/api/1.0"
 EVENTS_URL = "https://events.ff.harness.io/api/1.0"
@@ -32,7 +33,13 @@ class Config(object):
         self.events_url = events_url
         self.pull_interval = pull_interval
         self.persist_interval = persist_interval
-        self.events_sync_interval = events_sync_interval
+        if events_sync_interval < EVENTS_SYNC_INTERVAL:
+            log.warning("Metrics events sync interval cannot be lower than "
+                        "60 seconds. Default of 60 seconds will be used")
+            self.events_sync_interval = EVENTS_SYNC_INTERVAL
+        else:
+            self.events_sync_interval = events_sync_interval
+
         self.cache = cache
         if self.cache is None:
             self.cache = LRUCache()

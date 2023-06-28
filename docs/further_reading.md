@@ -12,7 +12,7 @@ You can pass the configuration in as options when the SDK client is created.
                       with_events_url("https://events.ff.harness.io/api/1.0"),
                       with_stream_enabled(True),
                       with_analytics_enabled(True),
-                      Config(pull_interval=60))
+                      config=Config(pull_interval=60))
 ```
 
 | Name            | Config Option                                            | Description                                                                                                                                      | default                              |
