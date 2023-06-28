@@ -93,7 +93,7 @@ def _post_request(kwargs, max_auth_retries):
         ),
         before_sleep=lambda retry_state: warn_auth_retying(
             retry_state.attempt_number,
-            retry_state.retry_state.outcome.result()),
+            retry_state.outcome.result()),
         stop=stop_after_attempt(max_auth_retries),
     )
     return retryer(httpx.post, **kwargs)
