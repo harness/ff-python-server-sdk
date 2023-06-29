@@ -23,7 +23,7 @@ class Variation(object):
              default: bool = False) -> bool:
         if self.value:
             result = self.value.lower() == "true"
-            log.info(
+            log.debug(
                 "SDKCODE:6000: Evaluated bool variation successfully:"
                 "%s", {"result": result, "flag identifier": flag_identifier,
                        "target": target})
@@ -38,7 +38,7 @@ class Variation(object):
                default: str) -> str:
         if self.value:
             result = self.value
-            log.info(
+            log.debug(
                 "SDKCODE:6000: Evaluated string variation successfully:"
                 "%s", {"result": result, "flag identifier": flag_identifier,
                        "target": target})
@@ -53,7 +53,7 @@ class Variation(object):
                default: float) -> float:
         if self.value:
             result = float(self.value)
-            log.info(
+            log.debug(
                 "SDKCODE:6000: Evaluated number variation successfully:"
                 "%s", {"result": result, "flag identifier": flag_identifier,
                        "target": target})
@@ -68,7 +68,7 @@ class Variation(object):
             default: int) -> int:
         if self.value:
             result = int(self.value)
-            log.info(
+            log.debug(
                 "SDKCODE:6000: Evaluated number variation successfully:"
                 "%s", {"result": result, "flag identifier": flag_identifier,
                        "target": target})
@@ -83,7 +83,7 @@ class Variation(object):
              default: dict) -> dict:
         if self.value:
             result = json.loads(self.value)
-            log.info(
+            log.debug(
                 "SDKCODE:6000: Evaluated json variation successfully:"
                 "%s", {"result": result, "flag identifier": flag_identifier,
                        "target": target})

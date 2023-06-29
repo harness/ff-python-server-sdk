@@ -34,6 +34,10 @@ def get_sdk_code_message(key):
         7001: "Metrics thread exited",
         7002: "Posting metrics failed, reason:",
         7003: "Metrics posted successfully",
+        7004: "Target metrics exceeded max size, remaining targets for this "
+              "analytics interval will not be sent",
+        7005: "Target metrics batches succeeded:",
+        7006: "Target metrics batch/batches failed:",
     }
     if key in sdk_codes:
         return sdk_codes[key]
@@ -99,6 +103,14 @@ def info_metrics_success():
     log.info(sdk_err_msg(7003))
 
 
+def info_metrics_target_exceeded():
+    log.info(sdk_err_msg(7004))
+
+
+def info_metrics_target_batch_success(message):
+    log.info(sdk_err_msg(7005, message))
+
+
 def info_metrics_thread_existed():
     log.info(sdk_err_msg(7001))
 
@@ -135,6 +147,10 @@ def warn_stream_retrying(seconds):
 
 def warn_post_metrics_failed(reason):
     log.warning(sdk_err_msg(7002, reason))
+
+
+def warn_post_metrics_target_batch_failed(message):
+    log.warning(sdk_err_msg(7006, message))
 
 
 def warn_default_variation_served(flag, target, default):
