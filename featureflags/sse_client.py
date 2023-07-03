@@ -56,6 +56,9 @@ class SSEClient(object):
         self.buf: str = ""
 
         self._connect()
+        self.reconnect_timer = 0
+        self.reconnect_error = False
+
 
     def _connect(self):
         if self.last_id:
@@ -110,16 +113,20 @@ class SSEClient(object):
 
             except (StopIteration, requests.RequestException, EOFError) as e:
                 if isinstance(e, StopIteration):
-                    log.error("Error when iterating through stream messages, "
+                    log.debug("Error when iterating through stream messages, "
                               "attempting to resume")
 
                 if isinstance(e, EOFError):
-                    log.error("Received unexpected EOF from stream, "
+                    log.debug("Received unexpected EOF from stream, "
                               "attempting to reconnect")
 
                 if isinstance(e, requests.RequestException):
-                    log.error("Error encountered in stream, "
+                    log.debug("Error encountered in stream, "
                               "attempting to reconnect: %s", e)
+
+                # Check if reconnect error flag is set and the elapsed time exceeds a certain threshold (e.g., 10 seconds)
+                if self.reconnect_error and self.reconnect_timer > 10:
+                    log.error("Failed to reconnect after a certain period")
 
                 time.sleep(self.retry / 1000.0)
                 self._connect()
@@ -128,6 +135,11 @@ class SSEClient(object):
                 # if we have half a message we should throw it out.
                 head, sep, _ = self.buf.rpartition("\n")
                 self.buf = head + sep
+
+                if self.reconnect_error:
+                    self.reconnect_timer += self.retry / 1000.0
+                else:
+                    self.reconnect_error = True
                 continue
 
         # Split the complete event (up to the end_of_field) into event_string,
@@ -145,6 +157,10 @@ class SSEClient(object):
         # forgotten if a message omits it.
         if msg.id:
             self.last_id = msg.id
+
+        # If we've encountered an error and had to reconnect, mark it
+        # as resolved by resetting the reconnect_error flag to False
+        self.reconnect_error = False
 
         return msg
 
