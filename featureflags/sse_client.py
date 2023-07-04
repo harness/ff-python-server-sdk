@@ -57,8 +57,6 @@ class SSEClient(object):
 
         self._connect()
 
-
-
     def _connect(self):
         if self.last_id:
             self.requests_kwargs["headers"]["Last-Event-ID"] = self.last_id
