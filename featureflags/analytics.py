@@ -206,7 +206,6 @@ class AnalyticsService(object):
                         unique_target)
                 target_data_batch_index += 1
 
-
         finally:
             self._data = {}
             self._target_data_batches = [{}]
@@ -263,11 +262,9 @@ class AnalyticsService(object):
                     info_metrics_target_batch_success(
                         f'{count} batches successful')
 
-
             info_metrics_success()
         except httpx.RequestError as ex:
             warn_post_metrics_failed(ex)
-
 
     def process_target_data_batch(self, target_data_batch):
         batch_request_body: Metrics = Metrics(
