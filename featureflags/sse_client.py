@@ -142,10 +142,6 @@ class SSEClient(object):
         if msg.id:
             self.last_id = msg.id
 
-        # If we've encountered an error and had to reconnect, mark it
-        # as resolved by resetting the reconnect_error flag to False
-        self.reconnect_error = False
-
         return msg
 
 
