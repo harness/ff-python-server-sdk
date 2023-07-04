@@ -123,7 +123,6 @@ class SSEClient(object):
                 # if we have half a message we should throw it out.
                 head, sep, _ = self.buf.rpartition("\n")
                 self.buf = head + sep
-
                 continue
 
         # Split the complete event (up to the end_of_field) into event_string,
