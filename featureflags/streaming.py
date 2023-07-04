@@ -75,8 +75,7 @@ class StreamProcessor(Thread):
                 # we log an error to the user
                 retry_error_log_threshold = 4
                 if retries >= retry_error_log_threshold:
-                    warn_stream_retrying_long_duration(
-                        retry_error_log_threshold)
+                    warn_stream_retrying_long_duration()
 
                 # Calculate back of sleep
                 sleep = (BACK_OFF_IN_SECONDS * 2 ** retries +
