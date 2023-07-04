@@ -21,13 +21,13 @@ end_of_field: Pattern[str] = re.compile(r"\r\n\r\n|\r\r|\n\n")
 
 class SSEClient(object):
     def __init__(
-            self,
-            url: str,
-            last_id: str = None,
-            retry: int = 3000,
-            session: Any = None,
-            chunk_size: int = 1024,
-            **kwargs: Dict[str, Any]
+        self,
+        url: str,
+        last_id: str = None,
+        retry: int = 3000,
+        session: Any = None,
+        chunk_size: int = 1024,
+        **kwargs: Dict[str, Any]
     ):
         self.url = url
         self.last_id = last_id
@@ -57,6 +57,8 @@ class SSEClient(object):
 
         self._connect()
 
+
+
     def _connect(self):
         if self.last_id:
             self.requests_kwargs["headers"]["Last-Event-ID"] = self.last_id
@@ -78,9 +80,9 @@ class SSEClient(object):
         def generate():
             while True:
                 if (
-                        hasattr(self.resp.raw, "_fp")
-                        and hasattr(self.resp.raw._fp, "fp")
-                        and hasattr(self.resp.raw._fp.fp, "read1")
+                    hasattr(self.resp.raw, "_fp")
+                    and hasattr(self.resp.raw._fp, "fp")
+                    and hasattr(self.resp.raw._fp.fp, "read1")
                 ):
                     chunk = self.resp.raw._fp.fp.read1(self.chunk_size)
                 else:
@@ -124,6 +126,7 @@ class SSEClient(object):
                 head, sep, _ = self.buf.rpartition("\n")
                 self.buf = head + sep
 
+
                 continue
 
         # Split the complete event (up to the end_of_field) into event_string,
@@ -150,16 +153,17 @@ class SSEClient(object):
 
 
 class Event(object):
+
     sse_line_pattern: Pattern[str] = re.compile(
         "(?P<name>[^:]*):?( ?(?P<value>.*))?"
     )
 
     def __init__(
-            self,
-            data: str = "",
-            event: str = "message",
-            id: Optional[str] = None,
-            retry: Optional[int] = None,
+        self,
+        data: str = "",
+        event: str = "message",
+        id: Optional[str] = None,
+        retry: Optional[int] = None,
     ):
         self.data = data
         self.event = event
