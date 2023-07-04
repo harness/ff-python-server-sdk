@@ -42,7 +42,6 @@ class StreamProcessor(Thread):
         self._stream_url = f'{config.base_url}/stream?cluster={cluster}'
         self._repository = repository
         self.reconnect_timer = 0
-        self.reconnect_error = False
 
     def run(self):
         log.info("Starting StreamingProcessor connecting to uri: " +
