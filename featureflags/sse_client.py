@@ -21,13 +21,13 @@ end_of_field: Pattern[str] = re.compile(r"\r\n\r\n|\r\r|\n\n")
 
 class SSEClient(object):
     def __init__(
-        self,
-        url: str,
-        last_id: str = None,
-        retry: int = 3000,
-        session: Any = None,
-        chunk_size: int = 1024,
-        **kwargs: Dict[str, Any]
+            self,
+            url: str,
+            last_id: str = None,
+            retry: int = 3000,
+            session: Any = None,
+            chunk_size: int = 1024,
+            **kwargs: Dict[str, Any]
     ):
         self.url = url
         self.last_id = last_id
@@ -56,9 +56,6 @@ class SSEClient(object):
         self.buf: str = ""
 
         self._connect()
-        self.reconnect_timer = 0
-        self.reconnect_error = False
-
 
     def _connect(self):
         if self.last_id:
@@ -81,9 +78,9 @@ class SSEClient(object):
         def generate():
             while True:
                 if (
-                    hasattr(self.resp.raw, "_fp")
-                    and hasattr(self.resp.raw._fp, "fp")
-                    and hasattr(self.resp.raw._fp.fp, "read1")
+                        hasattr(self.resp.raw, "_fp")
+                        and hasattr(self.resp.raw._fp, "fp")
+                        and hasattr(self.resp.raw._fp.fp, "read1")
                 ):
                     chunk = self.resp.raw._fp.fp.read1(self.chunk_size)
                 else:
@@ -117,11 +114,7 @@ class SSEClient(object):
                     log.debug("Recieved empty chunk of data from stream, "
                               "reconnecting")
 
-                log.debug("Streaming stopped")
-
-                # Check if reconnect error flag is set and the elapsed time exceeds a certain threshold (e.g., 10 seconds)
-                if self.reconnect_error and self.reconnect_timer > 10:
-                    log.error("Failed to reconnect after a certain period")
+                log.debug("Streaming stopped abruptly, reconnecting")
 
                 time.sleep(self.retry / 1000.0)
                 self._connect()
@@ -131,10 +124,6 @@ class SSEClient(object):
                 head, sep, _ = self.buf.rpartition("\n")
                 self.buf = head + sep
 
-                if self.reconnect_error:
-                    self.reconnect_timer += self.retry / 1000.0
-                else:
-                    self.reconnect_error = True
                 continue
 
         # Split the complete event (up to the end_of_field) into event_string,
@@ -161,17 +150,16 @@ class SSEClient(object):
 
 
 class Event(object):
-
     sse_line_pattern: Pattern[str] = re.compile(
         "(?P<name>[^:]*):?( ?(?P<value>.*))?"
     )
 
     def __init__(
-        self,
-        data: str = "",
-        event: str = "message",
-        id: Optional[str] = None,
-        retry: Optional[int] = None,
+            self,
+            data: str = "",
+            event: str = "message",
+            id: Optional[str] = None,
+            retry: Optional[int] = None,
     ):
         self.data = data
         self.event = event

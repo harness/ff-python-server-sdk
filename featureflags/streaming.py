@@ -13,7 +13,8 @@ from .config import Config
 from .models.message import Message
 from .sdk_logging_codes import info_stream_connected, \
     info_stream_event_received, warn_stream_disconnected, \
-    warn_stream_retrying, info_stream_stopped
+    warn_stream_retrying, info_stream_stopped, \
+    warn_stream_retrying_long_duration
 from .sse_client import SSEClient
 from .util import log
 
@@ -40,6 +41,8 @@ class StreamProcessor(Thread):
         self._token = token
         self._stream_url = f'{config.base_url}/stream?cluster={cluster}'
         self._repository = repository
+        self.reconnect_timer = 0
+        self.reconnect_error = False
 
     def run(self):
         log.info("Starting StreamingProcessor connecting to uri: " +
@@ -69,18 +72,26 @@ class StreamProcessor(Thread):
                 if self.poller.is_set() is False:
                     self.poller.set()
 
+                # Check if retry attempts have reached a threshold before
+                # we log an error to the user
+                retry_error_log_threshold = 4
+                if retries >= retry_error_log_threshold:
+                    warn_stream_retrying_long_duration(
+                        retry_error_log_threshold)
+
                 # Calculate back of sleep
                 sleep = (BACK_OFF_IN_SECONDS * 2 ** retries +
                          random.uniform(0, 1))
+
                 warn_stream_retrying(f'{sleep.__str__()}s')
                 time.sleep(sleep)
                 retries += 1
 
     def _connect(self) -> SSEClient:
-        return SSEClient(self._stream_url, headers={
+        return SSEClient(url=self._stream_url, headers={
             'Authorization': f'Bearer {self._token}',
             'API-Key': self._api_key
-        })
+        }, retry=BACK_OFF_IN_SECONDS)
 
     def process_message(self, msg: Message) -> None:
         processor: Union[FlagMsgProcessor, SegmentMsgProcessor, None] = None

@@ -27,6 +27,7 @@ def get_sdk_code_message(key):
         5002: "SSE event received: ",
         5003: "SSE retrying to connect in",
         5004: "SSE stopped",
+        5005: "Stream is still retrying after 5 retries: ",
         # SDK_EVAL_6xxx - these are hardcoded in `variation.py` as they
         # are more complex
         # SDK_METRICS_7xxx
@@ -143,6 +144,10 @@ def warn_stream_disconnected(reason):
 
 def warn_stream_retrying(seconds):
     log.warning(sdk_err_msg(5003, seconds))
+
+
+def warn_stream_retrying_long_duration(seconds):
+    log.warning(sdk_err_msg(5005, f'{seconds} seconds'))
 
 
 def warn_post_metrics_failed(reason):
