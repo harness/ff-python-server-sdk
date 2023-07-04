@@ -91,7 +91,6 @@ class PollingProcessor(Thread):
         self.__running = False
         info_polling_stopped("Client was closed")
 
-
     def retrieve_flags_and_segments(self):
         t1 = Thread(target=self.__retrieve_segments)
         t2 = Thread(target=self.__retrieve_flags)
