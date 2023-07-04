@@ -111,18 +111,13 @@ class SSEClient(object):
                     raise EOFError()
                 self.buf += self.decoder.decode(next_chunk)
 
-            except (StopIteration, requests.RequestException, EOFError) as e:
-                if isinstance(e, StopIteration):
-                    log.debug("Error when iterating through stream messages, "
-                              "attempting to resume")
+            except (StopIteration, EOFError) as e:
 
                 if isinstance(e, EOFError):
-                    log.debug("Received unexpected EOF from stream, "
-                              "attempting to reconnect")
+                    log.debug("Recieved empty chunk of data from stream, "
+                              "reconnecting")
 
-                if isinstance(e, requests.RequestException):
-                    log.debug("Error encountered in stream, "
-                              "attempting to reconnect: %s", e)
+                log.debug("Streaming stopped")
 
                 # Check if reconnect error flag is set and the elapsed time exceeds a certain threshold (e.g., 10 seconds)
                 if self.reconnect_error and self.reconnect_timer > 10:
