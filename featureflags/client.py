@@ -166,8 +166,10 @@ class CfClient(object):
         additional_headers = {
             "User-Agent": "PythonSDK/" + VERSION,
             "Harness-SDK-Info": f'Python {VERSION} Server',
-            "Harness-EnvironmentID": self._environment_id,
-            "Harness-AccountID": decoded["accountID"]}
+            "Harness-EnvironmentID": self._environment_id}
+        # At present the FF Relay Proxy does not send the accountID claim
+        if "accountID" in decoded:
+            additional_headers["Harness-AccountID"] = decoded["accountID"]
         self._client = self._client.with_headers(additional_headers)
 
     def bool_variation(self, identifier: str, target: Target,
