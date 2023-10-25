@@ -8,7 +8,7 @@ from .api.default.get_all_segments import sync as retrieve_segments
 from .api.default.get_feature_config import sync as retrieve_flags
 from .config import Config
 from .sdk_logging_codes import info_poll_started, info_polling_stopped, \
-    info_sdk_init_ok, info_sdk_init_waiting
+    info_sdk_init_ok
 from .util import log
 
 
