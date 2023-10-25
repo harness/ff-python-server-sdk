@@ -127,6 +127,7 @@ class CfClient(object):
             self._initialized.set()
 
     def wait_for_initialization(self):
+        sdk_codes.info_sdk_init_waiting()
         self._initialized.wait()
 
     def is_initialized(self):

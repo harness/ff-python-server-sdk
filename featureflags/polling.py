@@ -41,7 +41,6 @@ class PollingProcessor(Thread):
             self.__running = True
             #  Get initial flags and groups
             try:
-                info_sdk_init_waiting()
                 log.info("Fetching initial target segments and flags")
                 self.retrieve_flags_and_segments()
                 log.info("Initial target segments and flags fetched. "
