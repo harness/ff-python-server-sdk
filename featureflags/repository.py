@@ -97,6 +97,8 @@ class Repository(DataProviderInterface):
                     log.debug("set flag to the cache %s", identifier)
                     self.cache.set(flag_key, flag)
                 return flag
+        # If we are checking if a flag is outdated, it might not be in the
+        # cache to start with, so don't log a warning here
         if not is_outdated_check:
             log.warning("flag not found %s", identifier)
         return None
@@ -117,7 +119,7 @@ class Repository(DataProviderInterface):
                     log.debug("set segment to the cache %s", identifier)
                     self.cache.set(segment_key, segment)
                 return segment
-        # If we are checking if a flag is outdated, it might not be in the
+        # If we are checking if a segment is outdated, it might not be in the
         # cache to start with, so don't log a warning here
         if not is_outdated_check:
             log.warning("segment not found %s", identifier)
