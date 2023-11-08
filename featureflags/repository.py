@@ -82,7 +82,8 @@ class Repository(DataProviderInterface):
         self.store = store
 
     def get_flag(self, identifier: str,
-                 cacheable: bool = None) -> Optional[FeatureConfig]:
+                 cacheable: bool = None, is_outdated_check=False) -> \
+            Optional[FeatureConfig]:
         flag_key = format_flag_key(identifier)
         try:
             flag = self.cache.get(flag_key)
@@ -96,11 +97,13 @@ class Repository(DataProviderInterface):
                     log.debug("set flag to the cache %s", identifier)
                     self.cache.set(flag_key, flag)
                 return flag
-        log.warning("flag not found %s", identifier)
+        if not is_outdated_check:
+            log.warning("flag not found %s", identifier)
         return None
 
     def get_segment(self, identifier: str,
-                    cacheable: bool = None) -> Optional[Segment]:
+                    cacheable: bool = None, is_outdated_check=False) -> \
+            Optional[Segment]:
         segment_key = format_segment_key(identifier)
         try:
             segment = self.cache.get(segment_key)
@@ -114,7 +117,10 @@ class Repository(DataProviderInterface):
                     log.debug("set segment to the cache %s", identifier)
                     self.cache.set(segment_key, segment)
                 return segment
-        log.warning("segment not found %s", identifier)
+        # If we are checking if a flag is outdated, it might not be in the
+        # cache to start with, so don't log a warning here
+        if not is_outdated_check:
+            log.warning("segment not found %s", identifier)
         return None
 
     def set_flag(self, flag: FeatureConfig) -> None:
@@ -197,7 +203,8 @@ class Repository(DataProviderInterface):
 
     def is_flag_outdated(self, identifier: str,
                          new_config: FeatureConfig) -> bool:
-        flag = self.get_flag(identifier, cacheable=False)
+        flag = self.get_flag(identifier, cacheable=False,
+                             is_outdated_check=True)
         if flag and not isinstance(flag.version, Unset) and \
                 not isinstance(new_config, Unset) and \
                 not isinstance(new_config.version, Unset):
@@ -206,7 +213,8 @@ class Repository(DataProviderInterface):
 
     def is_segment_outdated(self, identifier: str,
                             new_segment: Segment) -> bool:
-        segment = self.get_segment(identifier, cacheable=False)
+        segment = self.get_segment(identifier, cacheable=False,
+                                   is_outdated_check=True)
         if segment and not isinstance(segment.version, Unset) and \
                 not isinstance(new_segment, Unset) and \
                 not isinstance(new_segment.version, Unset):
