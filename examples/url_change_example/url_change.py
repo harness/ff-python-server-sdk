@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 
@@ -9,7 +10,8 @@ from featureflags.config import with_events_url
 
 
 def main():
-    log.debug("Starting example")
+    log.setLevel(logging.INFO)
+    log.info("Starting example")
     api_key = os.getenv('FF_API_KEY', "")
     client = CfClient(api_key,
                       with_base_url("https://config.ff.harness.io/api/1.0"),
@@ -19,7 +21,7 @@ def main():
 
     while True:
         result = client.bool_variation('harnessappdemodarkmode', target, False)
-        log.debug("Result %s", result)
+        log.info("Result %s", result)
         time.sleep(10)
 
 if __name__ == "__main__":

@@ -1,3 +1,5 @@
+import logging
+
 from featureflags.client import CfClient
 from featureflags.config import *
 from featureflags.evaluations.auth_target import Target
@@ -13,6 +15,7 @@ api_key = os.getenv('FF_API_KEY', "")
 flagName = os.getenv('FF_FLAG_NAME', "harnessappdemodarkmode")
 
 def main():
+    log.setLevel(logging.INFO)
     log.info("Harness SDK Getting Started")
     # Create a Feature Flag Client
     client = CfClient(api_key)
