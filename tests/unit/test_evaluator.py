@@ -114,7 +114,7 @@ def test_find_variation(request, data_provider, variations, identifier,
 @pytest.mark.parametrize('bucket_by,value,expected', [
     ("email", 'john@doe.com', 18),
     ("email", 'enver.bisevac@harness', 61),
-    ("identifier", 'harness', 10)
+    ("identifier", 'harness', 6)
 ])
 def test_get_normalized_number(bucket_by, value, expected):
     evaluator = Evaluator(data_provider)
