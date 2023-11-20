@@ -46,9 +46,9 @@ class Evaluator(object):
 
     def _get_normalized_number(self, bucket_by: str, identifier: str):
         value = ":".join([bucket_by, identifier])
-        hash = int(mmh3.hash(value))
+        hash = int(mmh3.hash(value, signed=False))
         normalized_number = (hash % ONE_HUNDRED) + 1
-        log.debug("normalized number for %s = %d", value, normalized_number)
+        log.debug("MM3 normalized number for %s = %d", value, normalized_number)
         return normalized_number
 
     def _is_enabled(self, target: Target, bucket_by: str,
@@ -56,9 +56,17 @@ class Evaluator(object):
         attr_value = target.get_attr_value(bucket_by)
         if not attr_value:
             log.debug("Returns False. %s is set to %s", bucket_by, attr_value)
-            return False
+            old_bb = bucket_by
+            bucket_by = "identifier"
+            attr_value = target.get_attr_value(bucket_by)
+            if not attr_value or attr_value == "":
+                return False
+            log.warning("SDKCODE:6002 BucketBy attribute not found in target attributes, falling back to 'identifier': "
+                        "missing=%s, using value=%s", old_bb, attr_value)
+
         bucket_id = self._get_normalized_number(bucket_by, attr_value)
-        log.debug("Bucket id %d for target %s", bucket_id, target.identifier)
+        log.debug("MM3 percentage_check=%d bucket_by=%s value=%s bucket=%d", percentage, bucket_by, attr_value,
+                  bucket_id)
         return percentage > 0 and bucket_id <= percentage
 
     def _evaluate_distribution(self, distribution: Distribution,
