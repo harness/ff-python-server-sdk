@@ -8,8 +8,11 @@ from .api.default.get_all_segments import sync as retrieve_segments
 from .api.default.get_feature_config import sync as retrieve_flags
 from .config import Config
 from .sdk_logging_codes import info_poll_started, info_polling_stopped, \
-    info_sdk_init_ok
+    info_sdk_init_ok, warning_fetch_all_features_failed, \
+    warn_failed_init_auth_error
 from .util import log
+
+from tenacity import RetryError
 
 
 class PollingProcessor(Thread):
@@ -99,14 +102,19 @@ class PollingProcessor(Thread):
         t2.join()
 
     def __retrieve_flags(self):
-        log.debug("Loading feature flags")
-        flags = retrieve_flags(
-            client=self.__client, environment_uuid=self.__environment_id
-        )
-        log.debug("Feature flags loaded")
-        for flag in flags:
-            log.debug("Put flag %s into repository", flag.feature)
-            self.__repository.set_flag(flag)
+        try:
+            log.debug("Loading feature flags")
+            flags = retrieve_flags(
+                client=self.__client, environment_uuid=self.__environment_id
+            )
+            log.debug("Feature flags loaded")
+            for flag in flags:
+                log.debug("Put flag %s into repository", flag.feature)
+                self.__repository.set_flag(flag)
+
+        except RetryError as e:
+            warning_fetch_all_features_failed(e.last_attempt)
+
 
     def __retrieve_segments(self):
         log.debug("Loading target segments")

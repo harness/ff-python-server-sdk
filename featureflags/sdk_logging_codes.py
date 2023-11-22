@@ -39,6 +39,15 @@ def get_sdk_code_message(key):
               "analytics interval will not be sent",
         7005: "Target metrics batches succeeded:",
         7006: "Target metrics batch/batches failed:",
+        # SDK_CACHE_8xxx
+        8005: "Fetching feature by identifier attempt",
+        8006: "Fetching segment by identifier attempt",
+        8007: "Fetching all features attempt",
+        8008: "Fetching all segments attempt",
+        8009: "Fetching feature by identifier failed, reason: ",
+        8010: "Fetching segment by identifier failed, reason: ",
+        8011: "Fetching all features failed, reason: ",
+        8002: "Fetching all segments failed, reason: ",
     }
     if key in sdk_codes:
         return sdk_codes[key]
@@ -134,7 +143,7 @@ def warn_auth_failed_exceed_retries():
 
 def warn_auth_retying(attempt, error):
     log.warning(sdk_err_msg(2002,
-                            f"attempt {attempt}, got error: {error}, "
+                            f"{attempt}, got error: '{error}', "
                             f"Retrying ..."))
 
 
@@ -158,7 +167,45 @@ def warn_post_metrics_target_batch_failed(message):
     log.warning(sdk_err_msg(7006, message))
 
 
-def warn_default_variation_served(flag, target, default):
-    log.warning(sdk_err_msg(6001,
-                            f"flag={flag}, "
-                            f"target={target}, default={default}"))
+def warning_fetch_feature_by_id_retrying(attempt, error):
+    log.warning(sdk_err_msg(8005,
+                            f"{attempt}, got error: '{error}', "
+                            f"Retrying ..."))
+
+
+def warning_fetch_group_by_id_retrying(attempt, error):
+    log.warning(sdk_err_msg(8006,
+                            f"{attempt}, got error: '{error}', "
+                            f"Retrying ..."))
+
+
+def warning_fetch_all_features_retrying(attempt, error):
+    log.warning(sdk_err_msg(8007,
+                            f"{attempt}, got error: '{error}', "
+                            f"Retrying ..."))
+
+
+def warning_fetch_all_segments_retrying(attempt, error):
+    log.warning(sdk_err_msg(8008,
+                            f"{attempt}, got error: '{error}', "
+                            f"Retrying ..."))
+
+
+def warning_fetch_feature_by_id_failed(error):
+    log.warning(sdk_err_msg(8009,
+                            f"{error}"))
+
+
+def warning_fetch_group_by_id_failed(error):
+    log.warning(sdk_err_msg(8010,
+                            f"{error}"))
+
+
+def warning_fetch_all_features_failed(error):
+    log.warning(sdk_err_msg(8011,
+                            f"{error}"))
+
+
+def warning_fetch_all_groups_failed(error):
+    log.warning(sdk_err_msg(8012,
+                            f"{error}"))

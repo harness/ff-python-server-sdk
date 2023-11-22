@@ -3,7 +3,6 @@ from featureflags.evaluations.auth_target import Target
 
 
 def test_logs_dont_raise_exception():
-    target = Target(identifier='harness', name="asd")
     sdk_codes.info_poll_started(60)
     sdk_codes.info_sdk_init_ok()
     sdk_codes.info_sdk_init_waiting()
@@ -28,4 +27,7 @@ def test_logs_dont_raise_exception():
     sdk_codes.warn_stream_retrying_long_duration()
     sdk_codes.warn_post_metrics_failed("example reason")
     sdk_codes.warn_post_metrics_target_batch_failed("example reason")
-    sdk_codes.warn_default_variation_served("identifier", target, "default")
+    sdk_codes.warning_fetch_feature_by_id_retrying(1, "fetch feature error")
+    sdk_codes.warning_fetch_group_by_id_retrying(1, "fetch group error")
+    sdk_codes.warning_fetch_group_by_id_failed("fetch group error")
+    sdk_codes.warning_fetch_feature_by_id_failed("fetch group error")

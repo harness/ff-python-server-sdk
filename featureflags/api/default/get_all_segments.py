@@ -4,7 +4,16 @@ import httpx
 
 from featureflags.api.client import AuthenticatedClient
 from featureflags.api.types import Response
+from featureflags.config import RETRYABLE_CODES
 from featureflags.evaluations.segment import Segment
+
+from tenacity import retry_if_result, wait_exponential, \
+    stop_after_attempt, Retrying, retry_all
+
+from featureflags.sdk_logging_codes import warning_fetch_all_segments_retrying
+from featureflags.util import log
+
+MAX_RETRY_ATTEMPTS = 10
 
 
 def _get_kwargs(
@@ -67,11 +76,33 @@ def sync_detailed(
         **params
     )
 
-    response = httpx.get(
-        **kwargs,
+    retryer = Retrying(
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        retry=retry_all(
+            retry_if_result(lambda r: r.status_code != 200),
+            retry_if_result(handle_http_result)
+        ),
+        before_sleep=lambda retry_state: warning_fetch_all_segments_retrying(
+            retry_state.outcome.result()),
+        stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
     )
 
+    response = retryer(httpx.get, **kwargs)
+
     return _build_response(response=response)
+
+
+def handle_http_result(response):
+    code = response.status_code
+    if code in RETRYABLE_CODES:
+        return True
+    else:
+        # TODO - revisit these error logs, we need to log the SDK code, but
+        # do we want to do it here, or by the caller?
+        log.error(
+            f'Fetching all groups received code #{code} and '
+            'will not retry')
+        return False
 
 
 def sync(

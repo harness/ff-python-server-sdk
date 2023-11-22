@@ -1,5 +1,6 @@
 from typing import Any, Dict, Optional, Union
 
+from featureflags.config import RETRYABLE_CODES
 from featureflags.sdk_logging_codes import warn_auth_retying
 from featureflags.util import log
 
@@ -75,7 +76,7 @@ def sync_detailed(
 
 def handle_http_result(response):
     code = response.status_code
-    if code in {408, 425, 429, 500, 502, 503, 504}:
+    if code in RETRYABLE_CODES:
         return True
     else:
         log.error(
