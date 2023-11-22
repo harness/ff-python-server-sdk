@@ -127,18 +127,18 @@ class FlagMsgProcessor(Thread):
         self._msg = msg
 
     def run(self):
-        log.debug("Fetching flag config '%s' from server",
-                  self._msg.identifier)
-        fc = get_feature_config(client=self._client,
-                                identifier=self._msg.identifier,
-                                environment_uuid=self._environemnt_id)
-        log.info("Feature config '%s' loaded", fc.feature)
         if self._msg.event == 'create' or self._msg.event == 'patch':
+            log.debug("Fetching flag config '%s' from server",
+                      self._msg.identifier)
+            fc = get_feature_config(client=self._client,
+                                    identifier=self._msg.identifier,
+                                    environment_uuid=self._environemnt_id)
+            log.info("Feature config '%s' loaded", fc.feature)
             self._repository.set_flag(fc)
             log.info('flag %s successfully stored in the cache', fc.feature)
         elif self._msg.event == 'delete':
-            self._repository.remove_flag(fc)
-            log.info('flag %s successfully removed from cache', fc.feature)
+            self._repository.remove_flag(self._msg.identifier)
+            log.info('flag %s successfully removed from cache', self._msg.identifier)
 
 
 class SegmentMsgProcessor(Thread):
