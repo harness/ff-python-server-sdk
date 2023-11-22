@@ -153,15 +153,15 @@ class SegmentMsgProcessor(Thread):
         self._msg = msg
 
     def run(self):
-        log.debug("Fetching target segment '%s' from server",
-                  self._msg.identifier)
-        ts = get_target_segment(client=self._client,
-                                identifier=self._msg.identifier,
-                                environment_uuid=self._environemnt_id)
-        log.info("Target segment '%s' loaded", ts.identifier)
         if self._msg.event == 'create' or self._msg.event == 'patch':
+            log.debug("Fetching target segment '%s' from server",
+                      self._msg.identifier)
+            ts = get_target_segment(client=self._client,
+                                    identifier=self._msg.identifier,
+                                    environment_uuid=self._environemnt_id)
+            log.info("Target segment '%s' loaded", ts.identifier)
             self._repository.set_segment(ts)
             log.info('flag %s successfully stored in cache', ts.identifier)
         elif self._msg.event == 'delete':
-            self._repository.remove_segment(ts.identifier)
-            log.info('flag %s successfully removed from cache', ts.identifier)
+            self._repository.remove_segment(self._msg.identifier)
+            log.info('flag %s successfully removed from cache', self._msg.identifier)
