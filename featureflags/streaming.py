@@ -17,7 +17,7 @@ from .sdk_logging_codes import info_stream_connected, \
     info_stream_event_received, warn_stream_disconnected, \
     warn_stream_retrying, info_stream_stopped, \
     warn_stream_retrying_long_duration, warning_fetch_feature_by_id_failed, \
-    warning_fetch_group_by_id_failed
+    warning_fetch_group_by_id_failed, info_polling_stopped, info_poll_started
 from .sse_client import SSEClient
 from .util import log
 
@@ -45,6 +45,7 @@ class StreamProcessor(Thread):
         self._stream_url = f'{config.base_url}/stream?cluster={cluster}'
         self._repository = repository
         self.reconnect_timer = 0
+        self._poll_interval = config.pull_interval
 
     def run(self):
         log.info("Starting StreamingProcessor connecting to uri: " +
@@ -55,6 +56,7 @@ class StreamProcessor(Thread):
             try:
                 messages = self._connect()
                 info_stream_connected()
+                info_polling_stopped('streaming mode is active')
                 self.poller.clear()  # were streaming now, so tell any poller
                 # threads calling wait to wait...
                 self._ready.set()
@@ -70,6 +72,7 @@ class StreamProcessor(Thread):
                         self._ready.set()
             except Exception as e:
                 warn_stream_disconnected(e)
+                self._ready.clear()
                 # Signal the poller than it should start due to stream error.
                 if self.poller.is_set() is False:
                     self.poller.set()
@@ -85,6 +88,7 @@ class StreamProcessor(Thread):
                          random.uniform(0, 1))
 
                 warn_stream_retrying(f'{sleep.__str__()}s')
+                info_poll_started(self._poll_interval)
                 time.sleep(sleep)
                 retries += 1
 

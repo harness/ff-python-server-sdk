@@ -59,9 +59,10 @@ class PollingProcessor(Thread):
             try:
                 log.info("Fetching initial target segments and flags")
                 self.retrieve_flags_and_segments()
-                log.info("Initial target segments and flags fetched. "
-                         "PollingProcessor will start in: " +
-                         str(self.__config.pull_interval) + " seconds")
+                log.info("Initial target segments and flags fetched")
+                if not self.__config.enable_stream:
+                    log.info("Poller will start in: " +
+                             str(self.__config.pull_interval) + " seconds")
                 #  Segments and flags have been cached so
                 #  mark the Client as initialised.
                 self.__wait_for_initialization.set()
@@ -79,15 +80,14 @@ class PollingProcessor(Thread):
                 # Unblock the thread and log that initialization has failed
                 self.__wait_for_initialization.set()
 
-            #  Sleep for an interval before going into the polling loop.
-            time.sleep(self.__config.pull_interval)
-            info_poll_started(self.__config.pull_interval)
+            if not self.__config.enable_stream:
+                info_poll_started(self.__config.pull_interval)
+
             while self.__running:
                 start_time = time.time()
                 try:
                     if self.__config.enable_stream and \
                             self.__stream_ready.is_set():
-                        info_polling_stopped('streaming mode is active')
                         #  Block until ready.set() is called
                         self.__ready.wait()
                         # on stream disconnect, make sure flags are in sync
@@ -96,7 +96,6 @@ class PollingProcessor(Thread):
                         # Reset the start time so we don't do another poll
                         # immediately
                         start_time = time.time()
-                        log.debug('Poller resuming ')
                     else:
                         self.retrieve_flags_and_segments()
                         self.__ready.set()
@@ -161,13 +160,20 @@ class PollingProcessor(Thread):
             last_exception = e.last_attempt.exception()
             if last_exception:
                 warning_fetch_all_features_failed(e.last_attempt.exception())
-                raise RetrievalError(last_exception)
+                future.set_exception(
+                    RetrievalError(
+                        f"Failed to retrieve flags '{last_exception}'"))
             else:
                 result_error = e.last_attempt.result()
                 warning_fetch_all_features_failed(result_error)
                 future.set_exception(
                     RetrievalError(
                         f"Failed to retrieve flags '{result_error}'"))
+
+        except Exception as e:
+            future.set_exception(
+                RetrievalError(
+                    f"Failed to retrieve flags '{e}'"))
 
     def __retrieve_segments(self, future: Future):
         try:
@@ -186,10 +192,17 @@ class PollingProcessor(Thread):
             last_exception = e.last_attempt.exception()
             if last_exception:
                 warning_fetch_all_groups_failed(e.last_attempt.exception())
-                raise RetrievalError(last_exception)
+                future.set_exception(
+                    RetrievalError(
+                        f"Failed to retrieve segments '{last_exception}'"))
             else:
                 result_error = e.last_attempt.result()
                 warning_fetch_all_groups_failed(result_error)
                 future.set_exception(
                     RetrievalError(
                         f"Failed to retrieve segments '{result_error}'"))
+
+        except Exception as ex:
+            future.set_exception(
+                RetrievalError(
+                    f"Failed to retrieve segments '{ex}'"))
