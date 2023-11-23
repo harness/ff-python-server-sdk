@@ -15,7 +15,11 @@ from tenacity import retry_if_result, wait_exponential, \
 
 
 class UnrecoverableAuthenticationException(Exception):
-    pass
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return f"UnrecoverableAuthenticationException: {self.message}"
 
 
 def _get_kwargs(
