@@ -137,9 +137,9 @@ class FlagMsgProcessor(Thread):
                 fc = get_feature_config(client=self._client,
                                         identifier=self._msg.identifier,
                                         environment_uuid=self._environemnt_id)
-                log.info("Feature config '%s' loaded", fc.feature)
+                log.debug("Feature config '%s' loaded", fc.feature)
                 self._repository.set_flag(fc)
-                log.info('flag %s successfully stored in the cache',
+                log.debug('flag %s successfully stored in the cache',
                          fc.feature)
 
             except RetryError as e:
@@ -153,7 +153,7 @@ class FlagMsgProcessor(Thread):
 
         elif self._msg.event == 'delete':
             self._repository.remove_flag(self._msg.identifier)
-            log.info('flag %s successfully removed from cache',
+            log.debug('flag %s successfully removed from cache',
                      self._msg.identifier)
 
 
@@ -176,9 +176,9 @@ class SegmentMsgProcessor(Thread):
                 ts = get_target_segment(client=self._client,
                                         identifier=self._msg.identifier,
                                         environment_uuid=self._environemnt_id)
-                log.info("Target segment '%s' loaded", ts.identifier)
+                log.debug("Target segment '%s' loaded", ts.identifier)
                 self._repository.set_segment(ts)
-                log.info('flag %s successfully stored in cache', ts.identifier)
+                log.debug('flag %s successfully stored in cache', ts.identifier)
 
             except RetryError as e:
                 last_exception = e.last_attempt.exception()
@@ -191,5 +191,5 @@ class SegmentMsgProcessor(Thread):
 
         elif self._msg.event == 'delete':
             self._repository.remove_segment(self._msg.identifier)
-            log.info('flag %s successfully removed from cache',
+            log.debug('flag %s successfully removed from cache',
                      self._msg.identifier)
