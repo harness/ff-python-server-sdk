@@ -10,6 +10,8 @@ def get_sdk_code_message(key):
         1002: "The SDK has failed to initialize due to a missing or empty "
               "API key - defaults will be served",
         1003: "The SDK is waiting for initialization to complete",
+        1006: "The SDK has failed to initialize due to error when loading "
+              "flags or groups",
         # SDK_AUTH_2xxx
         2000: "Authentication was successful",
         2001: "Authentication failed with a non-recoverable error",
@@ -135,6 +137,10 @@ def warn_auth_failed_srv_defaults():
 
 def warn_failed_init_auth_error():
     log.warning(sdk_err_msg(1001))
+
+
+def warn_failed_init_fetch_error(error=""):
+    log.warning(sdk_err_msg(1006, error))
 
 
 def warn_auth_failed_exceed_retries():

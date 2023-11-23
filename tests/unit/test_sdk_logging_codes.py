@@ -19,6 +19,7 @@ def test_logs_dont_raise_exception():
     sdk_codes.info_metrics_target_exceeded()
     sdk_codes.warn_auth_failed_srv_defaults()
     sdk_codes.warn_failed_init_auth_error()
+    sdk_codes.warn_failed_init_fetch_error()
     sdk_codes.warn_auth_failed_exceed_retries()
     sdk_codes.wan_missing_sdk_key()
     sdk_codes.warn_auth_retying(1, "some error")

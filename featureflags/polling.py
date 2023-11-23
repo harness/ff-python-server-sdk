@@ -1,4 +1,5 @@
 import time
+from concurrent.futures import Future
 from threading import Event, Thread
 
 from featureflags.api.client import AuthenticatedClient
@@ -9,10 +10,14 @@ from .api.default.get_feature_config import sync as retrieve_flags
 from .config import Config
 from .sdk_logging_codes import info_poll_started, info_polling_stopped, \
     info_sdk_init_ok, warning_fetch_all_features_failed, \
-    warn_failed_init_auth_error
+    warning_fetch_all_groups_failed, warn_failed_init_fetch_error
 from .util import log
 
 from tenacity import RetryError
+
+
+class RetrievalError(Exception):
+    pass
 
 
 class PollingProcessor(Thread):
@@ -53,12 +58,17 @@ class PollingProcessor(Thread):
                 #  mark the Client as initialised.
                 self.__wait_for_initialization.set()
                 info_sdk_init_ok()
+
+            except RetrievalError as ex:
+                # Unblock the thread and log that initialization has failed
+                self.__wait_for_initialization.set()
+                warn_failed_init_fetch_error(ex)
+
             except Exception as ex:
-                log.exception(
-                    'Error: Exception encountered when '
-                    'getting initial flags and segments. %s',
-                    ex
-                )
+                # Unblock the thread and log that initialization has failed
+                self.__wait_for_initialization.set()
+                warn_failed_init_fetch_error(ex)
+
             #  Sleep for an interval before going into the polling loop.
             time.sleep(self.__config.pull_interval)
             info_poll_started(self.__config.pull_interval)
@@ -76,6 +86,9 @@ class PollingProcessor(Thread):
                     else:
                         self.retrieve_flags_and_segments()
                         self.__ready.set()
+                except RetrievalError as ex:
+                    log.error('Polling error: %s',
+                              ex)
                 except Exception as e:
                     log.exception(
                         'Error: Exception encountered when polling flags. %s',
@@ -94,14 +107,30 @@ class PollingProcessor(Thread):
         info_polling_stopped("Client was closed")
 
     def retrieve_flags_and_segments(self):
-        t1 = Thread(target=self.__retrieve_segments)
-        t2 = Thread(target=self.__retrieve_flags)
-        t1.start()
-        t2.start()
-        t1.join()
-        t2.join()
+        flags_future = Future()
+        segments_future = Future()
 
-    def __retrieve_flags(self):
+        flags_thread = Thread(target=self.__retrieve_flags,
+                              args=(flags_future,))
+        segments_thread = Thread(target=self.__retrieve_segments,
+                                 args=(segments_future,))
+
+        flags_thread.start()
+        segments_thread.start()
+
+        flags_thread.join()
+        segments_thread.join()
+
+        flags_exception = flags_future.exception()
+        segments_exception = segments_future.exception()
+
+        if flags_exception:
+            raise flags_exception
+
+        if segments_exception:
+            raise segments_exception
+
+    def __retrieve_flags(self, future: Future):
         try:
             log.debug("Loading feature flags")
             flags = retrieve_flags(
@@ -111,17 +140,42 @@ class PollingProcessor(Thread):
             for flag in flags:
                 log.debug("Put flag %s into repository", flag.feature)
                 self.__repository.set_flag(flag)
+            future.set_result(
+                "Success")
 
         except RetryError as e:
-            warning_fetch_all_features_failed(e.last_attempt)
+            last_exception = e.last_attempt.exception()
+            if last_exception:
+                warning_fetch_all_features_failed(e.last_attempt.exception())
+                raise RetrievalError(last_exception)
+            else:
+                result_error = e.last_attempt.result()
+                warning_fetch_all_features_failed(result_error)
+                future.set_exception(
+                    RetrievalError(
+                        f"Failed to retrieve flags '{result_error}'"))
 
+    def __retrieve_segments(self, future: Future):
+        try:
+            log.debug("Loading target segments")
+            segments = retrieve_segments(
+                client=self.__client, environment_uuid=self.__environment_id
+            )
+            log.debug("Target segments loaded")
+            for segment in segments:
+                log.debug("Put %s segment into repository", segment.identifier)
+                self.__repository.set_segment(segment)
+            future.set_result(
+                "Success")
 
-    def __retrieve_segments(self):
-        log.debug("Loading target segments")
-        segments = retrieve_segments(
-            client=self.__client, environment_uuid=self.__environment_id
-        )
-        log.debug("Target segments loaded")
-        for segment in segments:
-            log.debug("Put %s segment into repository", segment.identifier)
-            self.__repository.set_segment(segment)
+        except RetryError as e:
+            last_exception = e.last_attempt.exception()
+            if last_exception:
+                warning_fetch_all_groups_failed(e.last_attempt.exception())
+                raise RetrievalError(last_exception)
+            else:
+                result_error = e.last_attempt.result()
+                warning_fetch_all_groups_failed(result_error)
+                future.set_exception(
+                    RetrievalError(
+                        f"Failed to retrieve segments '{result_error}'"))
