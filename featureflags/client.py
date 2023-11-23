@@ -3,6 +3,7 @@
 import threading
 from typing import Any, Callable, Dict, Optional
 
+import httpcore
 from tenacity import RetryError
 from jwt import decode
 
@@ -142,6 +143,12 @@ class CfClient(object):
                 = str(MissingOrEmptyAPIKeyException)
             sdk_codes.wan_missing_sdk_key()
             # And again, unblock the thread.
+            self._initialized.set()
+        except Exception as ex:
+            log.error(ex)
+            sdk_codes.warn_failed_init_auth_error()
+            self._initialised_failed_reason[True] \
+                = str(ex)
             self._initialized.set()
 
     def wait_for_initialization(self):
