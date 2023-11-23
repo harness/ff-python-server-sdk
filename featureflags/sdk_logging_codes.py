@@ -10,8 +10,7 @@ def get_sdk_code_message(key):
         1002: "The SDK has failed to initialize due to a missing or empty "
               "API key - defaults will be served",
         1003: "The SDK is waiting for initialization to complete",
-        1006: "The SDK has failed to initialize due to error when loading "
-              "flags or groups",
+        1006: "The SDK has failed to initialize:",
         # SDK_AUTH_2xxx
         2000: "Authentication was successful",
         2001: "Authentication failed with a non-recoverable error",
