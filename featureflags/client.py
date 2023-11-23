@@ -214,7 +214,7 @@ class CfClient(object):
 
     def int_variation(self, identifier: str, target: Target,
                       default: int) -> int:
-        
+
         # If initialization has failed, then return the default variation
         # immediately
         if self._initialised_failed_reason[True] is not None:
@@ -281,7 +281,7 @@ class CfClient(object):
         # evaluate before the flag is cached which results in
         # an empty identifier.
         if self._config.enable_analytics and variation.identifier != "":
-            self._analytics.enqueue(target, identifier, variation
+            self._analytics.enqueue(target, identifier, variation)
 
         return variation.string(target, identifier, default)
 
