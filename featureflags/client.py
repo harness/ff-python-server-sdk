@@ -145,8 +145,7 @@ class CfClient(object):
             # And again, unblock the thread.
             self._initialized.set()
         except Exception as ex:
-            log.error(ex)
-            sdk_codes.warn_failed_init_auth_error()
+            sdk_codes.warn_failed_init_auth_error(str(ex))
             self._initialised_failed_reason[True] \
                 = str(ex)
             self._initialized.set()
