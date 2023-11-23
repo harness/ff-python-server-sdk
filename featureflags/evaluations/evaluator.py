@@ -109,8 +109,6 @@ class Evaluator(object):
 
                 # Should Target be included - if in included list
                 #  we return true
-                log.info("target %s, segment %s",
-                         target.identifier, segment.included)
                 if not isinstance(segment.included, Unset) and \
                         next(
                             (val for val in segment.included
