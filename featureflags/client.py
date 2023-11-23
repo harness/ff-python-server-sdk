@@ -41,7 +41,7 @@ class CfClient(object):
         # or a missing/empty API key.
         self._initialized_failed = False
         self._initialised_failed_reason: Dict[bool, Optional[str]] \
-            = {False: None}
+            = {False: None, True: None}
         self._auth_token: Optional[str] = None
         self._environment_id: Optional[str] = None
         self._sdk_key: Optional[str] = sdk_key
