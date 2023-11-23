@@ -17,18 +17,18 @@ MAX_RETRY_ATTEMPTS = 10
 
 
 def _get_kwargs(
-    *,
-    client: AuthenticatedClient,
-    identifier: str,
-    environment_uuid: str,
-    **params: Any
+        *,
+        client: AuthenticatedClient,
+        identifier: str,
+        environment_uuid: str,
+        **params: Any
 ) -> Dict[str, Any]:
     url = "{}/client/env/{environmentUUID}/target-segments/" \
-        "{identifier}".format(
-            client.base_url,
-            identifier=identifier,
-            environmentUUID=environment_uuid
-        )
+          "{identifier}".format(
+        client.base_url,
+        identifier=identifier,
+        environmentUUID=environment_uuid
+    )
 
     query_params = {
         **client.get_params(),
@@ -48,11 +48,7 @@ def _get_kwargs(
 
 
 def _parse_response(*, response: httpx.Response) -> Optional[Segment]:
-    if response.status_code == 200:
-        response_200 = Segment.from_dict(response.json())
-
-        return response_200
-    return None
+    return Segment.from_dict(response.json())
 
 
 def _build_response(*, response: httpx.Response) -> Response[Segment]:
@@ -65,11 +61,11 @@ def _build_response(*, response: httpx.Response) -> Response[Segment]:
 
 
 def sync_detailed(
-    *,
-    client: AuthenticatedClient,
-    identifier: str,
-    environment_uuid: str,
-    **params: Any
+        *,
+        client: AuthenticatedClient,
+        identifier: str,
+        environment_uuid: str,
+        **params: Any
 ) -> Response[Segment]:
     kwargs = _get_kwargs(
         client=client,
@@ -77,7 +73,6 @@ def sync_detailed(
         environment_uuid=environment_uuid,
         **params
     )
-
 
     retryer = Retrying(
         wait=wait_exponential(multiplier=1, min=4, max=10),
@@ -110,11 +105,11 @@ def handle_http_result(response):
 
 
 def sync(
-    *,
-    client: AuthenticatedClient,
-    identifier: str,
-    environment_uuid: str,
-    **params: Any
+        *,
+        client: AuthenticatedClient,
+        identifier: str,
+        environment_uuid: str,
+        **params: Any
 ) -> Optional[Segment]:
     """ """
 
@@ -127,11 +122,11 @@ def sync(
 
 
 async def asyncio_detailed(
-    *,
-    client: AuthenticatedClient,
-    identifier: str,
-    environment_uuid: str,
-    **params: Any
+        *,
+        client: AuthenticatedClient,
+        identifier: str,
+        environment_uuid: str,
+        **params: Any
 ) -> Response[Segment]:
     kwargs = _get_kwargs(
         client=client,

@@ -4,6 +4,8 @@ import time
 from threading import Thread
 from typing import Union
 
+from tenacity import RetryError
+
 from featureflags.repository import DataProviderInterface
 from .api.client import AuthenticatedClient
 from .api.default.get_feature_config_by_identifier import \
@@ -14,7 +16,8 @@ from .models.message import Message
 from .sdk_logging_codes import info_stream_connected, \
     info_stream_event_received, warn_stream_disconnected, \
     warn_stream_retrying, info_stream_stopped, \
-    warn_stream_retrying_long_duration
+    warn_stream_retrying_long_duration, warning_fetch_feature_by_id_failed, \
+    warning_fetch_group_by_id_failed
 from .sse_client import SSEClient
 from .util import log
 
@@ -128,17 +131,30 @@ class FlagMsgProcessor(Thread):
 
     def run(self):
         if self._msg.event == 'create' or self._msg.event == 'patch':
-            log.debug("Fetching flag config '%s' from server",
-                      self._msg.identifier)
-            fc = get_feature_config(client=self._client,
-                                    identifier=self._msg.identifier,
-                                    environment_uuid=self._environemnt_id)
-            log.info("Feature config '%s' loaded", fc.feature)
-            self._repository.set_flag(fc)
-            log.info('flag %s successfully stored in the cache', fc.feature)
+            try:
+                log.debug("Fetching flag config '%s' from server",
+                          self._msg.identifier)
+                fc = get_feature_config(client=self._client,
+                                        identifier=self._msg.identifier,
+                                        environment_uuid=self._environemnt_id)
+                log.info("Feature config '%s' loaded", fc.feature)
+                self._repository.set_flag(fc)
+                log.info('flag %s successfully stored in the cache',
+                         fc.feature)
+
+            except RetryError as e:
+                last_exception = e.last_attempt.exception()
+                if last_exception:
+                    warning_fetch_feature_by_id_failed(
+                        e.last_attempt.exception())
+                else:
+                    result_error = e.last_attempt.result()
+                    warning_fetch_feature_by_id_failed(result_error)
+
         elif self._msg.event == 'delete':
             self._repository.remove_flag(self._msg.identifier)
-            log.info('flag %s successfully removed from cache', self._msg.identifier)
+            log.info('flag %s successfully removed from cache',
+                     self._msg.identifier)
 
 
 class SegmentMsgProcessor(Thread):
@@ -154,14 +170,26 @@ class SegmentMsgProcessor(Thread):
 
     def run(self):
         if self._msg.event == 'create' or self._msg.event == 'patch':
-            log.debug("Fetching target segment '%s' from server",
-                      self._msg.identifier)
-            ts = get_target_segment(client=self._client,
-                                    identifier=self._msg.identifier,
-                                    environment_uuid=self._environemnt_id)
-            log.info("Target segment '%s' loaded", ts.identifier)
-            self._repository.set_segment(ts)
-            log.info('flag %s successfully stored in cache', ts.identifier)
+            try:
+                log.debug("Fetching target segment '%s' from server",
+                          self._msg.identifier)
+                ts = get_target_segment(client=self._client,
+                                        identifier=self._msg.identifier,
+                                        environment_uuid=self._environemnt_id)
+                log.info("Target segment '%s' loaded", ts.identifier)
+                self._repository.set_segment(ts)
+                log.info('flag %s successfully stored in cache', ts.identifier)
+
+            except RetryError as e:
+                last_exception = e.last_attempt.exception()
+                if last_exception:
+                    warning_fetch_group_by_id_failed(
+                        e.last_attempt.exception())
+                else:
+                    result_error = e.last_attempt.result()
+                    warning_fetch_group_by_id_failed(result_error)
+
         elif self._msg.event == 'delete':
             self._repository.remove_segment(self._msg.identifier)
-            log.info('flag %s successfully removed from cache', self._msg.identifier)
+            log.info('flag %s successfully removed from cache',
+                     self._msg.identifier)
