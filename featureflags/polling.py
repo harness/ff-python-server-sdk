@@ -88,10 +88,10 @@ class PollingProcessor(Thread):
                     if self.__config.enable_stream and \
                             self.__stream_ready.is_set():
                         info_polling_stopped('streaming mode is active')
-                        # on stream disconnect, make sure flags are in sync
-                        self.retrieve_flags_and_segments()
                         #  Block until ready.set() is called
                         self.__ready.wait()
+                        # on stream disconnect, make sure flags are in sync
+                        self.retrieve_flags_and_segments()
                         log.debug('Poller resuming ')
                     else:
                         self.retrieve_flags_and_segments()
