@@ -13,7 +13,7 @@ from tenacity import retry_if_result, wait_exponential, \
 from featureflags.sdk_logging_codes import warning_fetch_all_features_retrying
 from featureflags.util import log
 
-MAX_RETRY_ATTEMPTS = 10
+MAX_RETRY_ATTEMPTS = 2
 
 
 

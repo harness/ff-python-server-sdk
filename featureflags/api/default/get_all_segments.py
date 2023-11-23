@@ -83,6 +83,7 @@ def sync_detailed(
             retry_if_result(handle_http_result)
         ),
         before_sleep=lambda retry_state: warning_fetch_all_segments_retrying(
+            retry_state.attempt_number,
             retry_state.outcome.result()),
         stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
     )
