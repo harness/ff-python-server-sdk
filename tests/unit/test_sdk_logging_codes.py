@@ -32,3 +32,5 @@ def test_logs_dont_raise_exception():
     sdk_codes.warning_fetch_group_by_id_retrying(1, "fetch group error")
     sdk_codes.warning_fetch_group_by_id_failed("fetch group error")
     sdk_codes.warning_fetch_feature_by_id_failed("fetch group error")
+    sdk_codes.warning_fetch_all_features_failed("fetch group error")
+    sdk_codes.warning_fetch_all_groups_failed("fetch group error")

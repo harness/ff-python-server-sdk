@@ -1,6 +1,7 @@
 import time
 from concurrent.futures import Future
 from threading import Event, Thread
+from typing import Dict
 
 from featureflags.api.client import AuthenticatedClient
 from featureflags.repository import DataProviderInterface
@@ -17,13 +18,19 @@ from tenacity import RetryError
 
 
 class RetrievalError(Exception):
-    pass
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return f"RetrievalError: {self.message}"
 
 
 class PollingProcessor(Thread):
+    __initialised_failed_reason: Dict[bool, str]
 
     def __init__(self, client: AuthenticatedClient, config: Config,
                  environment_id: str, wait_for_initialization: Event,
+                 initialised_failed_reason: Dict[bool, str],
                  ready: Event, stream_ready: Event,
                  repository: DataProviderInterface) -> None:
         Thread.__init__(self)
@@ -33,6 +40,7 @@ class PollingProcessor(Thread):
         self.__config = config
         self.__running = False
         self.__wait_for_initialization = wait_for_initialization
+        self.__initialised_failed_reason = initialised_failed_reason
         self.__ready = ready
         self.__stream_ready = stream_ready
         self.__repository = repository
@@ -60,14 +68,16 @@ class PollingProcessor(Thread):
                 info_sdk_init_ok()
 
             except RetrievalError as ex:
+                warn_failed_init_fetch_error(ex)
+                self.__initialised_failed_reason[True] = str(ex)
                 # Unblock the thread and log that initialization has failed
                 self.__wait_for_initialization.set()
-                warn_failed_init_fetch_error(ex)
 
             except Exception as ex:
+                warn_failed_init_fetch_error(ex)
+                self.__initialised_failed_reason[True] = str(ex)
                 # Unblock the thread and log that initialization has failed
                 self.__wait_for_initialization.set()
-                warn_failed_init_fetch_error(ex)
 
             #  Sleep for an interval before going into the polling loop.
             time.sleep(self.__config.pull_interval)

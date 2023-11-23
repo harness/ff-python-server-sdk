@@ -40,6 +40,8 @@ class CfClient(object):
         # Keep track if initialization has failed due to authentication
         # or a missing/empty API key.
         self._initialized_failed = False
+        self._initialised_failed_reason: Dict[bool, Optional[str]] \
+            = {False: None}
         self._auth_token: Optional[str] = None
         self._environment_id: Optional[str] = None
         self._sdk_key: Optional[str] = sdk_key
@@ -79,6 +81,7 @@ class CfClient(object):
                 #  responsibility
                 #  for setting the Client is_initialized variable.
                 wait_for_initialization=self._initialized,
+                initialised_failed_reason=self._initialised_failed_reason,
                 ready=polling_event,
                 stream_ready=streaming_event,
                 repository=self._repository
@@ -131,7 +134,8 @@ class CfClient(object):
         self._initialized.wait()
 
     def is_initialized(self):
-        if self._initialized_failed:
+        if self._initialized_failed \
+                or self._initialised_failed_reason[True] is not None:
             return False
         return self._initialized.is_set()
 
