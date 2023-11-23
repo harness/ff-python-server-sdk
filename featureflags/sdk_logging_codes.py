@@ -48,7 +48,7 @@ def get_sdk_code_message(key):
         8009: "Fetching feature by identifier failed, reason: ",
         8010: "Fetching segment by identifier failed, reason: ",
         8011: "Fetching all features failed, reason: ",
-        8002: "Fetching all segments failed, reason: ",
+        8012: "Fetching all segments failed, reason: ",
     }
     if key in sdk_codes:
         return sdk_codes[key]
