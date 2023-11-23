@@ -92,6 +92,10 @@ class PollingProcessor(Thread):
                         self.__ready.wait()
                         # on stream disconnect, make sure flags are in sync
                         self.retrieve_flags_and_segments()
+
+                        # Reset the start time so we don't do another poll
+                        # immediately
+                        start_time = time.time()
                         log.debug('Poller resuming ')
                     else:
                         self.retrieve_flags_and_segments()
