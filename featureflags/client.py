@@ -3,7 +3,6 @@
 import threading
 from typing import Any, Callable, Dict, Optional
 
-import httpcore
 from tenacity import RetryError
 from jwt import decode
 
@@ -356,7 +355,6 @@ class CfClient(object):
                 "'%s' and the default variation '%s' is being returned. "
                 "Reason: '%s'", identifier, default, str(ex))
             return default
-
 
     def close(self):
         sdk_codes.info_sdk_start_close()

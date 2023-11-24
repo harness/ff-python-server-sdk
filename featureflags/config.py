@@ -15,6 +15,7 @@ PERSIST_INTERVAL = 1 * MINUTE
 EVENTS_SYNC_INTERVAL = 1 * MINUTE
 RETRYABLE_CODES = {408, 425, 429, 500, 502, 503, 504}
 
+
 class Config(object):
     def __init__(
             self,

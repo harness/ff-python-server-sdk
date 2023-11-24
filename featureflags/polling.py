@@ -115,7 +115,9 @@ class PollingProcessor(Thread):
                 elapsed = time.time() - start_time
                 if elapsed < self.__config.pull_interval:
                     log.debug("Poller sleeping for " +
-                             (self.__config.pull_interval - elapsed).__str__())
+                              (
+                                          self.__config.pull_interval -
+                                          elapsed).__str__())
                     " seconds"
                     time.sleep(self.__config.pull_interval - elapsed)
 

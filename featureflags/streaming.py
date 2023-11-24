@@ -79,6 +79,7 @@ class StreamProcessor(Thread):
             except Exception as e:
                 if not self._disconnect_notified:
                     warn_stream_disconnected(e)
+                    info_poll_started(self._poll_interval)
                     self._disconnect_notified = True
                 else:
                     log.warning("Stream retry failed: %s", str(e))
@@ -99,7 +100,6 @@ class StreamProcessor(Thread):
                          random.uniform(0, 1))
 
                 warn_stream_retrying(f'{sleep.__str__()}s')
-                info_poll_started(self._poll_interval)
                 time.sleep(sleep)
                 retries += 1
 
@@ -155,7 +155,7 @@ class FlagMsgProcessor(Thread):
                 log.debug("Feature config '%s' loaded", fc.feature)
                 self._repository.set_flag(fc)
                 log.debug('flag %s successfully stored in the cache',
-                         fc.feature)
+                          fc.feature)
 
             except RetryError as e:
                 last_exception = e.last_attempt.exception()
@@ -169,7 +169,7 @@ class FlagMsgProcessor(Thread):
         elif self._msg.event == 'delete':
             self._repository.remove_flag(self._msg.identifier)
             log.debug('flag %s successfully removed from cache',
-                     self._msg.identifier)
+                      self._msg.identifier)
 
 
 class SegmentMsgProcessor(Thread):
@@ -193,7 +193,8 @@ class SegmentMsgProcessor(Thread):
                                         environment_uuid=self._environemnt_id)
                 log.debug("Target segment '%s' loaded", ts.identifier)
                 self._repository.set_segment(ts)
-                log.debug('flag %s successfully stored in cache', ts.identifier)
+                log.debug('flag %s successfully stored in cache',
+                          ts.identifier)
 
             except RetryError as e:
                 last_exception = e.last_attempt.exception()
@@ -207,4 +208,4 @@ class SegmentMsgProcessor(Thread):
         elif self._msg.event == 'delete':
             self._repository.remove_segment(self._msg.identifier)
             log.debug('flag %s successfully removed from cache',
-                     self._msg.identifier)
+                      self._msg.identifier)

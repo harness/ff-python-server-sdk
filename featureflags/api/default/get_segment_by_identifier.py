@@ -24,11 +24,8 @@ def _get_kwargs(
         **params: Any
 ) -> Dict[str, Any]:
     url = "{}/client/env/{environmentUUID}/target-segments/" \
-          "{identifier}".format(
-        client.base_url,
-        identifier=identifier,
-        environmentUUID=environment_uuid
-    )
+          "{identifier}".format(client.base_url, identifier=identifier,
+                                environmentUUID=environment_uuid)
 
     query_params = {
         **client.get_params(),

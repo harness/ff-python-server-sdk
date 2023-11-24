@@ -287,7 +287,7 @@ class Evaluator(object):
                             target: Target) -> bool:
         if not isinstance(parent.prerequisites, Unset):
             log.debug('Checking pre requisites %s of parent feature %s',
-                     parent.prerequisites, parent.feature)
+                      parent.prerequisites, parent.feature)
             for pqs in parent.prerequisites:
                 config = self.provider.get_flag(pqs.feature)
                 if not config:
@@ -300,13 +300,14 @@ class Evaluator(object):
                 # Pre requisite variation value evaluated below
                 variation = self._evaluate_flag(config, target)
                 log.debug('Pre requisite flag %s has variation %s ' +
-                         'for target %s',
-                         config.feature, variation, target)
+                          'for target %s',
+                          config.feature, variation, target)
 
                 # Compare if the pre requisite variation is a possible
                 # valid value of the pre requisite FF
-                log.debug('Pre requisite flag %s should have the variations %s',
-                         config.feature, pqs.variations)
+                log.debug(
+                    'Pre requisite flag %s should have the variations %s',
+                    config.feature, pqs.variations)
 
                 if isinstance(variation, Unset) or variation.identifier \
                         not in pqs.variations:

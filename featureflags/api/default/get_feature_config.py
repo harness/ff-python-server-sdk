@@ -16,12 +16,11 @@ from featureflags.util import log
 MAX_RETRY_ATTEMPTS = 10
 
 
-
 def _get_kwargs(
-    *,
-    client: AuthenticatedClient,
-    environment_uuid: str,
-    **params: Any
+        *,
+        client: AuthenticatedClient,
+        environment_uuid: str,
+        **params: Any
 ) -> Dict[str, Any]:
     url = "{}/client/env/{environmentUUID}/feature-configs".format(
         client.base_url, environmentUUID=environment_uuid
@@ -45,8 +44,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *,
-    response: httpx.Response
+        *,
+        response: httpx.Response
 ) -> Optional[List[FeatureConfig]]:
     if response.status_code == 200:
         response_200 = []
@@ -61,8 +60,8 @@ def _parse_response(
 
 
 def _build_response(
-    *,
-    response: httpx.Response
+        *,
+        response: httpx.Response
 ) -> Response[List[FeatureConfig]]:
     return Response(
         status_code=response.status_code,
@@ -73,10 +72,10 @@ def _build_response(
 
 
 def sync_detailed(
-    *,
-    client: AuthenticatedClient,
-    environment_uuid: str,
-    **params: Any
+        *,
+        client: AuthenticatedClient,
+        environment_uuid: str,
+        **params: Any
 ) -> Response[List[FeatureConfig]]:
     kwargs = _get_kwargs(
         client=client,
@@ -114,12 +113,11 @@ def handle_http_result(response):
         return False
 
 
-
 def sync(
-    *,
-    client: AuthenticatedClient,
-    environment_uuid: str,
-    **params: Any
+        *,
+        client: AuthenticatedClient,
+        environment_uuid: str,
+        **params: Any
 ) -> Optional[List[FeatureConfig]]:
     """All feature flags with activations in project environment"""
 
@@ -131,10 +129,10 @@ def sync(
 
 
 async def asyncio_detailed(
-    *,
-    client: AuthenticatedClient,
-    environment_uuid: str,
-    **params: Any
+        *,
+        client: AuthenticatedClient,
+        environment_uuid: str,
+        **params: Any
 ) -> Response[List[FeatureConfig]]:
     kwargs = _get_kwargs(
         client=client,
@@ -149,10 +147,10 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    *,
-    client: AuthenticatedClient,
-    environment_uuid: str,
-    **params: Any
+        *,
+        client: AuthenticatedClient,
+        environment_uuid: str,
+        **params: Any
 ) -> Optional[List[FeatureConfig]]:
     """All feature flags with activations in project environment"""
 
