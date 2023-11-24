@@ -4,6 +4,8 @@ import time
 from threading import Thread
 from typing import Union
 
+from tenacity import RetryError
+
 from featureflags.repository import DataProviderInterface
 from .api.client import AuthenticatedClient
 from .api.default.get_feature_config_by_identifier import \
@@ -14,7 +16,8 @@ from .models.message import Message
 from .sdk_logging_codes import info_stream_connected, \
     info_stream_event_received, warn_stream_disconnected, \
     warn_stream_retrying, info_stream_stopped, \
-    warn_stream_retrying_long_duration
+    warn_stream_retrying_long_duration, warning_fetch_feature_by_id_failed, \
+    warning_fetch_group_by_id_failed, info_polling_stopped, info_poll_started
 from .sse_client import SSEClient
 from .util import log
 
@@ -42,6 +45,8 @@ class StreamProcessor(Thread):
         self._stream_url = f'{config.base_url}/stream?cluster={cluster}'
         self._repository = repository
         self.reconnect_timer = 0
+        self._poll_interval = config.pull_interval
+        self._disconnect_notified = False
 
     def run(self):
         log.info("Starting StreamingProcessor connecting to uri: " +
@@ -52,6 +57,12 @@ class StreamProcessor(Thread):
             try:
                 messages = self._connect()
                 info_stream_connected()
+
+                # If this is a reconnection, set this flag back to false
+                # so we can notify correctly if we disconnect again.
+                self._disconnect_notified = False
+
+                info_polling_stopped('streaming mode is active')
                 self.poller.clear()  # were streaming now, so tell any poller
                 # threads calling wait to wait...
                 self._ready.set()
@@ -66,7 +77,14 @@ class StreamProcessor(Thread):
                     if self._ready.is_set() is False:
                         self._ready.set()
             except Exception as e:
-                warn_stream_disconnected(e)
+                if not self._disconnect_notified:
+                    warn_stream_disconnected(e)
+                    info_poll_started(self._poll_interval)
+                    self._disconnect_notified = True
+                else:
+                    log.warning("Stream retry failed: %s", str(e))
+
+                self._ready.clear()
                 # Signal the poller than it should start due to stream error.
                 if self.poller.is_set() is False:
                     self.poller.set()
@@ -127,18 +145,31 @@ class FlagMsgProcessor(Thread):
         self._msg = msg
 
     def run(self):
-        log.debug("Fetching flag config '%s' from server",
-                  self._msg.identifier)
-        fc = get_feature_config(client=self._client,
-                                identifier=self._msg.identifier,
-                                environment_uuid=self._environemnt_id)
-        log.info("Feature config '%s' loaded", fc.feature)
         if self._msg.event == 'create' or self._msg.event == 'patch':
-            self._repository.set_flag(fc)
-            log.info('flag %s successfully stored in the cache', fc.feature)
+            try:
+                log.debug("Fetching flag config '%s' from server",
+                          self._msg.identifier)
+                fc = get_feature_config(client=self._client,
+                                        identifier=self._msg.identifier,
+                                        environment_uuid=self._environemnt_id)
+                log.debug("Feature config '%s' loaded", fc.feature)
+                self._repository.set_flag(fc)
+                log.debug('flag %s successfully stored in the cache',
+                          fc.feature)
+
+            except RetryError as e:
+                last_exception = e.last_attempt.exception()
+                if last_exception:
+                    warning_fetch_feature_by_id_failed(
+                        e.last_attempt.exception())
+                else:
+                    result_error = e.last_attempt.result()
+                    warning_fetch_feature_by_id_failed(result_error)
+
         elif self._msg.event == 'delete':
-            self._repository.remove_flag(fc)
-            log.info('flag %s successfully removed from cache', fc.feature)
+            self._repository.remove_flag(self._msg.identifier)
+            log.debug('flag %s successfully removed from cache',
+                      self._msg.identifier)
 
 
 class SegmentMsgProcessor(Thread):
@@ -153,15 +184,28 @@ class SegmentMsgProcessor(Thread):
         self._msg = msg
 
     def run(self):
-        log.debug("Fetching target segment '%s' from server",
-                  self._msg.identifier)
-        ts = get_target_segment(client=self._client,
-                                identifier=self._msg.identifier,
-                                environment_uuid=self._environemnt_id)
-        log.info("Target segment '%s' loaded", ts.identifier)
         if self._msg.event == 'create' or self._msg.event == 'patch':
-            self._repository.set_segment(ts)
-            log.info('flag %s successfully stored in cache', ts.identifier)
+            try:
+                log.debug("Fetching target segment '%s' from server",
+                          self._msg.identifier)
+                ts = get_target_segment(client=self._client,
+                                        identifier=self._msg.identifier,
+                                        environment_uuid=self._environemnt_id)
+                log.debug("Target segment '%s' loaded", ts.identifier)
+                self._repository.set_segment(ts)
+                log.debug('flag %s successfully stored in cache',
+                          ts.identifier)
+
+            except RetryError as e:
+                last_exception = e.last_attempt.exception()
+                if last_exception:
+                    warning_fetch_group_by_id_failed(
+                        e.last_attempt.exception())
+                else:
+                    result_error = e.last_attempt.result()
+                    warning_fetch_group_by_id_failed(result_error)
+
         elif self._msg.event == 'delete':
-            self._repository.remove_segment(ts.identifier)
-            log.info('flag %s successfully removed from cache', ts.identifier)
+            self._repository.remove_segment(self._msg.identifier)
+            log.debug('flag %s successfully removed from cache',
+                      self._msg.identifier)

@@ -1,9 +1,7 @@
 import featureflags.sdk_logging_codes as sdk_codes
-from featureflags.evaluations.auth_target import Target
 
 
 def test_logs_dont_raise_exception():
-    target = Target(identifier='harness', name="asd")
     sdk_codes.info_poll_started(60)
     sdk_codes.info_sdk_init_ok()
     sdk_codes.info_sdk_init_waiting()
@@ -11,6 +9,7 @@ def test_logs_dont_raise_exception():
     sdk_codes.info_sdk_close_success()
     sdk_codes.info_sdk_auth_ok()
     sdk_codes.info_polling_stopped("streaming active")
+    sdk_codes.info_poll_ran_successfully()
     sdk_codes.info_stream_connected()
     sdk_codes.info_stream_event_received("")
     sdk_codes.info_stream_stopped()
@@ -20,6 +19,7 @@ def test_logs_dont_raise_exception():
     sdk_codes.info_metrics_target_exceeded()
     sdk_codes.warn_auth_failed_srv_defaults()
     sdk_codes.warn_failed_init_auth_error()
+    sdk_codes.warn_failed_init_fetch_error()
     sdk_codes.warn_auth_failed_exceed_retries()
     sdk_codes.wan_missing_sdk_key()
     sdk_codes.warn_auth_retying(1, "some error")
@@ -28,4 +28,9 @@ def test_logs_dont_raise_exception():
     sdk_codes.warn_stream_retrying_long_duration()
     sdk_codes.warn_post_metrics_failed("example reason")
     sdk_codes.warn_post_metrics_target_batch_failed("example reason")
-    sdk_codes.warn_default_variation_served("identifier", target, "default")
+    sdk_codes.warning_fetch_feature_by_id_retrying(1, "fetch feature error")
+    sdk_codes.warning_fetch_group_by_id_retrying(1, "fetch group error")
+    sdk_codes.warning_fetch_group_by_id_failed("fetch group error")
+    sdk_codes.warning_fetch_feature_by_id_failed("fetch group error")
+    sdk_codes.warning_fetch_all_features_failed("fetch group error")
+    sdk_codes.warning_fetch_all_groups_failed("fetch group error")

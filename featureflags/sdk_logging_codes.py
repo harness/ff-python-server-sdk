@@ -6,10 +6,11 @@ def get_sdk_code_message(key):
         # SDK_INIT_1xxx
         1000: "The SDK has successfully initialized",
         1001: "The SDK has failed to initialize due to an authentication "
-              "error - defaults will be served",
+              "error and defaults will be served:",
         1002: "The SDK has failed to initialize due to a missing or empty "
-              "API key - defaults will be served",
+              "API key and defaults will be served",
         1003: "The SDK is waiting for initialization to complete",
+        1006: "The SDK has failed to initialize and defaults will be served:",
         # SDK_AUTH_2xxx
         2000: "Authentication was successful",
         2001: "Authentication failed with a non-recoverable error",
@@ -21,6 +22,7 @@ def get_sdk_code_message(key):
         # SDK_POLL_4xxx
         4000: "Polling started, intervalMs:",
         4001: "Polling stopped, reason:",
+        4002: "Polled flags and groups successfully",
         # SDK_STREAM_5xxx
         5000: "SSE stream successfully connected",
         5001: "SSE stream disconnected, reason:",
@@ -39,6 +41,15 @@ def get_sdk_code_message(key):
               "analytics interval will not be sent",
         7005: "Target metrics batches succeeded:",
         7006: "Target metrics batch/batches failed:",
+        # SDK_CACHE_8xxx
+        8005: "Fetching feature by identifier attempt",
+        8006: "Fetching segment by identifier attempt",
+        8007: "Fetching all features attempt",
+        8008: "Fetching all segments attempt",
+        8009: "Fetching feature by identifier failed, reason: ",
+        8010: "Fetching segment by identifier failed, reason: ",
+        8011: "Fetching all features failed, reason: ",
+        8012: "Fetching all segments failed, reason: ",
     }
     if key in sdk_codes:
         return sdk_codes[key]
@@ -58,6 +69,10 @@ def wan_missing_sdk_key():
 
 def info_poll_started(duration_sec):
     log.info(sdk_err_msg(4000, duration_sec * 1000))
+
+
+def info_poll_ran_successfully():
+    log.info(sdk_err_msg(4002))
 
 
 def info_sdk_init_ok():
@@ -124,8 +139,12 @@ def warn_auth_failed_srv_defaults():
     log.warning(sdk_err_msg(2001))
 
 
-def warn_failed_init_auth_error():
-    log.warning(sdk_err_msg(1001))
+def warn_failed_init_auth_error(error=""):
+    log.warning(sdk_err_msg(1001, error))
+
+
+def warn_failed_init_fetch_error(error=""):
+    log.warning(sdk_err_msg(1006, error))
 
 
 def warn_auth_failed_exceed_retries():
@@ -134,7 +153,7 @@ def warn_auth_failed_exceed_retries():
 
 def warn_auth_retying(attempt, error):
     log.warning(sdk_err_msg(2002,
-                            f"attempt {attempt}, got error: {error}, "
+                            f"{attempt}, got error: '{error}', "
                             f"Retrying ..."))
 
 
@@ -158,7 +177,45 @@ def warn_post_metrics_target_batch_failed(message):
     log.warning(sdk_err_msg(7006, message))
 
 
-def warn_default_variation_served(flag, target, default):
-    log.warning(sdk_err_msg(6001,
-                            f"flag={flag}, "
-                            f"target={target}, default={default}"))
+def warning_fetch_feature_by_id_retrying(attempt, error):
+    log.warning(sdk_err_msg(8005,
+                            f"{attempt}, got error: '{error}', "
+                            f"Retrying ..."))
+
+
+def warning_fetch_group_by_id_retrying(attempt, error):
+    log.warning(sdk_err_msg(8006,
+                            f"{attempt}, got error: '{error}', "
+                            f"Retrying ..."))
+
+
+def warning_fetch_all_features_retrying(attempt, error):
+    log.warning(sdk_err_msg(8007,
+                            f"{attempt}, got error: '{error}', "
+                            f"Retrying ..."))
+
+
+def warning_fetch_all_segments_retrying(attempt, error):
+    log.warning(sdk_err_msg(8008,
+                            f"{attempt}, got error: '{error}', "
+                            f"Retrying ..."))
+
+
+def warning_fetch_feature_by_id_failed(error):
+    log.warning(sdk_err_msg(8009,
+                            f"{error}"))
+
+
+def warning_fetch_group_by_id_failed(error):
+    log.warning(sdk_err_msg(8010,
+                            f"{error}"))
+
+
+def warning_fetch_all_features_failed(error):
+    log.warning(sdk_err_msg(8011,
+                            f"{error}"))
+
+
+def warning_fetch_all_groups_failed(error):
+    log.warning(sdk_err_msg(8012,
+                            f"{error}"))

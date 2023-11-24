@@ -128,17 +128,17 @@ def test_evaluator(tc: TestCase):
 
     switch_kind = {
         FeatureConfigKind.BOOLEAN:
-            lambda: evaluator.evaluate(tc.flag, target)
+            lambda: evaluator.evaluate(tc.flag, target, "boolean")
             .bool(target, tc.flag, default=False),
         FeatureConfigKind.STRING:
-            lambda: evaluator.evaluate(tc.flag, target).string(
+            lambda: evaluator.evaluate(tc.flag, target, "string").string(
                 target, tc.flag,
                 default="failed"),
         FeatureConfigKind.INT:
-            lambda: evaluator.evaluate(tc.flag, target)
+            lambda: evaluator.evaluate(tc.flag, target, "int")
             .number(target, tc.flag, default=0.100),
         FeatureConfigKind.JSON:
-            lambda: evaluator.evaluate(tc.flag, target)
+            lambda: evaluator.evaluate(tc.flag, target, "json")
             .json(target, tc.flag, default={}),
     }
 

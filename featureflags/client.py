@@ -7,7 +7,8 @@ from tenacity import RetryError
 from jwt import decode
 
 from featureflags.analytics import AnalyticsService
-from featureflags.evaluations.evaluator import Evaluator
+from featureflags.evaluations.evaluator import Evaluator, \
+    FlagKindMismatchException
 from featureflags.repository import Repository
 
 from .api.client import AuthenticatedClient, Client
@@ -19,12 +20,17 @@ from .evaluations.auth_target import Target
 from .polling import PollingProcessor
 from .streaming import StreamProcessor
 import featureflags.sdk_logging_codes as sdk_codes
+from .util import log
 
 VERSION: str = "1.0"
 
 
 class MissingOrEmptyAPIKeyException(Exception):
-    pass
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return f"MissingOrEmptyAPIKeyException: {self.message}"
 
 
 class CfClient(object):
@@ -40,6 +46,8 @@ class CfClient(object):
         # Keep track if initialization has failed due to authentication
         # or a missing/empty API key.
         self._initialized_failed = False
+        self._initialised_failed_reason: Dict[bool, Optional[str]] \
+            = {False: None, True: None}
         self._auth_token: Optional[str] = None
         self._environment_id: Optional[str] = None
         self._sdk_key: Optional[str] = sdk_key
@@ -63,8 +71,13 @@ class CfClient(object):
 
     def run(self):
         try:
-            if self._sdk_key is None or self._sdk_key == "":
-                raise MissingOrEmptyAPIKeyException()
+            if self._sdk_key is None:
+                raise MissingOrEmptyAPIKeyException("SDK Key is None")
+
+            if self._sdk_key == "":
+                raise MissingOrEmptyAPIKeyException("SDK Key is an empty "
+                                                    "string")
+
             self.authenticate()
             sdk_codes.info_sdk_auth_ok()
             streaming_event = threading.Event()
@@ -79,6 +92,7 @@ class CfClient(object):
                 #  responsibility
                 #  for setting the Client is_initialized variable.
                 wait_for_initialization=self._initialized,
+                initialised_failed_reason=self._initialised_failed_reason,
                 ready=polling_event,
                 stream_ready=streaming_event,
                 repository=self._repository
@@ -114,16 +128,25 @@ class CfClient(object):
             # in case wait_for_intialization was called. The SDK has already
             # logged that authentication failed and defaults will be returned.
             self._initialized.set()
-        except UnrecoverableAuthenticationException:
+        except UnrecoverableAuthenticationException as ex:
             self._initialized_failed = True
+            self._initialised_failed_reason[True] \
+                = str(ex)
             sdk_codes.warn_auth_failed_srv_defaults()
             sdk_codes.warn_failed_init_auth_error()
             # Same again, unblock the thread.
             self._initialized.set()
         except MissingOrEmptyAPIKeyException:
             self._initialized_failed = True
+            self._initialised_failed_reason[True] \
+                = str(MissingOrEmptyAPIKeyException)
             sdk_codes.wan_missing_sdk_key()
             # And again, unblock the thread.
+            self._initialized.set()
+        except Exception as ex:
+            sdk_codes.warn_failed_init_auth_error(str(ex))
+            self._initialised_failed_reason[True] \
+                = str(ex)
             self._initialized.set()
 
     def wait_for_initialization(self):
@@ -131,7 +154,8 @@ class CfClient(object):
         self._initialized.wait()
 
     def is_initialized(self):
-        if self._initialized_failed:
+        if self._initialized_failed \
+                or self._initialised_failed_reason[True] is not None:
             return False
         return self._initialized.is_set()
 
@@ -175,60 +199,162 @@ class CfClient(object):
 
     def bool_variation(self, identifier: str, target: Target,
                        default: bool) -> bool:
-        variation = self._evaluator.evaluate(identifier, target)
-        # Only register metrics if analytics is enabled,
-        # and sometimes when the SDK starts up we can
-        # evaluate before the flag is cached which results in
-        # an empty identifier.
-        if self._config.enable_analytics and variation.identifier != "":
-            self._analytics.enqueue(target, identifier, variation)
-        return variation.bool(target, identifier, default)
+        # If initialization has failed, then return the default variation
+        # immediately
+        if self._initialised_failed_reason[True] is not None:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate bool variation for flag '%s'"
+                " and the default variation '%s' is being returned. Reason: "
+                "`Client is not initialized: %s'",
+                identifier, default, self._initialised_failed_reason[True])
+            return default
+
+        try:
+            variation = self._evaluator.evaluate(identifier, target, "boolean")
+            # Only register metrics if analytics is enabled,
+            # and sometimes when the SDK starts up we can
+            # evaluate before the flag is cached which results in
+            # an empty identifier.
+            if self._config.enable_analytics and variation.identifier != "":
+                self._analytics.enqueue(target, identifier, variation)
+            return variation.bool(target, identifier, default)
+
+        except FlagKindMismatchException as ex:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate bool variation for flag '%s'"
+                " and the default variation '%s' is being returned. Reason: "
+                "'%s'", identifier, default, str(ex))
+            return default
 
     def int_variation(self, identifier: str, target: Target,
                       default: int) -> int:
-        variation = self._evaluator.evaluate(identifier, target)
-        # Only register metrics if analytics is enabled,
-        # and sometimes when the SDK starts up we can
-        # evaluate before the flag is cached which results in
-        # an empty identifier.
-        if self._config.enable_analytics and variation.identifier != "":
-            self._analytics.enqueue(target, identifier, variation)
-        return variation.int(target, identifier, default)
+
+        # If initialization has failed, then return the default variation
+        # immediately
+        if self._initialised_failed_reason[True] is not None:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate bool variation for flag '%s'"
+                " and the default variation '%s' is being returned. Reason: "
+                "`Client is not initialized: %s'",
+                identifier, default, self._initialised_failed_reason[True])
+            return default
+
+        try:
+            variation = self._evaluator.evaluate(identifier, target, "int")
+
+            # Only register metrics if analytics is enabled,
+            # and sometimes when the SDK starts up we can
+            # evaluate before the flag is cached which results in
+            # an empty identifier.
+            if self._config.enable_analytics and variation.identifier != "":
+                self._analytics.enqueue(target, identifier, variation)
+
+            return variation.int(target, identifier, default)
+
+        except FlagKindMismatchException as ex:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate int variation for flag '%s'"
+                " and the default variation '%s' is being returned. Reason: "
+                "'%s'", identifier, default, str(ex))
+            return default
 
     def number_variation(self, identifier: str, target: Target,
                          default: float) -> float:
-        variation = self._evaluator.evaluate(
-            identifier, target)
-        # Only register metrics if analytics is enabled,
-        # and sometimes when the SDK starts up we can
-        # evaluate before the flag is cached which results in
-        # an empty identifier.
-        if self._config.enable_analytics and variation.identifier != "":
-            self._analytics.enqueue(target, identifier, variation)
-        return variation.number(target, identifier, default)
+
+        # If initialization has failed, then return the default variation
+        # immediately
+        if self._initialised_failed_reason[True] is not None:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate number variation for flag "
+                "'%s' and the default variation '%s' is being returned. "
+                "Reason: `Client is not initialized: %s'",
+                identifier, default, self._initialised_failed_reason[True])
+            return default
+
+        try:
+            variation = self._evaluator.evaluate(
+                identifier, target, "int")
+
+            # Only register metrics if analytics is enabled,
+            # and sometimes when the SDK starts up we can
+            # evaluate before the flag is cached which results in
+            # an empty identifier.
+            if self._config.enable_analytics and variation.identifier != "":
+                self._analytics.enqueue(target, identifier, variation)
+
+            return variation.number(target, identifier, default)
+
+        except FlagKindMismatchException as ex:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate number variation for flag "
+                "'%s'  and the default variation '%s' is being returned. "
+                "Reason: '%s'", identifier, default, str(ex))
+            return default
 
     def string_variation(self, identifier: str, target: Target,
                          default: str) -> str:
-        variation = self._evaluator.evaluate(
-            identifier, target)
-        # Only register metrics if analytics is enabled,
-        # and sometimes when the SDK starts up we can
-        # evaluate before the flag is cached which results in
-        # an empty identifier.
-        if self._config.enable_analytics and variation.identifier != "":
-            self._analytics.enqueue(target, identifier, variation)
-        return variation.string(target, identifier, default)
+
+        # If initialization has failed, then return the default variation
+        # immediately
+        if self._initialised_failed_reason[True] is not None:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate string variation for flag "
+                "'%s' and the default variation '%s' is being returned. "
+                "Reason: `Client is not initialized: %s'",
+                identifier, default, self._initialised_failed_reason[True])
+            return default
+
+        try:
+            variation = self._evaluator.evaluate(
+                identifier, target, "string")
+
+            # Only register metrics if analytics is enabled,
+            # and sometimes when the SDK starts up we can
+            # evaluate before the flag is cached which results in
+            # an empty identifier.
+            if self._config.enable_analytics and variation.identifier != "":
+                self._analytics.enqueue(target, identifier, variation)
+
+            return variation.string(target, identifier, default)
+
+        except FlagKindMismatchException as ex:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate string variation for flag "
+                "'%s' and the default variation '%s' is being returned. "
+                "Reason: '%s'", identifier, default, str(ex))
+            return default
 
     def json_variation(self, identifier: str, target: Target,
                        default: Dict[str, Any]) -> Dict[str, Any]:
-        variation = self._evaluator.evaluate(identifier, target)
-        # Only register metrics if analytics is enabled,
-        # and sometimes when the SDK starts up we can
-        # evaluate before the flag is cached which results in
-        # an empty identifier.
-        if self._config.enable_analytics and variation.identifier != "":
-            self._analytics.enqueue(target, identifier, variation)
-        return variation.json(target, identifier, default)
+
+        # If initialization has failed, then return the default variation
+        # immediately
+        if self._initialised_failed_reason[True] is not None:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate json variation for flag '%s'"
+                " and the default variation '%s' is being returned. Reason: "
+                "`Client is not initialized: %s'",
+                identifier, default, self._initialised_failed_reason[True])
+            return default
+
+        try:
+            variation = self._evaluator.evaluate(identifier, target, "json")
+
+            # Only register metrics if analytics is enabled,
+            # and sometimes when the SDK starts up we can
+            # evaluate before the flag is cached which results in
+            # an empty identifier.
+            if self._config.enable_analytics and variation.identifier != "":
+                self._analytics.enqueue(target, identifier, variation)
+
+            return variation.json(target, identifier, default)
+
+        except FlagKindMismatchException as ex:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate json variation for flag "
+                "'%s' and the default variation '%s' is being returned. "
+                "Reason: '%s'", identifier, default, str(ex))
+            return default
 
     def close(self):
         sdk_codes.info_sdk_start_close()

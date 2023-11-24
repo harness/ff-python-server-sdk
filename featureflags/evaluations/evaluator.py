@@ -25,6 +25,14 @@ from featureflags.util import log
 EMPTY_VARIATION = Variation(identifier="", value=None)
 
 
+class FlagKindMismatchException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return f"FlagKindMismatchException: {self.message}"
+
+
 class Evaluator(object):
 
     def __init__(self, provider: QueryInterface):
@@ -109,8 +117,6 @@ class Evaluator(object):
 
                 # Should Target be included - if in included list
                 #  we return true
-                log.info("target %s, segment %s",
-                         target.identifier, segment.included)
                 if not isinstance(segment.included, Unset) and \
                         next(
                             (val for val in segment.included
@@ -280,8 +286,8 @@ class Evaluator(object):
     def _check_prerequisite(self, parent: FeatureConfig,
                             target: Target) -> bool:
         if not isinstance(parent.prerequisites, Unset):
-            log.info('Checking pre requisites %s of parent feature %s',
-                     parent.prerequisites, parent.feature)
+            log.debug('Checking pre requisites %s of parent feature %s',
+                      parent.prerequisites, parent.feature)
             for pqs in parent.prerequisites:
                 config = self.provider.get_flag(pqs.feature)
                 if not config:
@@ -293,14 +299,15 @@ class Evaluator(object):
 
                 # Pre requisite variation value evaluated below
                 variation = self._evaluate_flag(config, target)
-                log.info('Pre requisite flag %s has variation %s ' +
-                         'for target %s',
-                         config.feature, variation, target)
+                log.debug('Pre requisite flag %s has variation %s ' +
+                          'for target %s',
+                          config.feature, variation, target)
 
                 # Compare if the pre requisite variation is a possible
                 # valid value of the pre requisite FF
-                log.info('Pre requisite flag %s should have the variations %s',
-                         config.feature, pqs.variations)
+                log.debug(
+                    'Pre requisite flag %s should have the variations %s',
+                    config.feature, pqs.variations)
 
                 if isinstance(variation, Unset) or variation.identifier \
                         not in pqs.variations:
@@ -310,10 +317,15 @@ class Evaluator(object):
                     return False
         return True
 
-    def evaluate(self, identifier: str, target: Target) -> Variation:
+    def evaluate(self, identifier: str, target: Target,
+                 kind: str) -> Variation:
         fc = self.provider.get_flag(identifier)
         if not fc:
             return Variation(identifier="", value=None)
+
+        if fc.kind != kind:
+            raise FlagKindMismatchException(
+                f"Requested {kind} variation on {fc.kind} flag")
 
         if fc.prerequisites:
             prereq = self._check_prerequisite(fc, target)
