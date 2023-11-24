@@ -80,6 +80,8 @@ class StreamProcessor(Thread):
                 if not self._disconnect_notified:
                     warn_stream_disconnected(e)
                     self._disconnect_notified = True
+                else:
+                    log.warning("Stream retry failed: %s", str(e))
 
                 self._ready.clear()
                 # Signal the poller than it should start due to stream error.
