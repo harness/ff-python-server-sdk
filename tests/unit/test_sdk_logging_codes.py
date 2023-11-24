@@ -1,5 +1,4 @@
 import featureflags.sdk_logging_codes as sdk_codes
-from featureflags.evaluations.auth_target import Target
 
 
 def test_logs_dont_raise_exception():
