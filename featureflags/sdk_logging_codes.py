@@ -22,6 +22,7 @@ def get_sdk_code_message(key):
         # SDK_POLL_4xxx
         4000: "Polling started, intervalMs:",
         4001: "Polling stopped, reason:",
+        4002: "Polled flags and groups successfully",
         # SDK_STREAM_5xxx
         5000: "SSE stream successfully connected",
         5001: "SSE stream disconnected, reason:",
@@ -68,6 +69,10 @@ def wan_missing_sdk_key():
 
 def info_poll_started(duration_sec):
     log.info(sdk_err_msg(4000, duration_sec * 1000))
+
+
+def info_poll_ran_successfully():
+    log.info(sdk_err_msg(4002))
 
 
 def info_sdk_init_ok():

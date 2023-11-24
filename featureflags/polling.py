@@ -11,7 +11,8 @@ from .api.default.get_feature_config import sync as retrieve_flags
 from .config import Config
 from .sdk_logging_codes import info_poll_started, info_polling_stopped, \
     info_sdk_init_ok, warning_fetch_all_features_failed, \
-    warning_fetch_all_groups_failed, warn_failed_init_fetch_error
+    warning_fetch_all_groups_failed, warn_failed_init_fetch_error, \
+    info_poll_ran_successfully
 from .util import log
 
 from tenacity import RetryError
@@ -61,8 +62,8 @@ class PollingProcessor(Thread):
                 self.retrieve_flags_and_segments()
                 log.info("Initial target segments and flags fetched")
                 if not self.__config.enable_stream:
-                    log.info("Poller will start in: " +
-                             str(self.__config.pull_interval) + " seconds")
+                    info_poll_started(self.__config.pull_interval)
+
                 #  Segments and flags have been cached so
                 #  mark the Client as initialised.
                 self.__wait_for_initialization.set()
@@ -81,7 +82,9 @@ class PollingProcessor(Thread):
                 self.__wait_for_initialization.set()
 
             if not self.__config.enable_stream:
-                info_poll_started(self.__config.pull_interval)
+                # Sleep for an interval before going into the polling loop,
+                # as we've just fetched flags/groups on init.
+                time.sleep(self.__config.pull_interval)
 
             while self.__running:
                 start_time = time.time()
@@ -92,12 +95,13 @@ class PollingProcessor(Thread):
                         self.__ready.wait()
                         # on stream disconnect, make sure flags are in sync
                         self.retrieve_flags_and_segments()
-
+                        info_poll_ran_successfully()
                         # Reset the start time so we don't do another poll
                         # immediately
                         start_time = time.time()
                     else:
                         self.retrieve_flags_and_segments()
+                        info_poll_ran_successfully()
                         self.__ready.set()
                 except RetrievalError as ex:
                     log.error('Polling error: %s',
@@ -110,7 +114,7 @@ class PollingProcessor(Thread):
 
                 elapsed = time.time() - start_time
                 if elapsed < self.__config.pull_interval:
-                    log.info("Poller sleeping for " +
+                    log.debug("Poller sleeping for " +
                              (self.__config.pull_interval - elapsed).__str__())
                     " seconds"
                     time.sleep(self.__config.pull_interval - elapsed)
