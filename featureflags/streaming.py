@@ -46,6 +46,7 @@ class StreamProcessor(Thread):
         self._repository = repository
         self.reconnect_timer = 0
         self._poll_interval = config.pull_interval
+        self._disconnect_notified = False
 
     def run(self):
         log.info("Starting StreamingProcessor connecting to uri: " +
@@ -56,6 +57,11 @@ class StreamProcessor(Thread):
             try:
                 messages = self._connect()
                 info_stream_connected()
+
+                # If this is a reconnection, set this flag back to false
+                # so we can notify correctly if we disconnect again.
+                self._disconnect_notified = False
+
                 info_polling_stopped('streaming mode is active')
                 self.poller.clear()  # were streaming now, so tell any poller
                 # threads calling wait to wait...
@@ -71,7 +77,10 @@ class StreamProcessor(Thread):
                     if self._ready.is_set() is False:
                         self._ready.set()
             except Exception as e:
-                warn_stream_disconnected(e)
+                if not self._disconnect_notified:
+                    warn_stream_disconnected(e)
+                    self._disconnect_notified = True
+
                 self._ready.clear()
                 # Signal the poller than it should start due to stream error.
                 if self.poller.is_set() is False:
