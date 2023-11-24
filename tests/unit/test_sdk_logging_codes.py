@@ -10,6 +10,7 @@ def test_logs_dont_raise_exception():
     sdk_codes.info_sdk_close_success()
     sdk_codes.info_sdk_auth_ok()
     sdk_codes.info_polling_stopped("streaming active")
+    sdk_codes.info_poll_ran_successfully()
     sdk_codes.info_stream_connected()
     sdk_codes.info_stream_event_received("")
     sdk_codes.info_stream_stopped()
