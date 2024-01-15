@@ -22,6 +22,7 @@ def main():
 
     # Get the flag type
     flag_type = client.get_flag_type(flag_identifier)
+    log.info("Flag '%s' is of type '%s'", flag_identifier, flag_type)
 
     # Ensure the right variation method is called based on the flag type
     variation_methods = {
