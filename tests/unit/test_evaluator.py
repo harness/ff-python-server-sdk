@@ -274,3 +274,11 @@ def test_evaluate_flag_on(data_provider, feature, target, true_variation):
     got = evaluator._evaluate_flag(feature, target)
 
     assert got == true_variation
+
+
+def test_get_flag_kind(data_provider, feature, target, true_variation):
+    evaluator = Evaluator(data_provider)
+
+    got = evaluator.get_kind(feature.feature)
+
+    assert got == FeatureConfigKind.BOOLEAN
