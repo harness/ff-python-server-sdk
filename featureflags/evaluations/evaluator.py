@@ -41,9 +41,6 @@ class Evaluator(object):
     def get_kind(self, identifier) -> Optional[str]:
         fc = self.provider.get_flag(identifier)
         if not fc:
-            # TODO remove warning to caller
-            log.warning("Failed to check flag kind, flag not found: %s",
-                        identifier)
             return None
         return fc.kind
 
