@@ -38,6 +38,12 @@ class Evaluator(object):
     def __init__(self, provider: QueryInterface):
         self.provider = provider
 
+    def get_kind(self, identifier) -> Optional[str]:
+        fc = self.provider.get_flag(identifier)
+        if not fc:
+            return None
+        return fc.kind
+
     def _find_variation(self, variations: List[Variation],
                         identifier: Optional[str]) -> Variation:
         if not identifier:
