@@ -16,7 +16,6 @@ def main():
     log.info("Waiting to load all flags and groups before proceeding")
     client.wait_for_initialization()
 
-
     target = Target(identifier='harness')
 
     flag_identifier = 'any_flag'
@@ -37,7 +36,6 @@ def main():
         # If the flag cannot be found, log an error
         FeatureFlagType.FLAG_NOT_FOUND: lambda: log.error("Flag %s was not found", flag_identifier)
     }
-
 
     while True:
         result = variation_methods[flag_type]()
