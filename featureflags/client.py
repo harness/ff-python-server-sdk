@@ -323,7 +323,7 @@ class CfClient(object):
         # immediately
         if self._initialised_failed_reason[True] is not None:
             log.error(
-                "SDKCODE:6001: Failed to evaluate number or int variation for "
+                "SDKCODE:6001: Failed to evaluate int_or_float variation for "
                 "flag '%s' and the default variation '%s' is being returned. "
                 "Reason: `Client is not initialized: %s'",
                 identifier, default, self._initialised_failed_reason[True])
@@ -344,8 +344,8 @@ class CfClient(object):
 
         except FlagKindMismatchException as ex:
             log.error(
-                "SDKCODE:6001: Failed to evaluate number variation for flag "
-                "'%s'  and the default variation '%s' is being returned. "
+                "SDKCODE:6001: Failed to evaluate int_or_float variation for "
+                "flag '%s'  and the default variation '%s' is being returned. "
                 "Reason: '%s'", identifier, default, str(ex))
             return default
 
