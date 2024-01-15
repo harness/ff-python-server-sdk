@@ -1,7 +1,8 @@
 """Client for interacting with Harness FF server"""
 
 import threading
-from typing import Any, Callable, Dict, Optional
+from enum import Enum
+from typing import Any, Callable, Dict, Optional, Union
 
 from tenacity import RetryError
 from jwt import decode
@@ -31,6 +32,14 @@ class MissingOrEmptyAPIKeyException(Exception):
 
     def __str__(self):
         return f"MissingOrEmptyAPIKeyException: {self.message}"
+
+
+class FeatureFlagType(str, Enum):
+    BOOLEAN = "boolean"
+    INT = "int"
+    NUMBER = "number"
+    STRING = "string"
+    JSON = "json"
 
 
 class CfClient(object):
@@ -197,6 +206,21 @@ class CfClient(object):
             additional_headers["Harness-AccountID"] = decoded["accountID"]
         self._client = self._client.with_headers(additional_headers)
 
+    def get_flag_type(self, identifier) -> Optional[FeatureFlagType]:
+        if self._initialised_failed_reason[True] is not None:
+            log.warning(
+                "Failed to check flag type for flag '%s', reason: Client is "
+                "not initialized",
+                identifier)
+            return None
+        kind = self._evaluator.get_kind(identifier)
+        if not kind:
+            log.warning(
+                "Failed to check flag kind for flag '%s', reason: flag not "
+                "found", identifier)
+            return None
+        return FeatureFlagType(kind)
+
     def bool_variation(self, identifier: str, target: Target,
                        default: bool) -> bool:
         # If initialization has failed, then return the default variation
@@ -283,6 +307,40 @@ class CfClient(object):
                 self._analytics.enqueue(target, identifier, variation)
 
             return variation.number(target, identifier, default)
+
+        except FlagKindMismatchException as ex:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate number variation for flag "
+                "'%s'  and the default variation '%s' is being returned. "
+                "Reason: '%s'", identifier, default, str(ex))
+            return default
+
+    def int_or_float_variation(self, identifier: str, target: Target,
+                                default: Union[float, int]) -> Union[
+        float, int]:
+
+        # If initialization has failed, then return the default variation
+        # immediately
+        if self._initialised_failed_reason[True] is not None:
+            log.error(
+                "SDKCODE:6001: Failed to evaluate number or int variation for "
+                "flag '%s' and the default variation '%s' is being returned. "
+                "Reason: `Client is not initialized: %s'",
+                identifier, default, self._initialised_failed_reason[True])
+            return default
+
+        try:
+            variation = self._evaluator.evaluate(
+                identifier, target, "int")
+
+            # Only register metrics if analytics is enabled,
+            # and sometimes when the SDK starts up we can
+            # evaluate before the flag is cached which results in
+            # an empty identifier.
+            if self._config.enable_analytics and variation.identifier != "":
+                self._analytics.enqueue(target, identifier, variation)
+
+            return variation.int_or_float(target, identifier, default)
 
         except FlagKindMismatchException as ex:
             log.error(

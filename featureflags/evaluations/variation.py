@@ -79,6 +79,39 @@ class Variation(object):
             {"target": target, "flag": flag_identifier}, default)
         return default
 
+    def int_or_float(self, target: Target, flag_identifier: str,
+                     default: Union[int, float]) -> Union[int, float]:
+        if self.value:
+            try:
+                result = int(self.value)
+            except ValueError:
+                try:
+                    # If int conversion fails, try converting to float
+                    result = float(self.value)
+                except ValueError:
+                    # If both conversions fail, log an error and return the
+                    # default
+                    log.error(
+                        "SDKCODE:6001: Invalid number format for %s. "
+                        "Expected a number but got '%s'",
+                        {"flag": flag_identifier, "value": self.value}
+                    )
+                    return default
+
+            log.debug(
+                "SDKCODE:6000: Evaluated number variation successfully: %s",
+                {"result": result, "flag identifier": flag_identifier,
+                 "target": target}
+            )
+            return result
+
+        log.error(
+            "SDKCODE:6001: Failed to evaluate int_or_float variation for %s "
+            "and the "
+            "default variation '%s' is being returned",
+            {"target": target, "flag": flag_identifier}, default)
+        return default
+
     def json(self, target: Target, flag_identifier: str,
              default: dict) -> dict:
         if self.value:

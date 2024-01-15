@@ -38,6 +38,15 @@ class Evaluator(object):
     def __init__(self, provider: QueryInterface):
         self.provider = provider
 
+    def get_kind(self, identifier) -> Optional[str]:
+        fc = self.provider.get_flag(identifier)
+        if not fc:
+            # TODO remove warning to caller
+            log.warning("Failed to check flag kind, flag not found: %s",
+                        identifier)
+            return None
+        return fc.kind
+
     def _find_variation(self, variations: List[Variation],
                         identifier: Optional[str]) -> Variation:
         if not identifier:
@@ -316,16 +325,6 @@ class Evaluator(object):
                 if not self._check_prerequisite(config, target):
                     return False
         return True
-
-    def get_flag_kind(self, identifier) -> Optional[str]:
-        fc = self.provider.get_flag(identifier)
-        if not fc:
-            log.warning("Failed to check flag kind, flag not found: %s",
-                        identifier)
-            return None
-        return fc.kind
-
-
 
     def evaluate(self, identifier: str, target: Target,
                  kind: str) -> Variation:
