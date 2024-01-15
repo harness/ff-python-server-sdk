@@ -18,7 +18,7 @@ def main():
 
     target = Target(identifier='harness')
 
-    flag_identifier = 'any_flag'
+    flag_identifier = 'anyflag'
 
     # Get the flag type
     flag_type = client.get_flag_type(flag_identifier)
@@ -30,7 +30,7 @@ def main():
 
         FeatureFlagType.STRING: lambda: client.string_variation(flag_identifier, target, "default"),
 
-        FeatureFlagType.FLOAT_OR_INT: lambda: client.int_or_float_variation(flag_identifier, target, 3.2),
+        FeatureFlagType.INT_OR_FLOAT: lambda: client.int_or_float_variation(flag_identifier, target, 3.2),
 
         FeatureFlagType.JSON: lambda: client.json_variation(flag_identifier, target, {}),
 
