@@ -36,7 +36,7 @@ class MissingOrEmptyAPIKeyException(Exception):
 
 class FeatureFlagType(str, Enum):
     BOOLEAN = "boolean"
-    FLOAT_OR_INT = "int"
+    INT_OR_FLOAT = "int"
     STRING = "string"
     JSON = "json"
     FLAG_NOT_FOUND = "flag_not_found"
