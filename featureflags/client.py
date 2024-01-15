@@ -36,10 +36,10 @@ class MissingOrEmptyAPIKeyException(Exception):
 
 class FeatureFlagType(str, Enum):
     BOOLEAN = "boolean"
-    INT = "int"
-    NUMBER = "number"
+    FLOAT_OR_INT = "int"
     STRING = "string"
     JSON = "json"
+    FLAG_NOT_FOUND = "flag_not_found"
 
 
 class CfClient(object):
@@ -212,13 +212,13 @@ class CfClient(object):
                 "Failed to check flag type for flag '%s', reason: Client is "
                 "not initialized",
                 identifier)
-            return None
+            return FeatureFlagType("flag_not_found")
         kind = self._evaluator.get_kind(identifier)
         if not kind:
             log.warning(
                 "Failed to check flag kind for flag '%s', reason: flag not "
                 "found", identifier)
-            return None
+            return FeatureFlagType("flag_not_found")
         return FeatureFlagType(kind)
 
     def bool_variation(self, identifier: str, target: Target,
