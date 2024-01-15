@@ -317,6 +317,16 @@ class Evaluator(object):
                     return False
         return True
 
+    def get_flag_kind(self, identifier) -> Optional[str]:
+        fc = self.provider.get_flag(identifier)
+        if not fc:
+            log.warning("Failed to check flag kind, flag not found: %s",
+                        identifier)
+            return None
+        return fc.kind
+
+
+
     def evaluate(self, identifier: str, target: Target,
                  kind: str) -> Variation:
         fc = self.provider.get_flag(identifier)
