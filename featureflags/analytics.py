@@ -70,6 +70,7 @@ class AnalyticsService(object):
         self._data: Dict[str, AnalyticsEvent] = {}
         # This allows for up to 2K flags with 5 variations each per interval
         self._max_evaluation_metrics = 10000
+        self._max_evaluation_metrics_exceeded = False
 
         # Target metrics - batch based
         self._target_data_batches: List[Dict[str, MetricTargetData]] = [{}]
@@ -96,7 +97,7 @@ class AnalyticsService(object):
         self._lock.acquire()
         try:
             # Check if adding a new metric would exceed the 10,000 limit
-            if len(self._data) < 10000:
+            if len(self._data) < self._max_evaluation_metrics:
 
                 # Store unique evaluation events. We map a unique evaluation
                 # event to its count.
@@ -107,7 +108,9 @@ class AnalyticsService(object):
                     event.count = 1
                     self._data[unique_evaluation_key] = event
             else:
-                info_evaluation_metrics_exceeded()
+                if not self._max_evaluation_metrics_exceeded:
+                    self._max_evaluation_metrics_exceeded = True
+                    info_evaluation_metrics_exceeded()
 
 
             # Check if we're on our final target batch - if we are, and we've
@@ -228,6 +231,7 @@ class AnalyticsService(object):
             self._target_data_batches = [{}]
             self._current_target_batch_index = 0
             self.max_target_data_exceeded = False
+            self._max_evaluation_metrics_exceeded = False
             self._lock.release()
 
         body: Metrics = Metrics(target_data=target_data,
