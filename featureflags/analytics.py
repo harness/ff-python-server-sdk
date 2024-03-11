@@ -1,6 +1,6 @@
 import time
 from threading import Lock, Thread
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Set
 import concurrent.futures
 
 import attr
@@ -81,6 +81,12 @@ class AnalyticsService(object):
         self._current_target_batch_index = 0
         self.max_target_data_exceeded = False
 
+        # Allow us to track targets for the life of the SDK instance, to
+        # prevent sending the same target more than once. This also helps
+        # unique targets get processed each interval, because duplicate
+        # targets are not making up the 100K limit.
+        self._seen_targets: Set[str] = set()
+
         self._running = False
         self._runner = Thread(target=self._sync)
         self._runner.daemon = True
@@ -112,6 +118,13 @@ class AnalyticsService(object):
                     self._max_evaluation_metrics_exceeded = True
                     info_evaluation_metrics_exceeded()
 
+            unique_target_key = self.get_target_key(event)
+
+            # If we've seen this target before, don't process it
+            if unique_target_key in self._seen_targets:
+                return
+
+            self._seen_targets.add(unique_target_key)
 
             # Check if we're on our final target batch - if we are, and we've
             # exceeded the max batch size just return early.
@@ -126,7 +139,6 @@ class AnalyticsService(object):
                     return
 
             if event.target is not None and not event.target.anonymous:
-                unique_target_key = self.get_target_key(event)
 
                 # Store unique targets. If the target already exists
                 # in any of the batches, don't continue processing it
