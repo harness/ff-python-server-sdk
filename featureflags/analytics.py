@@ -23,7 +23,8 @@ from .models.unset import Unset
 from .sdk_logging_codes import info_metrics_thread_started, \
     info_metrics_success, warn_post_metrics_failed, \
     info_metrics_thread_existed, info_metrics_target_exceeded, \
-    warn_post_metrics_target_batch_failed, info_metrics_target_batch_success
+    warn_post_metrics_target_batch_failed, info_metrics_target_batch_success, \
+    info_evaluation_metrics_exceeded
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -67,13 +68,13 @@ class AnalyticsService(object):
 
         # Evaluation metrics
         self._data: Dict[str, AnalyticsEvent] = {}
-        # This allows for up to 2K flags with 5 variations each
+        # This allows for up to 2K flags with 5 variations each per interval
         self._max_evaluation_metrics = 10000
 
         # Target metrics - batch based
         self._target_data_batches: List[Dict[str, MetricTargetData]] = [{}]
 
-        # This allows for 100k unique targets
+        # This allows for 100k unique targets per interval
         self._max_number_of_target_batches = 100
         self._max_target_batch_size = 1000
         self._current_target_batch_index = 0
@@ -94,16 +95,22 @@ class AnalyticsService(object):
 
         self._lock.acquire()
         try:
-            # Store unique evaluation events. We map a unique evaluation
-            # event to its count.
-            unique_evaluation_key = self.get_key(event)
-            if unique_evaluation_key in self._data:
-                self._data[unique_evaluation_key].count += 1
-            else:
-                event.count = 1
-                self._data[unique_evaluation_key] = event
+            # Check if adding a new metric would exceed the 10,000 limit
+            if len(self._data) < 10000:
 
-            # Check if we're on our final batch - if we are, and we've
+                # Store unique evaluation events. We map a unique evaluation
+                # event to its count.
+                unique_evaluation_key = self.get_key(event)
+                if unique_evaluation_key in self._data:
+                    self._data[unique_evaluation_key].count += 1
+                else:
+                    event.count = 1
+                    self._data[unique_evaluation_key] = event
+            else:
+                info_evaluation_metrics_exceeded()
+
+
+            # Check if we're on our final target batch - if we are, and we've
             # exceeded the max batch size just return early.
             if len(self._target_data_batches) >= \
                     self._max_number_of_target_batches:
