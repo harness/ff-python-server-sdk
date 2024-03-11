@@ -323,6 +323,13 @@ class AnalyticsService(object):
         )
         target_data.append(td)
 
+    def is_target_seen(self, target: AnalyticsEvent) -> bool:
+        unique_target_key = self.get_target_key(target)
+
+        with self._lock:  # Use the lock to ensure thread-safe access
+            seen = unique_target_key in self._seen_targets
+        return seen
+
     def close(self) -> None:
         self._running = False
         if len(self._data) > 0:
