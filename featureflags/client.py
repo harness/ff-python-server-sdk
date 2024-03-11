@@ -316,8 +316,8 @@ class CfClient(object):
             return default
 
     def int_or_float_variation(self, identifier: str, target: Target,
-                                default: Union[float, int]) -> Union[
-        float, int]:
+                               default: Union[float, int]) -> \
+            Union[float, int]:
 
         # If initialization has failed, then return the default variation
         # immediately
