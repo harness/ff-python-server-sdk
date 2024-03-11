@@ -64,11 +64,19 @@ class AnalyticsService(object):
         self._config = config
         self._client = client
         self._environment = environment
+
+        # Evaluation metrics
         self._data: Dict[str, AnalyticsEvent] = {}
+        # This allows for up to 2K flags with 5 variations each
+        self._max_evaluation_metrics = 10000
+
+        # Target metrics - batch based
         self._target_data_batches: List[Dict[str, MetricTargetData]] = [{}]
-        self._max_number_of_batches = 200
-        self._max_batch_size = 1000
-        self._current_batch_index = 0
+
+        # This allows for 100k unique targets
+        self._max_number_of_target_batches = 100
+        self._max_target_batch_size = 1000
+        self._current_target_batch_index = 0
         self.max_target_data_exceeded = False
 
         self._running = False
@@ -97,10 +105,11 @@ class AnalyticsService(object):
 
             # Check if we're on our final batch - if we are, and we've
             # exceeded the max batch size just return early.
-            if len(self._target_data_batches) >= self._max_number_of_batches:
+            if len(self._target_data_batches) >= \
+                    self._max_number_of_target_batches:
                 if len(self._target_data_batches[
-                           self._current_batch_index]) >= \
-                        self._max_batch_size:
+                           self._current_target_batch_index]) >= \
+                        self._max_target_batch_size:
                     if not self.max_target_data_exceeded:
                         self.max_target_data_exceeded = True
                         info_metrics_target_exceeded()
@@ -118,16 +127,17 @@ class AnalyticsService(object):
                 # If we've exceeded the max batch size for the current
                 # batch, then create a new batch and start using it.
                 if len(self._target_data_batches[
-                           self._current_batch_index]) >= self._max_batch_size:
+                           self._current_target_batch_index]) >= \
+                        self._max_target_batch_size:
                     self._target_data_batches.append({})
-                    self._current_batch_index += 1
+                    self._current_target_batch_index += 1
 
                 target_name = event.target.name
                 # If the target has no name use the identifier
                 if not target_name:
                     target_name = event.target.identifier
                 self._target_data_batches[
-                    self._current_batch_index][unique_target_key] = \
+                    self._current_target_batch_index][unique_target_key] = \
                     MetricTargetData(
                         identifier=event.target.identifier,
                         name=target_name,
@@ -209,7 +219,7 @@ class AnalyticsService(object):
         finally:
             self._data = {}
             self._target_data_batches = [{}]
-            self._current_batch_index = 0
+            self._current_target_batch_index = 0
             self.max_target_data_exceeded = False
             self._lock.release()
 
