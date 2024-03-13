@@ -14,6 +14,7 @@ class TargetData:
     identifier: str
     name: str
     attributes: List[KeyValue]
+    anonymous: bool = attr.ib(default=False)
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -32,6 +33,7 @@ class TargetData:
                 "identifier": identifier,
                 "name": name,
                 "attributes": attributes,
+                "anonymous": self.anonymous,
             }
         )
 
@@ -51,10 +53,13 @@ class TargetData:
 
             attributes.append(attributes_item)
 
+        anonymous = d.pop("anonymous", False)
+
         target_data = cls(
             identifier=identifier,
             name=name,
             attributes=attributes,
+            anonymous=anonymous,
         )
 
         target_data.additional_properties = d
