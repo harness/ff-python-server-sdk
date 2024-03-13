@@ -27,7 +27,7 @@ You can pass the configuration in as options when the SDK client is created.
 
 # Anonymous Target
 
-If you do not want a `Target` to be sent to the Harness servers, you can use the `anonymous` attribute. 
+If you do not want a `Target` to be sent to Harness servers, you can use the `anonymous` attribute. 
 
 ```python
     target = Target(identifier='my_identifier', name='my_name', anonymous=True)
