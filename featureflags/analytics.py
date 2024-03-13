@@ -118,6 +118,12 @@ class AnalyticsService(object):
                     self._max_evaluation_metrics_exceeded = True
                     info_evaluation_metrics_exceeded()
 
+            # Don't store this target if it is anonymous. Note, we currently
+            # don't do this check above for evaluation metrics, because we use
+            # the global target.
+            if target.anonymous:
+                return
+
             unique_target_key = self.get_target_key(event)
 
             # If we've seen this target before, don't process it
@@ -326,7 +332,7 @@ class AnalyticsService(object):
     def is_target_seen(self, target: AnalyticsEvent) -> bool:
         unique_target_key = self.get_target_key(target)
 
-        with self._lock:  
+        with self._lock:
             seen = unique_target_key in self._seen_targets
         return seen
 
