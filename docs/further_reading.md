@@ -25,6 +25,15 @@ You can pass the configuration in as options when the SDK client is created.
 | pollInterval    | with_poll_interval(120)                                  | When running in stream mode, the interval in seconds that we poll for changes.                                                                   | 60                                   |
 | maxAuthRetries  | with_max_auth_retries(10)                                | The number of retry attempts to make if client authentication fails on a retryable HTTP error                                                    | 10                                   |
 
+# Anonymous Target
+
+If you do not want a `Target` to be sent to Harness servers, you can use the `anonymous` attribute. 
+
+```python
+    target = Target(identifier='my_identifier', name='my_name', anonymous=True)
+```            
+
+
 ## Logging Configuration
 The SDK provides a logger that wraps the standard python logging package.  You can import and use it with:
 ```python

@@ -14,7 +14,7 @@ from featureflags.evaluations.constants import (CONTAINS_OPERATOR,
                                                 STARTS_WITH_OPERATOR)
 from featureflags.evaluations.distribution import Distribution
 from featureflags.evaluations.enum import FeatureState
-from featureflags.evaluations.feature import FeatureConfig
+from featureflags.evaluations.feature import FeatureConfig, FeatureConfigKind
 from featureflags.evaluations.serving_rule import ServingRule, ServingRules
 from featureflags.evaluations.variation import Variation
 from featureflags.evaluations.variation_map import VariationMap
@@ -38,7 +38,7 @@ class Evaluator(object):
     def __init__(self, provider: QueryInterface):
         self.provider = provider
 
-    def get_kind(self, identifier) -> Optional[str]:
+    def get_kind(self, identifier) -> Optional[FeatureConfigKind]:
         fc = self.provider.get_flag(identifier)
         if not fc:
             return None

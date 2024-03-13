@@ -41,6 +41,8 @@ def get_sdk_code_message(key):
               "analytics interval will not be sent",
         7005: "Target metrics batches succeeded:",
         7006: "Target metrics batch/batches failed:",
+        7007: "Evaluation metrics exceeded max size, remaining unique "
+              "evaluations for this analytics interval will not be sent",
         # SDK_CACHE_8xxx
         8005: "Fetching feature by identifier attempt",
         8006: "Fetching segment by identifier attempt",
@@ -125,6 +127,10 @@ def info_metrics_target_exceeded():
 
 def info_metrics_target_batch_success(message):
     log.info(sdk_err_msg(7005, message))
+
+
+def info_evaluation_metrics_exceeded():
+    log.info(sdk_err_msg(7007))
 
 
 def info_metrics_thread_existed():

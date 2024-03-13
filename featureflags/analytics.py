@@ -1,6 +1,6 @@
 import time
 from threading import Lock, Thread
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Set
 import concurrent.futures
 
 import attr
@@ -23,7 +23,8 @@ from .models.unset import Unset
 from .sdk_logging_codes import info_metrics_thread_started, \
     info_metrics_success, warn_post_metrics_failed, \
     info_metrics_thread_existed, info_metrics_target_exceeded, \
-    warn_post_metrics_target_batch_failed, info_metrics_target_batch_success
+    warn_post_metrics_target_batch_failed, info_metrics_target_batch_success, \
+    info_evaluation_metrics_exceeded
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -33,7 +34,7 @@ VARIATION_IDENTIFIER_ATTRIBUTE = 'variationIdentifier'
 VARIATION_VALUE_ATTRIBUTE = 'variationValue'
 TARGET_ATTRIBUTE = 'target'
 SDK_VERSION_ATTRIBUTE = 'SDK_VERSION'
-SDK_VERSION = '1.4.0'
+SDK_VERSION = '1.5.0'
 SDK_TYPE_ATTRIBUTE = 'SDK_TYPE'
 SDK_TYPE = 'server'
 SDK_LANGUAGE_ATTRIBUTE = 'SDK_LANGUAGE'
@@ -64,12 +65,27 @@ class AnalyticsService(object):
         self._config = config
         self._client = client
         self._environment = environment
+
+        # Evaluation metrics
         self._data: Dict[str, AnalyticsEvent] = {}
+        # This allows for up to 2K flags with 5 variations each per interval
+        self._max_evaluation_metrics = 10000
+        self._max_evaluation_metrics_exceeded = False
+
+        # Target metrics - batch based
         self._target_data_batches: List[Dict[str, MetricTargetData]] = [{}]
-        self._max_number_of_batches = 200
-        self._max_batch_size = 1000
-        self._current_batch_index = 0
+
+        # This allows for 100k unique targets per interval
+        self._max_number_of_target_batches = 100
+        self._max_target_batch_size = 1000
+        self._current_target_batch_index = 0
         self.max_target_data_exceeded = False
+
+        # Allow us to track targets for the life of the SDK instance, to
+        # prevent sending the same target more than once. This also helps
+        # unique targets get processed each interval, because duplicate
+        # targets are not making up the 100K limit.
+        self._seen_targets: Set[str] = set()
 
         self._running = False
         self._runner = Thread(target=self._sync)
@@ -86,28 +102,49 @@ class AnalyticsService(object):
 
         self._lock.acquire()
         try:
-            # Store unique evaluation events. We map a unique evaluation
-            # event to its count.
-            unique_evaluation_key = self.get_key(event)
-            if unique_evaluation_key in self._data:
-                self._data[unique_evaluation_key].count += 1
-            else:
-                event.count = 1
-                self._data[unique_evaluation_key] = event
+            # Check if adding a new metric would exceed the 10,000 limit
+            if len(self._data) < self._max_evaluation_metrics:
 
-            # Check if we're on our final batch - if we are, and we've
+                # Store unique evaluation events. We map a unique evaluation
+                # event to its count.
+                unique_evaluation_key = self.get_key(event)
+                if unique_evaluation_key in self._data:
+                    self._data[unique_evaluation_key].count += 1
+                else:
+                    event.count = 1
+                    self._data[unique_evaluation_key] = event
+            else:
+                if not self._max_evaluation_metrics_exceeded:
+                    self._max_evaluation_metrics_exceeded = True
+                    info_evaluation_metrics_exceeded()
+
+            # Don't store this target if it is anonymous. Note, we currently
+            # don't do this check above for evaluation metrics, because we use
+            # the global target.
+            if target.anonymous:
+                return
+
+            unique_target_key = self.get_target_key(event)
+
+            # If we've seen this target before, don't process it
+            if unique_target_key in self._seen_targets:
+                return
+
+            self._seen_targets.add(unique_target_key)
+
+            # Check if we're on our final target batch - if we are, and we've
             # exceeded the max batch size just return early.
-            if len(self._target_data_batches) >= self._max_number_of_batches:
+            if len(self._target_data_batches) >= \
+                    self._max_number_of_target_batches:
                 if len(self._target_data_batches[
-                           self._current_batch_index]) >= \
-                        self._max_batch_size:
+                           self._current_target_batch_index]) >= \
+                        self._max_target_batch_size:
                     if not self.max_target_data_exceeded:
                         self.max_target_data_exceeded = True
                         info_metrics_target_exceeded()
                     return
 
             if event.target is not None and not event.target.anonymous:
-                unique_target_key = self.get_target_key(event)
 
                 # Store unique targets. If the target already exists
                 # in any of the batches, don't continue processing it
@@ -118,16 +155,17 @@ class AnalyticsService(object):
                 # If we've exceeded the max batch size for the current
                 # batch, then create a new batch and start using it.
                 if len(self._target_data_batches[
-                           self._current_batch_index]) >= self._max_batch_size:
+                           self._current_target_batch_index]) >= \
+                        self._max_target_batch_size:
                     self._target_data_batches.append({})
-                    self._current_batch_index += 1
+                    self._current_target_batch_index += 1
 
                 target_name = event.target.name
                 # If the target has no name use the identifier
                 if not target_name:
                     target_name = event.target.identifier
                 self._target_data_batches[
-                    self._current_batch_index][unique_target_key] = \
+                    self._current_target_batch_index][unique_target_key] = \
                     MetricTargetData(
                         identifier=event.target.identifier,
                         name=target_name,
@@ -209,8 +247,9 @@ class AnalyticsService(object):
         finally:
             self._data = {}
             self._target_data_batches = [{}]
-            self._current_batch_index = 0
+            self._current_target_batch_index = 0
             self.max_target_data_exceeded = False
+            self._max_evaluation_metrics_exceeded = False
             self._lock.release()
 
         body: Metrics = Metrics(target_data=target_data,
@@ -289,6 +328,13 @@ class AnalyticsService(object):
             attributes=target_attributes
         )
         target_data.append(td)
+
+    def is_target_seen(self, target: AnalyticsEvent) -> bool:
+        unique_target_key = self.get_target_key(target)
+
+        with self._lock:
+            seen = unique_target_key in self._seen_targets
+        return seen
 
     def close(self) -> None:
         self._running = False
