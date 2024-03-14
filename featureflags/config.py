@@ -28,7 +28,8 @@ class Config(object):
             store: object = None,
             enable_stream: bool = True,
             enable_analytics: bool = True,
-            max_auth_retries: int = 10
+            max_auth_retries: int = 10,
+            tls_trusted_cas_file: str = None
     ):
         self.base_url = base_url
         self.events_url = events_url
@@ -48,6 +49,7 @@ class Config(object):
         self.enable_stream = enable_stream
         self.enable_analytics = enable_analytics
         self.max_auth_retries = max_auth_retries
+        self.tls_trusted_cas_file = tls_trusted_cas_file
 
 
 default_config = Config()
@@ -91,5 +93,12 @@ def with_pull_interval(value: int) -> Callable:
 def with_max_auth_retries(value: int) -> Callable:
     def func(config: Config) -> None:
         config.max_auth_retries = value
+
+    return func
+
+
+def with_tls_trusted_cas_file(value: str) -> Callable:
+    def func(config: Config) -> None:
+        config.tls_trusted_cas_file = value
 
     return func

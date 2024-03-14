@@ -175,7 +175,8 @@ class CfClient(object):
         client = Client(
             base_url=self._config.base_url,
             events_url=self._config.events_url,
-            max_auth_retries=self._config.max_auth_retries
+            max_auth_retries=self._config.max_auth_retries,
+            tls_trusted_cas_file=self._config.tls_trusted_cas_file
         )
         body = AuthenticationRequest(api_key=self._sdk_key)
         response = authenticate(client=client, json_body=body)
@@ -194,7 +195,8 @@ class CfClient(object):
             params={
                 'cluster': self._cluster
             },
-            max_auth_retries=self._config.max_auth_retries
+            max_auth_retries=self._config.max_auth_retries,
+            tls_trusted_cas_file=self._config.tls_trusted_cas_file
         )
         # Additional headers used to track usage
         additional_headers = {

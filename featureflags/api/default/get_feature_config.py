@@ -34,13 +34,18 @@ def _get_kwargs(
     headers: Dict[str, Any] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
 
-    return {
+    args = {
         "url": url,
         "params": query_params,
         "headers": headers,
         "cookies": cookies,
         "timeout": client.get_timeout(),
     }
+
+    if client.tls_trusted_cas_file is not None:
+        args["verify"] = client.tls_trusted_cas_file
+
+    return args
 
 
 def _parse_response(
