@@ -48,7 +48,6 @@ def _get_kwargs(
     return args
 
 
-
 def _parse_response(
         *, response: httpx.Response
 ) -> Optional[Union[AuthenticationResponse, None]]:
