@@ -17,7 +17,7 @@ requirements = [
     "pyjwt>=2.4.0",
     "attrs>=21.2.0",
     "mmh3>=3.0.0",
-    "requests>=2.25.1",
+    "requests>=2.31.0",
     "tenacity==8.2.2"
 ]
 
@@ -30,8 +30,8 @@ test_requirements = [
 ]
 
 setup(
-    author="Enver Bisevac",
-    author_email="enver.bisevac@harness.io",
+    author="Harness",
+    author_email="support@harness.io",
     python_requires=">=3.5",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
