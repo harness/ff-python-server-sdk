@@ -19,6 +19,7 @@ def main():
     log.info("Harness SDK Getting Started")
     # Create a Feature Flag Client
     client = CfClient(api_key)
+    client.wait_for_initialization()
 
 
     # Create a target (different targets can get different results based on rules)
