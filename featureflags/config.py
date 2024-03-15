@@ -98,6 +98,11 @@ def with_max_auth_retries(value: int) -> Callable:
 
 
 def with_tls_trusted_cas_file(value: str) -> Callable:
+    """
+    This config item is for on-prem or proxy customers using custom TLS certs.
+    It takes a filename of a CA bundle. It should include all intermediate CAs
+    and the root CA (concatenated in PEM format) of the endpoint you're trusting.
+    """
     def func(config: Config) -> None:
         config.tls_trusted_cas_file = value
 
