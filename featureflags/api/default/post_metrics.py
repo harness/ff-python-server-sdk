@@ -29,7 +29,7 @@ def _get_kwargs(
 
     json_json_body = json_body.to_dict()
 
-    return {
+    args = {
         "url": url,
         "params": query_params,
         "headers": headers,
@@ -37,6 +37,11 @@ def _get_kwargs(
         "timeout": client.get_timeout(),
         "json": json_json_body,
     }
+
+    if client.tls_trusted_cas_file is not None:
+        args["verify"] = client.tls_trusted_cas_file
+
+    return args
 
 
 def _build_response(*, response: httpx.Response) -> Response[None]:

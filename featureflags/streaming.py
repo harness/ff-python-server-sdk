@@ -107,7 +107,7 @@ class StreamProcessor(Thread):
         return SSEClient(url=self._stream_url, headers={
             'Authorization': f'Bearer {self._token}',
             'API-Key': self._api_key
-        }, retry=BACK_OFF_IN_SECONDS)
+        }, retry=BACK_OFF_IN_SECONDS, verify=self._client.tls_trusted_cas_file)
 
     def process_message(self, msg: Message) -> None:
         processor: Union[FlagMsgProcessor, SegmentMsgProcessor, None] = None

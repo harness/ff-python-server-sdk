@@ -14,6 +14,7 @@ class Client:
     headers: Dict[str, str] = attr.ib(factory=dict, kw_only=True)
     timeout: float = attr.ib(30.0, kw_only=True)
     max_auth_retries: int
+    tls_trusted_cas_file: str
 
     def get_headers(self) -> Dict[str, str]:
         """Get headers to be used in all endpoints"""
