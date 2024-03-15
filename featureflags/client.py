@@ -23,7 +23,7 @@ from .streaming import StreamProcessor
 import featureflags.sdk_logging_codes as sdk_codes
 from .util import log
 
-VERSION: str = "1.0"
+VERSION: str = "1.6.0"
 
 
 class MissingOrEmptyAPIKeyException(Exception):
