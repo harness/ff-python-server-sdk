@@ -39,8 +39,7 @@ def _get_kwargs(
         "headers": headers,
         "cookies": cookies,
         "timeout": client.get_timeout(),
-        "json": json_json_body,
-        "verify": client
+        "json": json_json_body
     }
 
     if client.tls_trusted_cas_file is not None:
