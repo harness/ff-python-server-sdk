@@ -1,9 +1,9 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
 import mmh3
 
 from featureflags.evaluations.auth_target import Target
-from featureflags.evaluations.clause import Clause, Clauses
+from featureflags.openapi.config.models.clause import Clause
 from featureflags.evaluations.constants import (CONTAINS_OPERATOR,
                                                 ENDS_WITH_OPERATOR,
                                                 EQUAL_OPERATOR,
@@ -12,17 +12,63 @@ from featureflags.evaluations.constants import (CONTAINS_OPERATOR,
                                                 ONE_HUNDRED,
                                                 SEGMENT_MATCH_OPERATOR,
                                                 STARTS_WITH_OPERATOR)
-from featureflags.evaluations.distribution import Distribution
+from featureflags.openapi.config.models.distribution import Distribution
 from featureflags.evaluations.enum import FeatureState
-from featureflags.evaluations.feature import FeatureConfig, FeatureConfigKind
-from featureflags.evaluations.serving_rule import ServingRule, ServingRules
-from featureflags.evaluations.variation import Variation
-from featureflags.evaluations.variation_map import VariationMap
-from featureflags.models.unset import Unset
+from featureflags.openapi.config.models.feature_config import FeatureConfig, FeatureConfigKind
+from featureflags.openapi.config.models.serving_rule import ServingRule
+from featureflags.openapi.config.models.serve import Serve
+from featureflags.openapi.config.models.segment import Segment
+from featureflags.openapi.config.models.variation import Variation
+from featureflags.openapi.config.models.variation_map import VariationMap
+from featureflags.openapi.config.types import Unset
 from featureflags.repository import QueryInterface
 from featureflags.util import log
 
 EMPTY_VARIATION = Variation(identifier="", value=None)
+
+
+class Segments(Dict[str, Segment]):
+
+    def evaluate(self, target: Target) -> bool:
+        for _, segment in self.items():
+            if not segment.evaluate(target):
+                return False
+        return True
+
+
+class Clauses(List[Clause]):
+    def evaluate(self, target: Target, segments: Optional['Segments']) -> bool:
+        for clause in self:
+            operator = target.get_type(clause.attribute)
+            if not clause.evaluate(target, segments, operator):
+                return False
+        return True
+
+
+class ServingRules(List[ServingRule]):
+    def get_variation_name(
+            self,
+            target: Target,
+            segments: Optional[Segments] = None,
+            default_serve: Optional[Serve] = None,
+    ) -> Optional[str]:
+        for rule in self:
+            if not rule.clauses.evaluate(target, segments):
+                continue
+
+            if not isinstance(rule.serve.distribution, Unset):
+                return rule.serve.distribution.get_key_name(target)
+
+            if not isinstance(rule.serve.variation, Unset):
+                return rule.serve.variation
+
+        if default_serve:
+            if not isinstance(default_serve.variation, Unset):
+                return default_serve.variation
+
+            if not isinstance(default_serve.distribution, Unset):
+                return default_serve.distribution.get_key_name(target)
+        return None
 
 
 class FlagKindMismatchException(Exception):

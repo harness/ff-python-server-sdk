@@ -11,11 +11,11 @@ coverage==4.5.4
 Sphinx==4.1.2
 twine==3.4.1
 
-pytest==5.1
+pytest>=7
 pytest-runner==5.1
 pytest-mock==3.6.1
 setuptools~=65.5.1
-httpx~=0.23.0
+httpx~=0.24.1
 attrs~=21.2.0
 
 pyjwt==2.4.0

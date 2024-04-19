@@ -12,9 +12,9 @@ from .openapi.metrics.models.metrics_data_metrics_type import \
 from .openapi.config import AuthenticatedClient
 from .openapi.metrics.api.metrics.post_metrics import sync_detailed as post_metrics
 from .config import Config
-from .evaluations.target import Target
-from .evaluations.target_attributes import TargetAttributes
-from .evaluations.variation import Variation
+from .openapi.config.models.target import Target
+from .openapi.config.models.target_attributes import TargetAttributes
+from .openapi.config.models.variation import Variation
 from .openapi.metrics.models.key_value import KeyValue
 from .openapi.metrics.models.metrics import Metrics
 from .openapi.metrics.models.metrics_data import MetricsData

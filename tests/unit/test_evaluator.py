@@ -1,20 +1,20 @@
 import pytest
 
 from featureflags.evaluations.auth_target import Target
-from featureflags.evaluations.clause import Clause
+from featureflags.openapi.config.models.clause import Clause
 from featureflags.evaluations.constants import EQUAL_OPERATOR, \
     STARTS_WITH_OPERATOR
-from featureflags.evaluations.distribution import Distribution
+from featureflags.openapi.config.models.distribution import Distribution
 from featureflags.evaluations.enum import FeatureState
 from featureflags.evaluations.evaluator import Evaluator
-from featureflags.evaluations.feature import FeatureConfig, FeatureConfigKind
-from featureflags.evaluations.segment import Segment
-from featureflags.evaluations.serve import Serve
-from featureflags.evaluations.serving_rule import ServingRule
-from featureflags.evaluations.target_map import TargetMap
-from featureflags.evaluations.variation import Variation
-from featureflags.evaluations.variation_map import VariationMap
-from featureflags.evaluations.weighted_variation import WeightedVariation
+from featureflags.openapi.config.models.feature_config import FeatureConfig, FeatureConfigKind
+from featureflags.openapi.config.models.segment import Segment
+from featureflags.openapi.config.models.serve import Serve
+from featureflags.openapi.config.models.serving_rule import ServingRule
+from featureflags.openapi.config.models.target_map import TargetMap
+from featureflags.openapi.config.models.variation import Variation
+from featureflags.openapi.config.models.variation_map import VariationMap
+from featureflags.openapi.config.models.weighted_variation import WeightedVariation
 from featureflags.lru_cache import LRUCache
 from featureflags.repository import Repository
 
@@ -282,3 +282,81 @@ def test_get_flag_kind(data_provider, feature, target, true_variation):
     got = evaluator.get_kind(feature.feature)
 
     assert got == FeatureConfigKind.BOOLEAN
+
+
+def load_v2_flags(repo):
+    feature_config_or = FeatureConfig(
+        feature="boolflag_or",
+        environment="test",
+        default_serve=Serve(variation=FALSE),
+        kind=FeatureConfigKind.BOOLEAN,
+        off_variation=FALSE,
+        project="test",
+        state=FeatureState.ON,
+        variation_to_target_map=[
+            VariationMap(variation=TRUE, targets=[], target_segments=['or-segment'])
+        ],
+        variations=[
+            Variation(identifier='true', name='True', value='true'),
+            Variation(identifier='false', name='False', value='false')
+        ],
+        version=1
+    )
+
+    feature_config_and = FeatureConfig(
+        feature="boolflag_and",
+        environment="test",
+        default_serve=Serve(variation=FALSE),
+        kind=FeatureConfigKind.BOOLEAN,
+        off_variation=FALSE,
+        project="test",
+        state=FeatureState.ON,
+        variation_to_target_map=[
+            VariationMap(variation=TRUE, targets=[], target_segments=['and-segment'])
+        ],
+        variations=[
+            Variation(identifier='true', name='True', value='true'),
+            Variation(identifier='false', name='False', value='false')
+        ],
+        version=1
+    )
+    repo.set_flag(feature_config_or)
+    repo.set_flag(feature_config_and)
+
+
+def load_v2_segments(repo):
+    segment_or = Segment(
+        identifier='or-segment',
+        name='is_harness_or_somethingelse_email_OR',
+        environment='Production',
+        # only 1 servingRules needs to be true (OR)
+
+    )
+
+    repo.set_segment(segment)
+
+
+@pytest.mark.parametrize('flag_name,expected,email,role', [
+    # if (target.attr.email endswith '@harness.io' && target.attr.role = 'developer')
+    ('boolflag_and', TRUE, 'user@harness.io', 'developer'),
+    ('boolflag_and', TRUE, 'user@harness.io', 'manager'),
+    ('boolflag_and', FALSE, 'user@gmail.com', 'developer'),
+    ('boolflag_and', FALSE, 'user@gmail.com', 'manager'),
+    # if (target.attr.email endswith '@harness.io' || target.attr.email endswith '@somethingelse.com')
+    ('boolflag_or', TRUE, 'user@harness.io', 'n/a'),
+    ('boolflag_or', TRUE, 'user@somethingelse.com', 'n/a'),
+    ('boolflag_or', FALSE, 'user@gmail.com', 'n/a'),
+])
+def test_enhanced_v2_rules(flag_name, email, role, expected):
+    cache = LRUCache()
+    repository = Repository(cache)
+
+    load_v2_flags(repository)
+    load_v2_segments(repository)
+
+    evaluator = Evaluator(repository)
+    target = Target(identifier='test', name="test",
+                    attributes={"email": email, "role": role})
+    got = evaluator.evaluate(flag_name, target, "boolean")
+
+    assert got == expected

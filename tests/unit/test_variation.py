@@ -3,7 +3,7 @@ import json
 import pytest
 
 from featureflags.evaluations.auth_target import Target
-from featureflags.evaluations.variation import Variation
+from featureflags.openapi.config.models.variation import Variation
 
 
 @pytest.mark.parametrize(

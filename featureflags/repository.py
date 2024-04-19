@@ -2,8 +2,8 @@ import abc
 from typing import List, Optional
 from featureflags.evaluations.constants import SEGMENT_MATCH_OPERATOR
 
-from featureflags.evaluations.feature import FeatureConfig
-from featureflags.evaluations.segment import Segment
+from featureflags.openapi.config.models.feature_config import FeatureConfig
+from featureflags.openapi.config.models.segment import Segment
 from featureflags.interface import Cache, Store
 from featureflags.openapi.config.types import Unset
 from featureflags.util import log
