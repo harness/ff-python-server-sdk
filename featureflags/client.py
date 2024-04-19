@@ -22,6 +22,11 @@ from .polling import PollingProcessor
 from .streaming import StreamProcessor
 import featureflags.sdk_logging_codes as sdk_codes
 from .util import log
+from tenacity import retry_if_result, wait_exponential, \
+    stop_after_attempt, Retrying, retry_all
+from featureflags.sdk_logging_codes import warn_auth_retying
+from featureflags.config import RETRYABLE_CODES
+import json
 
 VERSION: str = "1.7.0"
 
@@ -171,15 +176,39 @@ class CfClient(object):
     def get_environment_id(self):
         return self._environment_id
 
-    def authenticate(self):
-        client = Client(
-            base_url=self._config.base_url,
-            events_url=self._config.events_url,
-            max_auth_retries=self._config.max_auth_retries,
-            tls_trusted_cas_file=self._config.tls_trusted_cas_file
+    def _handle_http_result(response):
+        code = response.status_code
+        if code in RETRYABLE_CODES:
+            return True
+        else:
+            log.error(
+                f'Authentication received HTTP code #{code} and '
+                'will not attempt to reconnect')
+            return False
+
+    def _authenticate_with_retry(self, client, body, max_auth_retries):
+        retryer = Retrying(
+            wait=wait_exponential(multiplier=1, min=4, max=10),
+            retry=retry_all(
+                retry_if_result(lambda response: response.status_code != 200),
+                retry_if_result(self._handle_http_result)
+            ),
+            before_sleep=lambda retry_state: warn_auth_retying(
+                retry_state.attempt_number,
+                retry_state.outcome.result()),
+            stop=stop_after_attempt(max_auth_retries),
         )
+        return retryer(authenticate, client=client, body=body)
+
+    def authenticate(self):
+        verify = True
+        if self._config.tls_trusted_cas_file is not None:
+            verify = self._config.tls_trusted_cas_file
+
+        client = Client(base_url=self._config.base_url, verify_ssl=verify)
         body = AuthenticationRequest(api_key=self._sdk_key)
-        response = authenticate(client=client, json_body=body)
+        response = self._authenticate_with_retry(client=client, body=body,
+                                                 max_auth_retries=self._config.max_auth_retries)
         self._auth_token = response.auth_token
 
         decoded = decode(self._auth_token, options={
@@ -190,13 +219,10 @@ class CfClient(object):
             self._cluster = '1'
         self._client = AuthenticatedClient(
             base_url=self._config.base_url,
-            events_url=self._config.events_url,
             token=self._auth_token,
             params={
                 'cluster': self._cluster
-            },
-            max_auth_retries=self._config.max_auth_retries,
-            tls_trusted_cas_file=self._config.tls_trusted_cas_file
+            }
         )
         # Additional headers used to track usage
         additional_headers = {
@@ -237,13 +263,21 @@ class CfClient(object):
 
         try:
             variation = self._evaluator.evaluate(identifier, target, "boolean")
+
+            if not variation or not variation.value:
+                log.error(
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
+                    "default variation '%s' is being returned",
+                    {"target": target, "flag": identifier}, default)
+                return default
+
             # Only register metrics if analytics is enabled,
             # and sometimes when the SDK starts up we can
             # evaluate before the flag is cached which results in
             # an empty identifier.
             if self._config.enable_analytics and variation.identifier != "":
                 self._analytics.enqueue(target, identifier, variation)
-            return variation.bool(target, identifier, default)
+            return variation.value.lower() == "true"
 
         except FlagKindMismatchException as ex:
             log.error(
@@ -268,6 +302,13 @@ class CfClient(object):
         try:
             variation = self._evaluator.evaluate(identifier, target, "int")
 
+            if not variation or not variation.value:
+                log.error(
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
+                    "default variation '%s' is being returned",
+                    {"target": target, "flag": identifier}, default)
+                return default
+
             # Only register metrics if analytics is enabled,
             # and sometimes when the SDK starts up we can
             # evaluate before the flag is cached which results in
@@ -275,7 +316,7 @@ class CfClient(object):
             if self._config.enable_analytics and variation.identifier != "":
                 self._analytics.enqueue(target, identifier, variation)
 
-            return variation.int(target, identifier, default)
+            return int(variation.value)
 
         except FlagKindMismatchException as ex:
             log.error(
@@ -301,6 +342,13 @@ class CfClient(object):
             variation = self._evaluator.evaluate(
                 identifier, target, "int")
 
+            if not variation or not variation.value:
+                log.error(
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
+                    "default variation '%s' is being returned",
+                    {"target": target, "flag": identifier}, default)
+                return default
+
             # Only register metrics if analytics is enabled,
             # and sometimes when the SDK starts up we can
             # evaluate before the flag is cached which results in
@@ -308,7 +356,7 @@ class CfClient(object):
             if self._config.enable_analytics and variation.identifier != "":
                 self._analytics.enqueue(target, identifier, variation)
 
-            return variation.number(target, identifier, default)
+            return float(variation.value)
 
         except FlagKindMismatchException as ex:
             log.error(
@@ -335,6 +383,13 @@ class CfClient(object):
             variation = self._evaluator.evaluate(
                 identifier, target, "int")
 
+            if not variation or not variation.value:
+                log.error(
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
+                    "default variation '%s' is being returned",
+                    {"target": target, "flag": identifier}, default)
+                return default
+
             # Only register metrics if analytics is enabled,
             # and sometimes when the SDK starts up we can
             # evaluate before the flag is cached which results in
@@ -342,7 +397,22 @@ class CfClient(object):
             if self._config.enable_analytics and variation.identifier != "":
                 self._analytics.enqueue(target, identifier, variation)
 
-            return variation.int_or_float(target, identifier, default)
+            try:
+                result = int(variation.value)
+            except ValueError:
+                try:
+                    result = float(variation.value)
+                except ValueError:
+                    # If both conversions fail, log an error and return the
+                    # default
+                    log.error(
+                        "SDKCODE:6001: Invalid number format for %s. "
+                        "Expected a number but got '%s'",
+                        {"flag": identifier, "value": variation.value}
+                    )
+                    return default
+
+            return result
 
         except FlagKindMismatchException as ex:
             log.error(
@@ -368,6 +438,13 @@ class CfClient(object):
             variation = self._evaluator.evaluate(
                 identifier, target, "string")
 
+            if not variation or not variation.value:
+                log.error(
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
+                    "default variation '%s' is being returned",
+                    {"target": target, "flag": identifier}, default)
+                return default
+
             # Only register metrics if analytics is enabled,
             # and sometimes when the SDK starts up we can
             # evaluate before the flag is cached which results in
@@ -375,7 +452,7 @@ class CfClient(object):
             if self._config.enable_analytics and variation.identifier != "":
                 self._analytics.enqueue(target, identifier, variation)
 
-            return variation.string(target, identifier, default)
+            return variation.value
 
         except FlagKindMismatchException as ex:
             log.error(
@@ -400,6 +477,13 @@ class CfClient(object):
         try:
             variation = self._evaluator.evaluate(identifier, target, "json")
 
+            if not variation or not variation.value:
+                log.error(
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
+                    "default variation '%s' is being returned",
+                    {"target": target, "flag": identifier}, default)
+                return default
+
             # Only register metrics if analytics is enabled,
             # and sometimes when the SDK starts up we can
             # evaluate before the flag is cached which results in
@@ -407,7 +491,7 @@ class CfClient(object):
             if self._config.enable_analytics and variation.identifier != "":
                 self._analytics.enqueue(target, identifier, variation)
 
-            return variation.json(target, identifier, default)
+            return json.loads(variation.value)
 
         except FlagKindMismatchException as ex:
             log.error(
