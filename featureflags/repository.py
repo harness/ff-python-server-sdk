@@ -5,7 +5,7 @@ from featureflags.evaluations.constants import SEGMENT_MATCH_OPERATOR
 from featureflags.evaluations.feature import FeatureConfig
 from featureflags.evaluations.segment import Segment
 from featureflags.interface import Cache, Store
-from featureflags.models.unset import Unset
+from featureflags.openapi.config.types import Unset
 from featureflags.util import log
 
 
@@ -171,8 +171,8 @@ class Repository(DataProviderInterface):
             for serving_rule in flag.rules:
                 for clause in serving_rule.clauses:
                     if clause.op == SEGMENT_MATCH_OPERATOR and not next(
-                        (val for val in clause.values if val == segment),
-                        None
+                            (val for val in clause.values if val == segment),
+                            None
                     ):
                         log.debug("Flag %s evaluated in segments",
                                   flag.feature)

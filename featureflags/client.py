@@ -12,10 +12,10 @@ from featureflags.evaluations.evaluator import Evaluator, \
     FlagKindMismatchException
 from featureflags.repository import Repository
 
-from .api.client import AuthenticatedClient, Client
-from .api.default.authenticate import AuthenticationRequest
-from .api.default.authenticate import UnrecoverableAuthenticationException
-from .api.default.authenticate import sync as authenticate
+from .openapi.config.client import AuthenticatedClient, Client
+from .openapi.config.api.client.authenticate import AuthenticationRequest
+# from .openapi.client.api.client.authenticate import UnrecoverableAuthenticationException
+from .openapi.config.api.client.authenticate import sync as authenticate
 from .config import Config, default_config
 from .evaluations.auth_target import Target
 from .polling import PollingProcessor
@@ -23,7 +23,7 @@ from .streaming import StreamProcessor
 import featureflags.sdk_logging_codes as sdk_codes
 from .util import log
 
-VERSION: str = "1.6.0"
+VERSION: str = "1.7.0"
 
 
 class MissingOrEmptyAPIKeyException(Exception):
@@ -137,14 +137,14 @@ class CfClient(object):
             # in case wait_for_intialization was called. The SDK has already
             # logged that authentication failed and defaults will be returned.
             self._initialized.set()
-        except UnrecoverableAuthenticationException as ex:
-            self._initialized_failed = True
-            self._initialised_failed_reason[True] \
-                = str(ex)
-            sdk_codes.warn_auth_failed_srv_defaults()
-            sdk_codes.warn_failed_init_auth_error()
-            # Same again, unblock the thread.
-            self._initialized.set()
+        # except UnrecoverableAuthenticationException as ex:
+        #     self._initialized_failed = True
+        #     self._initialised_failed_reason[True] \
+        #         = str(ex)
+        #     sdk_codes.warn_auth_failed_srv_defaults()
+        #     sdk_codes.warn_failed_init_auth_error()
+        #     # Same again, unblock the thread.
+        #     self._initialized.set()
         except MissingOrEmptyAPIKeyException:
             self._initialized_failed = True
             self._initialised_failed_reason[True] \

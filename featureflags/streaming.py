@@ -7,12 +7,12 @@ from typing import Union
 from tenacity import RetryError
 
 from featureflags.repository import DataProviderInterface
-from .api.client import AuthenticatedClient
-from .api.default.get_feature_config_by_identifier import \
+from .openapi.config import AuthenticatedClient
+from .openapi.config.api.client.get_feature_config_by_identifier import \
     sync as get_feature_config
-from .api.default.get_segment_by_identifier import sync as get_target_segment
+from .openapi.config.api.client.get_segment_by_identifier import sync as get_target_segment
 from .config import Config
-from .models.message import Message
+from .dto.message import Message
 from .sdk_logging_codes import info_stream_connected, \
     info_stream_event_received, warn_stream_disconnected, \
     warn_stream_retrying, info_stream_stopped, \

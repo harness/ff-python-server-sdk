@@ -11,12 +11,16 @@ servers:
     description: no host specified
   - url: 'http://localhost:3000/api/1.0'
     description: CfClient description
+tags:
+  - name: metrics
 paths:
   '/metrics/{environment}':
     post:
       summary: Send metrics to the Analytics server.
       description: Send metrics to Analytics server
       operationId: postMetrics
+      tags:
+        - metrics
       parameters:
         - $ref: '#/components/parameters/environmentPathParam'
       requestBody:

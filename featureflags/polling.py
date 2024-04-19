@@ -3,11 +3,11 @@ from concurrent.futures import Future
 from threading import Event, Thread
 from typing import Dict
 
-from featureflags.api.client import AuthenticatedClient
+from .openapi.config import AuthenticatedClient
 from featureflags.repository import DataProviderInterface
 
-from .api.default.get_all_segments import sync as retrieve_segments
-from .api.default.get_feature_config import sync as retrieve_flags
+from .openapi.config.api.client.get_all_segments import sync as retrieve_segments
+from .openapi.config.api.client.get_feature_config import sync as retrieve_flags
 from .config import Config
 from .sdk_logging_codes import info_poll_started, info_polling_stopped, \
     info_sdk_init_ok, warning_fetch_all_features_failed, \
@@ -116,8 +116,8 @@ class PollingProcessor(Thread):
                 if elapsed < self.__config.pull_interval:
                     log.debug("Poller sleeping for " +
                               (
-                                          self.__config.pull_interval -
-                                          elapsed).__str__())
+                                      self.__config.pull_interval -
+                                      elapsed).__str__())
                     " seconds"
                     time.sleep(self.__config.pull_interval - elapsed)
 

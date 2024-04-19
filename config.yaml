@@ -1,2 +1,2 @@
 project_name_override: featureflags
-package_name_override: featureflags/rest
+package_name_override: featureflags/openapi/config

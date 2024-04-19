@@ -6,20 +6,20 @@ import concurrent.futures
 import attr
 import httpx
 
-from featureflags.models.metrics_data_metrics_type import \
+from .openapi.metrics.models.metrics_data_metrics_type import \
     MetricsDataMetricsType
 
-from .api.client import AuthenticatedClient
-from .api.default.post_metrics import sync_detailed as post_metrics
+from .openapi.config import AuthenticatedClient
+from .openapi.metrics.api.metrics.post_metrics import sync_detailed as post_metrics
 from .config import Config
 from .evaluations.target import Target
 from .evaluations.target_attributes import TargetAttributes
 from .evaluations.variation import Variation
-from .models.key_value import KeyValue
-from .models.metrics import Metrics
-from .models.metrics_data import MetricsData
-from .models.target_data import TargetData
-from .models.unset import Unset
+from .openapi.metrics.models.key_value import KeyValue
+from .openapi.metrics.models.metrics import Metrics
+from .openapi.metrics.models.metrics_data import MetricsData
+from .openapi.metrics.models.target_data import TargetData
+from .openapi.metrics.types import Unset
 from .sdk_logging_codes import info_metrics_thread_started, \
     info_metrics_success, warn_post_metrics_failed, \
     info_metrics_thread_existed, info_metrics_target_exceeded, \
@@ -34,7 +34,7 @@ VARIATION_IDENTIFIER_ATTRIBUTE = 'variationIdentifier'
 VARIATION_VALUE_ATTRIBUTE = 'variationValue'
 TARGET_ATTRIBUTE = 'target'
 SDK_VERSION_ATTRIBUTE = 'SDK_VERSION'
-SDK_VERSION = '1.6.0'
+SDK_VERSION = '1.7.0'
 SDK_TYPE_ATTRIBUTE = 'SDK_TYPE'
 SDK_TYPE = 'server'
 SDK_LANGUAGE_ATTRIBUTE = 'SDK_LANGUAGE'
