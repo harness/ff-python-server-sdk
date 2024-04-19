@@ -179,12 +179,24 @@ class Evaluator(object):
                               target.name, segment.name)
                     return True
 
-                # Should Target be included via segment rules
-                if segment.rules and self._evaluate_clauses(segment.rules,
-                                                            target):
-                    log.debug('Target %s included in segment %s via rules\n',
-                              target.name, segment.name)
-                    return True
+                if segment.serving_rules:
+                    log.debug('Found and using enhanced serving_rules')
+                    # Use enhanced rules first if they're available
+                    segment.serving_rules.sort(key=lambda rule: rule.priority)
+
+                    for serving_rule in segment.serving_rules:
+                        if self._evaluate_clauses_v2(serving_rule.clauses, target):
+                            return True
+
+                else:
+                    # Fall back to legacy rules
+                    # Should Target be included via segment rules
+                    if segment.rules and self._evaluate_clauses(segment.rules,
+                                                                target):
+                        log.debug('Target %s included in segment %s via rules\n',
+                                  target.name, segment.name)
+                        return True
+
         log.debug("Target groups empty return false")
         return False
 
@@ -208,7 +220,7 @@ class Evaluator(object):
             log.debug("Attribute type %s is none return false", type)
             return False
         log.debug("evaluate clause with object %s operator %s and value %s",
-                  object, operator, clause.values)
+                  type, operator.upper(), clause.values)
         if operator == IN_OPERATOR.lower():
             return type.in_list(clause.values)
         if operator == EQUAL_OPERATOR.lower():
@@ -235,6 +247,17 @@ class Evaluator(object):
                     return True
         log.debug("All clauses %s evaluated", clauses)
         return False
+
+    def _evaluate_clauses_v2(self, clauses: Union[Unset, Clauses], target: Target) -> bool:
+        if not clauses or isinstance(clauses, Unset):
+            return False
+
+        for clause in clauses:
+            if not self._evaluate_clause(clause, target):
+                # first false clause, short-circuit and exit with false
+                return False
+        # all clauses have passed
+        return True
 
     def _evaluate_rule(self, rule: ServingRule, target: Target) -> bool:
         return self._evaluate_clauses(rule.clauses, target)

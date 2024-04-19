@@ -11,6 +11,7 @@ from featureflags.openapi.config.models.feature_config import FeatureConfig, Fea
 from featureflags.openapi.config.models.segment import Segment
 from featureflags.openapi.config.models.serve import Serve
 from featureflags.openapi.config.models.serving_rule import ServingRule
+from featureflags.openapi.config.models.group_serving_rule import GroupServingRule
 from featureflags.openapi.config.models.target_map import TargetMap
 from featureflags.openapi.config.models.variation import Variation
 from featureflags.openapi.config.models.variation_map import VariationMap
@@ -330,22 +331,47 @@ def load_v2_segments(repo):
         name='is_harness_or_somethingelse_email_OR',
         environment='Production',
         # only 1 servingRules needs to be true (OR)
-
+        serving_rules=[
+            GroupServingRule(rule_id='this_or_rule_with_lower_priority_should_be_ignored', priority=7, clauses=[
+                Clause(attribute='email', op='ends_with', values=['@harness.io'], negate=FALSE)
+            ]),
+            GroupServingRule(rule_id='rule1', priority=1, clauses=[
+                Clause(attribute='email', op='ends_with', values=['@harness.io'], negate=FALSE)
+            ]),
+            GroupServingRule(rule_id='rule2', priority=2, clauses=[
+                Clause(attribute='email', op='ends_with', values=['@somethingelse.com'], negate=FALSE)
+            ]),
+        ]
     )
 
-    repo.set_segment(segment)
+    segment_and = Segment(
+        identifier='and-segment',
+        name='is_a_harness_developer_test_AND',
+        environment='Production',
+
+        serving_rules=[
+            GroupServingRule(rule_id='rule1', priority=1, clauses=[
+                # all clauses need to be true (AND)
+                Clause(attribute='email', op='ends_with', values=['@harness.io'], negate=FALSE),
+                Clause(attribute='role', op='equal', values=['developer'], negate=FALSE)
+            ]),
+        ]
+    )
+
+    repo.set_segment(segment_or)
+    repo.set_segment(segment_and)
 
 
 @pytest.mark.parametrize('flag_name,expected,email,role', [
     # if (target.attr.email endswith '@harness.io' && target.attr.role = 'developer')
-    ('boolflag_and', TRUE, 'user@harness.io', 'developer'),
-    ('boolflag_and', TRUE, 'user@harness.io', 'manager'),
-    ('boolflag_and', FALSE, 'user@gmail.com', 'developer'),
-    ('boolflag_and', FALSE, 'user@gmail.com', 'manager'),
+    ('boolflag_and', True, 'user@harness.io', 'developer'),
+    ('boolflag_and', False, 'user@harness.io', 'manager'),
+    ('boolflag_and', False, 'user@gmail.com', 'developer'),
+    ('boolflag_and', False, 'user@gmail.com', 'manager'),
     # if (target.attr.email endswith '@harness.io' || target.attr.email endswith '@somethingelse.com')
-    ('boolflag_or', TRUE, 'user@harness.io', 'n/a'),
-    ('boolflag_or', TRUE, 'user@somethingelse.com', 'n/a'),
-    ('boolflag_or', FALSE, 'user@gmail.com', 'n/a'),
+    ('boolflag_or', True, 'user@harness.io', 'n/a'),
+    ('boolflag_or', True, 'user@somethingelse.com', 'n/a'),
+    ('boolflag_or', False, 'user@gmail.com', 'n/a'),
 ])
 def test_enhanced_v2_rules(flag_name, email, role, expected):
     cache = LRUCache()
@@ -359,4 +385,4 @@ def test_enhanced_v2_rules(flag_name, email, role, expected):
                     attributes={"email": email, "role": role})
     got = evaluator.evaluate(flag_name, target, "boolean")
 
-    assert got == expected
+    assert got.value.lower() == str(expected).lower()
