@@ -49,6 +49,7 @@ class StreamProcessor(Thread):
         self._poll_interval = config.pull_interval
         self._disconnect_notified = False
         self._config = config
+        self._cluster = cluster
 
     def run(self):
         log.info("Starting StreamingProcessor connecting to uri: " +
@@ -119,14 +120,16 @@ class StreamProcessor(Thread):
             processor = FlagMsgProcessor(repository=self._repository,
                                          client=self._client,
                                          environment_id=self._environment_id,
-                                         msg=msg)
+                                         msg=msg,
+                                         cluster=self._cluster)
         elif msg.domain == "target-segment":
             log.debug('Starting segment message processor with %s', msg)
             processor = SegmentMsgProcessor(
                 repository=self._repository,
                 client=self._client,
                 environment_id=self._environment_id,
-                msg=msg
+                msg=msg,
+                cluster=self._cluster
             )
         if processor:
             processor.start()
@@ -140,12 +143,15 @@ class FlagMsgProcessor(Thread):
 
     def __init__(self, repository: DataProviderInterface,
                  client: AuthenticatedClient,
-                 environment_id: str, msg: Message):
+                 environment_id: str,
+                 msg: Message,
+                 cluster: str):
         Thread.__init__(self)
         self._repository = repository
         self._client = client
         self._environemnt_id = environment_id
         self._msg = msg
+        self._cluster = cluster
 
     def run(self):
         if self._msg.event == 'create' or self._msg.event == 'patch':
@@ -154,7 +160,8 @@ class FlagMsgProcessor(Thread):
                           self._msg.identifier)
                 fc = get_feature_config(client=self._client,
                                         identifier=self._msg.identifier,
-                                        environment_uuid=self._environemnt_id)
+                                        environment_uuid=self._environemnt_id,
+                                        cluster=self._cluster)
                 log.debug("Feature config '%s' loaded", fc.feature)
                 self._repository.set_flag(fc)
                 log.debug('flag %s successfully stored in the cache',
@@ -179,12 +186,15 @@ class SegmentMsgProcessor(Thread):
 
     def __init__(self, repository: DataProviderInterface,
                  client: AuthenticatedClient,
-                 environment_id: str, msg: Message):
+                 environment_id: str,
+                 msg: Message,
+                 cluster: str):
         Thread.__init__(self)
         self._repository = repository
         self._client = client
         self._environemnt_id = environment_id
         self._msg = msg
+        self._cluster = cluster
 
     def run(self):
         if self._msg.event == 'create' or self._msg.event == 'patch':
@@ -193,7 +203,8 @@ class SegmentMsgProcessor(Thread):
                           self._msg.identifier)
                 ts = get_target_segment(client=self._client,
                                         identifier=self._msg.identifier,
-                                        environment_uuid=self._environemnt_id)
+                                        environment_uuid=self._environemnt_id,
+                                        cluster=self._cluster)
                 log.debug("Target segment '%s' loaded", ts.identifier)
                 self._repository.set_segment(ts)
                 log.debug('flag %s successfully stored in cache',

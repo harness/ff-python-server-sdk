@@ -13,7 +13,7 @@ from featureflags.evaluations.constants import (CONTAINS_OPERATOR,
                                                 SEGMENT_MATCH_OPERATOR,
                                                 STARTS_WITH_OPERATOR)
 from featureflags.openapi.config.models.distribution import Distribution
-from featureflags.evaluations.enum import FeatureState
+from featureflags.openapi.config.models.feature_state import FeatureState
 from featureflags.openapi.config.models.feature_config import FeatureConfig, FeatureConfigKind
 from featureflags.openapi.config.models.serving_rule import ServingRule
 from featureflags.openapi.config.models.serve import Serve
