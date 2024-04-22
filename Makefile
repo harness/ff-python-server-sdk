@@ -54,6 +54,9 @@ generate: clean-openapi
 	mkdir -p ./featureflags/openapi
 	openapi-python-client generate --config=config.yaml --path=./api.yaml --meta=none
 	openapi-python-client generate --config=config-metrics.yaml --path=./metrics.yaml --meta=none
+	touch featureflags/openapi/config/__init__.py
+	touch featureflags/openapi/metrics/__init__.py
+	touch featureflags/openapi/__init__.py
 
 fmt:
 	isort ./featureflags ./tests

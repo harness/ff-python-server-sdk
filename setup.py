@@ -52,7 +52,7 @@ setup(
     include_package_data=True,
     keywords="featureflags",
     name="harness-featureflags",
-    packages=find_packages(include=["featureflags", "featureflags.*"]),
+    packages=find_packages(include=["featureflags", "featureflags.*", "featureflags.openapi", "featureflags.openapi.config",  "featureflags.openapi.metrics"]),
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,
