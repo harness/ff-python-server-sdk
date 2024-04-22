@@ -159,7 +159,8 @@ def test_evaluate_clause(data_provider, target):
         id="",
         attribute="identifier",
         op=EQUAL_OPERATOR,
-        values=[target.identifier]
+        values=[target.identifier],
+        negate=FALSE
     )
 
     got = evaluator._evaluate_clause(clause, target)
@@ -173,28 +174,32 @@ def test_evaluate_clauses(data_provider, target):
         id="",
         attribute="identifier",
         op=EQUAL_OPERATOR,
-        values=[target.identifier]
+        values=[target.identifier],
+        negate=FALSE
     )
 
     clause2 = Clause(
         id="",
         attribute="name",
         op=EQUAL_OPERATOR,
-        values=[target.name]
+        values=[target.name],
+        negate=FALSE
     )
 
     clause3 = Clause(
         id="",
         attribute="name",
         op=EQUAL_OPERATOR,
-        values=["Not John"]
+        values=["Not John"],
+        negate=FALSE
     )
 
     clause4 = Clause(
         id="",
         attribute="name",
         op=STARTS_WITH_OPERATOR,
-        values=["Not John"]
+        values=["Not John"],
+        negate=FALSE
     )
 
     testcases = [
@@ -220,7 +225,8 @@ def test_evaluate_rules(data_provider, target):
         id="",
         attribute="identifier",
         op=EQUAL_OPERATOR,
-        values=[target.identifier]
+        values=[target.identifier],
+        negate=FALSE
     )
 
     rules = [

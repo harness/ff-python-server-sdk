@@ -7,8 +7,9 @@ from attr import define
 
 from featureflags.evaluations.auth_target import Target
 from featureflags.evaluations.evaluator import Evaluator
-from featureflags.evaluations.feature import FeatureConfig, FeatureConfigKind
-from featureflags.evaluations.segment import Segment
+from featureflags.openapi.config.models.feature_config import (
+    FeatureConfig, FeatureConfigKind)
+from featureflags.openapi.config.models.segment import Segment
 from featureflags.lru_cache import LRUCache
 from featureflags.repository import Repository
 
