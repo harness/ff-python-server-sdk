@@ -250,7 +250,7 @@ class AuthenticatedClient:
         self.get_httpx_client().__exit__(*args, **kwargs)
 
     def set_async_httpx_client(
-            self, async_client: httpx.AsyncClient
+        self, async_client: httpx.AsyncClient
     ) -> "AuthenticatedClient":
         """Manually the underlying httpx.AsyncClient
 

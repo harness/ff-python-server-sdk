@@ -1,4 +1,6 @@
 import time
+import traceback
+
 from threading import Lock, Thread
 from typing import Dict, List, Union, Set
 import concurrent.futures
@@ -59,12 +61,15 @@ class MetricTargetData(object):
 
 class AnalyticsService(object):
 
-    def __init__(self, config: Config, client: AuthenticatedClient,
-                 environment: str) -> None:
+    def __init__(self, config: Config,
+                 client: AuthenticatedClient,
+                 environment: str,
+                 cluster: str) -> None:
         self._lock = Lock()
         self._config = config
         self._client = client
         self._environment = environment
+        self._cluster = cluster
 
         # Evaluation metrics
         self._data: Dict[str, AnalyticsEvent] = {}
@@ -256,8 +261,9 @@ class AnalyticsService(object):
                                 metrics_data=metrics_data)
         try:
             response = post_metrics(client=self._client,
-                                    environment=self._environment,
-                                    json_body=body)
+                                    environment_uuid=self._environment,
+                                    body=body,
+                                    cluster=self._cluster)
 
             log.debug('Metrics server returns: %d', response.status_code)
             if response.status_code >= 400:
@@ -303,6 +309,7 @@ class AnalyticsService(object):
 
             info_metrics_success()
         except httpx.RequestError as ex:
+            print(traceback.format_exc())
             warn_post_metrics_failed(ex)
 
     def process_target_data_batch(self, target_data_batch):

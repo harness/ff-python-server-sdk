@@ -6,21 +6,29 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.metrics import Metrics
-from ...types import Response
+from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
-    environment: str,
+    environment_uuid: str,
     *,
     body: Metrics,
+    cluster: Union[Unset, str] = UNSET,
 ) -> Dict[str, Any]:
     headers: Dict[str, Any] = {}
 
+    params: Dict[str, Any] = {}
+
+    params["cluster"] = cluster
+
+    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+
     _kwargs: Dict[str, Any] = {
         "method": "post",
-        "url": "/metrics/{environment}".format(
-            environment=environment,
+        "url": "/metrics/{environment_uuid}".format(
+            environment_uuid=environment_uuid,
         ),
+        "params": params,
     }
 
     _body = body.to_dict()
@@ -61,17 +69,19 @@ def _build_response(
 
 
 def sync_detailed(
-    environment: str,
+    environment_uuid: str,
     *,
     client: AuthenticatedClient,
     body: Metrics,
+    cluster: Union[Unset, str] = UNSET,
 ) -> Response[Any]:
     """Send metrics to the Analytics server.
 
      Send metrics to Analytics server
 
     Args:
-        environment (str):
+        environment_uuid (str):
+        cluster (Union[Unset, str]):
         body (Metrics):
 
     Raises:
@@ -83,8 +93,9 @@ def sync_detailed(
     """
 
     kwargs = _get_kwargs(
-        environment=environment,
+        environment_uuid=environment_uuid,
         body=body,
+        cluster=cluster,
     )
 
     response = client.get_httpx_client().request(
@@ -95,17 +106,19 @@ def sync_detailed(
 
 
 async def asyncio_detailed(
-    environment: str,
+    environment_uuid: str,
     *,
     client: AuthenticatedClient,
     body: Metrics,
+    cluster: Union[Unset, str] = UNSET,
 ) -> Response[Any]:
     """Send metrics to the Analytics server.
 
      Send metrics to Analytics server
 
     Args:
-        environment (str):
+        environment_uuid (str):
+        cluster (Union[Unset, str]):
         body (Metrics):
 
     Raises:
@@ -117,8 +130,9 @@ async def asyncio_detailed(
     """
 
     kwargs = _get_kwargs(
-        environment=environment,
+        environment_uuid=environment_uuid,
         body=body,
+        cluster=cluster,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
