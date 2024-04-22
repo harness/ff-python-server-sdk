@@ -3,7 +3,7 @@ import pytest
 from featureflags.evaluations.auth_target import Target
 from featureflags.evaluations.constants import (EQUAL_OPERATOR,
                                                 STARTS_WITH_OPERATOR)
-from featureflags.evaluations.enum import FeatureState
+from featureflags.openapi.config.models import FeatureState
 from featureflags.evaluations.evaluator import Evaluator
 from featureflags.lru_cache import LRUCache
 from featureflags.openapi.config.models.clause import Clause

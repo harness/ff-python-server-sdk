@@ -1,6 +1,6 @@
 import pytest
 
-from featureflags.evaluations.clause import Clause
+from featureflags.openapi.config.models.clause import Clause
 from featureflags.evaluations.constants import (CONTAINS_OPERATOR,
                                                 ENDS_WITH_OPERATOR,
                                                 EQUAL_OPERATOR,
