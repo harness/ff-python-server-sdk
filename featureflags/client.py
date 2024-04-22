@@ -1,6 +1,7 @@
 """Client for interacting with Harness FF server"""
 
 import threading
+import traceback
 from enum import Enum
 from typing import Any, Callable, Dict, Optional, Union
 
@@ -109,7 +110,8 @@ class CfClient(object):
                 initialised_failed_reason=self._initialised_failed_reason,
                 ready=polling_event,
                 stream_ready=streaming_event,
-                repository=self._repository
+                repository=self._repository,
+                cluster=self._cluster,
             )
             self._polling_processor.start()
 
@@ -158,6 +160,7 @@ class CfClient(object):
             # And again, unblock the thread.
             self._initialized.set()
         except Exception as ex:
+            print(traceback.format_exc())
             sdk_codes.warn_failed_init_auth_error(str(ex))
             self._initialised_failed_reason[True] \
                 = str(ex)
@@ -186,19 +189,21 @@ class CfClient(object):
                 'will not attempt to reconnect')
             return False
 
-    def _authenticate_with_retry(self, client, body, max_auth_retries):
-        retryer = Retrying(
-            wait=wait_exponential(multiplier=1, min=4, max=10),
-            retry=retry_all(
-                retry_if_result(lambda response: response.status_code != 200),
-                retry_if_result(self._handle_http_result)
-            ),
-            before_sleep=lambda retry_state: warn_auth_retying(
-                retry_state.attempt_number,
-                retry_state.outcome.result()),
-            stop=stop_after_attempt(max_auth_retries),
-        )
-        return retryer(authenticate, client=client, body=body)
+    # TODO this will require rework as response no longer contain status_code after openapi code was regenerated
+    # def _authenticate_with_retry(self, client, body, max_auth_retries):
+    #     retryer = Retrying(
+    #         wait=wait_exponential(multiplier=1, min=4, max=10),
+    #         retry=retry_all(
+    #             retry_if_exception,
+    #             # retry_if_result(lambda response: response.status_code != 200),
+    #             retry_if_result(self._handle_http_result)
+    #         ),
+    #         before_sleep=lambda retry_state: warn_auth_retying(
+    #             retry_state.attempt_number,
+    #             retry_state.outcome.result()),
+    #         stop=stop_after_attempt(max_auth_retries),
+    #     )
+    #     return retryer(authenticate, client=client, body=body)
 
     def authenticate(self):
         verify = True
@@ -207,8 +212,9 @@ class CfClient(object):
 
         client = Client(base_url=self._config.base_url, verify_ssl=verify)
         body = AuthenticationRequest(api_key=self._sdk_key)
-        response = self._authenticate_with_retry(client=client, body=body,
-                                                 max_auth_retries=self._config.max_auth_retries)
+        response = authenticate(client=client, body=body)
+        # response = self._authenticate_with_retry(client=client, body=body,
+        #                                          max_auth_retries=self._config.max_auth_retries)
         self._auth_token = response.auth_token
 
         decoded = decode(self._auth_token, options={
@@ -220,9 +226,9 @@ class CfClient(object):
         self._client = AuthenticatedClient(
             base_url=self._config.base_url,
             token=self._auth_token,
-            params={
-                'cluster': self._cluster
-            }
+            # params={
+            #     'cluster': self._cluster
+            # }
         )
         # Additional headers used to track usage
         additional_headers = {

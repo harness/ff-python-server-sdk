@@ -20,6 +20,7 @@ from .sdk_logging_codes import info_stream_connected, \
     warning_fetch_group_by_id_failed, info_polling_stopped, info_poll_started
 from .sse_client import SSEClient
 from .util import log
+import traceback
 
 BACK_OFF_IN_SECONDS = 5
 
@@ -47,6 +48,7 @@ class StreamProcessor(Thread):
         self.reconnect_timer = 0
         self._poll_interval = config.pull_interval
         self._disconnect_notified = False
+        self._config = config
 
     def run(self):
         log.info("Starting StreamingProcessor connecting to uri: " +
@@ -77,6 +79,7 @@ class StreamProcessor(Thread):
                     if self._ready.is_set() is False:
                         self._ready.set()
             except Exception as e:
+                print(traceback.format_exc())
                 if not self._disconnect_notified:
                     warn_stream_disconnected(e)
                     info_poll_started(self._poll_interval)
@@ -107,7 +110,7 @@ class StreamProcessor(Thread):
         return SSEClient(url=self._stream_url, headers={
             'Authorization': f'Bearer {self._token}',
             'API-Key': self._api_key
-        }, retry=BACK_OFF_IN_SECONDS, verify=self._client.tls_trusted_cas_file)
+        }, verify=self._config.tls_trusted_cas_file)
 
     def process_message(self, msg: Message) -> None:
         processor: Union[FlagMsgProcessor, SegmentMsgProcessor, None] = None

@@ -33,7 +33,8 @@ class PollingProcessor(Thread):
                  environment_id: str, wait_for_initialization: Event,
                  initialised_failed_reason: Dict[bool, str],
                  ready: Event, stream_ready: Event,
-                 repository: DataProviderInterface) -> None:
+                 repository: DataProviderInterface,
+                 cluster: str) -> None:
         Thread.__init__(self)
         self.daemon = True
         self.__environment_id = environment_id
@@ -45,6 +46,7 @@ class PollingProcessor(Thread):
         self.__ready = ready
         self.__stream_ready = stream_ready
         self.__repository = repository
+        self.__cluster = cluster
 
     def run(self):
         if not self.__running:
@@ -153,7 +155,7 @@ class PollingProcessor(Thread):
         try:
             log.debug("Loading feature flags")
             flags = retrieve_flags(
-                client=self.__client, environment_uuid=self.__environment_id
+                client=self.__client, environment_uuid=self.__environment_id, cluster=self.__cluster
             )
             log.debug("Feature flags loaded")
             for flag in flags:
@@ -185,7 +187,7 @@ class PollingProcessor(Thread):
         try:
             log.debug("Loading target segments")
             segments = retrieve_segments(
-                client=self.__client, environment_uuid=self.__environment_id
+                client=self.__client, environment_uuid=self.__environment_id, cluster=self.__cluster
             )
             log.debug("Target segments loaded")
             for segment in segments:
