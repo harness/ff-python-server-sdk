@@ -10,6 +10,7 @@ def main():
     log.info("Starting example")
     api_key = "Your API Key"
     client = CfClient(api_key)
+    client.wait_for_initialization()
 
     target = Target(identifier='harness')
 

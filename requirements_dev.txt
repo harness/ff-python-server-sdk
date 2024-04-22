@@ -16,7 +16,7 @@ pytest-runner==5.1
 pytest-mock==3.6.1
 setuptools~=65.5.1
 httpx~=0.24.1
-attrs==21.3.0
+attrs==23.2.0
 
 pyjwt==2.4.0
 
