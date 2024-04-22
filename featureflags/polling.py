@@ -3,19 +3,22 @@ from concurrent.futures import Future
 from threading import Event, Thread
 from typing import Dict
 
-from .openapi.config import AuthenticatedClient
+from tenacity import RetryError
+
 from featureflags.repository import DataProviderInterface
 
-from .openapi.config.api.client.get_all_segments import sync as retrieve_segments
-from .openapi.config.api.client.get_feature_config import sync as retrieve_flags
 from .config import Config
-from .sdk_logging_codes import info_poll_started, info_polling_stopped, \
-    info_sdk_init_ok, warning_fetch_all_features_failed, \
-    warning_fetch_all_groups_failed, warn_failed_init_fetch_error, \
-    info_poll_ran_successfully
+from .openapi.config import AuthenticatedClient
+from .openapi.config.api.client.get_all_segments import \
+    sync as retrieve_segments
+from .openapi.config.api.client.get_feature_config import \
+    sync as retrieve_flags
+from .sdk_logging_codes import (info_poll_ran_successfully, info_poll_started,
+                                info_polling_stopped, info_sdk_init_ok,
+                                warn_failed_init_fetch_error,
+                                warning_fetch_all_features_failed,
+                                warning_fetch_all_groups_failed)
 from .util import log
-
-from tenacity import RetryError
 
 
 class RetrievalError(Exception):
@@ -155,7 +158,8 @@ class PollingProcessor(Thread):
         try:
             log.debug("Loading feature flags")
             flags = retrieve_flags(
-                client=self.__client, environment_uuid=self.__environment_id, cluster=self.__cluster
+                client=self.__client, environment_uuid=self.__environment_id,
+                cluster=self.__cluster
             )
             log.debug("Feature flags loaded")
             for flag in flags:
@@ -187,7 +191,9 @@ class PollingProcessor(Thread):
         try:
             log.debug("Loading target segments")
             segments = retrieve_segments(
-                client=self.__client, environment_uuid=self.__environment_id, cluster=self.__cluster
+                client=self.__client,
+                environment_uuid=self.__environment_id,
+                cluster=self.__cluster
             )
             log.debug("Target segments loaded")
             for segment in segments:

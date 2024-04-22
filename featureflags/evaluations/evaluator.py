@@ -1,9 +1,8 @@
-from typing import List, Optional, Union, Dict
+from typing import Dict, List, Optional, Union
 
 import mmh3
 
 from featureflags.evaluations.auth_target import Target
-from featureflags.openapi.config.models.clause import Clause
 from featureflags.evaluations.constants import (CONTAINS_OPERATOR,
                                                 ENDS_WITH_OPERATOR,
                                                 EQUAL_OPERATOR,
@@ -12,12 +11,14 @@ from featureflags.evaluations.constants import (CONTAINS_OPERATOR,
                                                 ONE_HUNDRED,
                                                 SEGMENT_MATCH_OPERATOR,
                                                 STARTS_WITH_OPERATOR)
+from featureflags.openapi.config.models.clause import Clause
 from featureflags.openapi.config.models.distribution import Distribution
+from featureflags.openapi.config.models.feature_config import (
+    FeatureConfig, FeatureConfigKind)
 from featureflags.openapi.config.models.feature_state import FeatureState
-from featureflags.openapi.config.models.feature_config import FeatureConfig, FeatureConfigKind
-from featureflags.openapi.config.models.serving_rule import ServingRule
-from featureflags.openapi.config.models.serve import Serve
 from featureflags.openapi.config.models.segment import Segment
+from featureflags.openapi.config.models.serve import Serve
+from featureflags.openapi.config.models.serving_rule import ServingRule
 from featureflags.openapi.config.models.variation import Variation
 from featureflags.openapi.config.models.variation_map import VariationMap
 from featureflags.openapi.config.types import Unset
@@ -185,7 +186,8 @@ class Evaluator(object):
                     segment.serving_rules.sort(key=lambda rule: rule.priority)
 
                     for serving_rule in segment.serving_rules:
-                        if self._evaluate_clauses_v2(serving_rule.clauses, target):
+                        if self._evaluate_clauses_v2(serving_rule.clauses,
+                                                     target):
                             return True
 
                 else:
@@ -193,8 +195,9 @@ class Evaluator(object):
                     # Should Target be included via segment rules
                     if segment.rules and self._evaluate_clauses(segment.rules,
                                                                 target):
-                        log.debug('Target %s included in segment %s via rules\n',
-                                  target.name, segment.name)
+                        log.debug(
+                            'Target %s included in segment %s via rules\n',
+                            target.name, segment.name)
                         return True
 
         log.debug("Target groups empty return false")
@@ -248,7 +251,8 @@ class Evaluator(object):
         log.debug("All clauses %s evaluated", clauses)
         return False
 
-    def _evaluate_clauses_v2(self, clauses: Union[Unset, Clauses], target: Target) -> bool:
+    def _evaluate_clauses_v2(self, clauses: Union[Unset, Clauses],
+                             target: Target) -> bool:
         if not clauses or isinstance(clauses, Unset):
             return False
 

@@ -1,26 +1,31 @@
 import random
 import threading
 import time
+import traceback
 from threading import Thread
 from typing import Union
 
 from tenacity import RetryError
 
 from featureflags.repository import DataProviderInterface
+
+from .config import Config
+from .dto.message import Message
 from .openapi.config import AuthenticatedClient
 from .openapi.config.api.client.get_feature_config_by_identifier import \
     sync as get_feature_config
-from .openapi.config.api.client.get_segment_by_identifier import sync as get_target_segment
-from .config import Config
-from .dto.message import Message
-from .sdk_logging_codes import info_stream_connected, \
-    info_stream_event_received, warn_stream_disconnected, \
-    warn_stream_retrying, info_stream_stopped, \
-    warn_stream_retrying_long_duration, warning_fetch_feature_by_id_failed, \
-    warning_fetch_group_by_id_failed, info_polling_stopped, info_poll_started
+from .openapi.config.api.client.get_segment_by_identifier import \
+    sync as get_target_segment
+from .sdk_logging_codes import (info_poll_started, info_polling_stopped,
+                                info_stream_connected,
+                                info_stream_event_received,
+                                info_stream_stopped, warn_stream_disconnected,
+                                warn_stream_retrying,
+                                warn_stream_retrying_long_duration,
+                                warning_fetch_feature_by_id_failed,
+                                warning_fetch_group_by_id_failed)
 from .sse_client import SSEClient
 from .util import log
-import traceback
 
 BACK_OFF_IN_SECONDS = 5
 

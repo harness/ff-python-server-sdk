@@ -1,32 +1,34 @@
+import concurrent.futures
 import time
 import traceback
-
 from threading import Lock, Thread
-from typing import Dict, List, Union, Set
-import concurrent.futures
+from typing import Dict, List, Set, Union
 
 import attr
 import httpx
 
-from .openapi.metrics.models.metrics_data_metrics_type import \
-    MetricsDataMetricsType
-
-from .openapi.config import AuthenticatedClient
-from .openapi.metrics.api.metrics.post_metrics import sync_detailed as post_metrics
 from .config import Config
+from .openapi.config import AuthenticatedClient
 from .openapi.config.models.target import Target
 from .openapi.config.models.target_attributes import TargetAttributes
 from .openapi.config.models.variation import Variation
+from .openapi.metrics.api.metrics.post_metrics import \
+    sync_detailed as post_metrics
 from .openapi.metrics.models.key_value import KeyValue
 from .openapi.metrics.models.metrics import Metrics
 from .openapi.metrics.models.metrics_data import MetricsData
+from .openapi.metrics.models.metrics_data_metrics_type import \
+    MetricsDataMetricsType
 from .openapi.metrics.models.target_data import TargetData
 from .openapi.metrics.types import Unset
-from .sdk_logging_codes import info_metrics_thread_started, \
-    info_metrics_success, warn_post_metrics_failed, \
-    info_metrics_thread_existed, info_metrics_target_exceeded, \
-    warn_post_metrics_target_batch_failed, info_metrics_target_batch_success, \
-    info_evaluation_metrics_exceeded
+from .sdk_logging_codes import (info_evaluation_metrics_exceeded,
+                                info_metrics_success,
+                                info_metrics_target_batch_success,
+                                info_metrics_target_exceeded,
+                                info_metrics_thread_existed,
+                                info_metrics_thread_started,
+                                warn_post_metrics_failed,
+                                warn_post_metrics_target_batch_failed)
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -142,7 +144,7 @@ class AnalyticsService(object):
             if len(self._target_data_batches) >= \
                     self._max_number_of_target_batches:
                 if len(self._target_data_batches[
-                           self._current_target_batch_index]) >= \
+                    self._current_target_batch_index]) >= \
                         self._max_target_batch_size:
                     if not self.max_target_data_exceeded:
                         self.max_target_data_exceeded = True
@@ -160,7 +162,7 @@ class AnalyticsService(object):
                 # If we've exceeded the max batch size for the current
                 # batch, then create a new batch and start using it.
                 if len(self._target_data_batches[
-                           self._current_target_batch_index]) >= \
+                    self._current_target_batch_index]) >= \
                         self._max_target_batch_size:
                     self._target_data_batches.append({})
                     self._current_target_batch_index += 1
@@ -175,7 +177,7 @@ class AnalyticsService(object):
                         identifier=event.target.identifier,
                         name=target_name,
                         attributes=event.target.attributes
-                    )
+                )
 
         finally:
             self._lock.release()

@@ -1,33 +1,29 @@
 """Client for interacting with Harness FF server"""
 
+import json
 import threading
 import traceback
 from enum import Enum
 from typing import Any, Callable, Dict, Optional, Union
 
-from tenacity import RetryError
 from jwt import decode
+from tenacity import (RetryError)
 
+import featureflags.sdk_logging_codes as sdk_codes
 from featureflags.analytics import AnalyticsService
-from featureflags.evaluations.evaluator import Evaluator, \
-    FlagKindMismatchException
+from featureflags.config import RETRYABLE_CODES
+from featureflags.evaluations.evaluator import (Evaluator,
+                                                FlagKindMismatchException)
 from featureflags.repository import Repository
 
-from .openapi.config.client import AuthenticatedClient, Client
-from .openapi.config.api.client.authenticate import AuthenticationRequest
-# from .openapi.client.api.client.authenticate import UnrecoverableAuthenticationException
-from .openapi.config.api.client.authenticate import sync as authenticate
 from .config import Config, default_config
 from .evaluations.auth_target import Target
+from .openapi.config.api.client.authenticate import AuthenticationRequest
+from .openapi.config.api.client.authenticate import sync as authenticate
+from .openapi.config.client import AuthenticatedClient, Client
 from .polling import PollingProcessor
 from .streaming import StreamProcessor
-import featureflags.sdk_logging_codes as sdk_codes
 from .util import log
-from tenacity import retry_if_result, wait_exponential, \
-    stop_after_attempt, Retrying, retry_all
-from featureflags.sdk_logging_codes import warn_auth_retying
-from featureflags.config import RETRYABLE_CODES
-import json
 
 VERSION: str = "1.7.0"
 
@@ -131,7 +127,10 @@ class CfClient(object):
                 self._stream.start()
 
             if self._config.enable_analytics:
-                metrics_client = self.make_client(self._config.events_url, self._auth_token, self._account_id)
+                metrics_client = self.make_client(
+                    self._config.events_url,
+                    self._auth_token,
+                    self._account_id)
                 self._analytics = AnalyticsService(
                     config=self._config,
                     client=metrics_client,
@@ -184,13 +183,14 @@ class CfClient(object):
                 'will not attempt to reconnect')
             return False
 
-    # TODO this will require rework as response no longer contain status_code after openapi code was regenerated
+    # TODO this will require rework as response no longer contain status_code
+    #  after openapi code was regenerated
     # def _authenticate_with_retry(self, client, body, max_auth_retries):
     #     retryer = Retrying(
     #         wait=wait_exponential(multiplier=1, min=4, max=10),
     #         retry=retry_all(
     #             retry_if_exception,
-    #             # retry_if_result(lambda response: response.status_code != 200),
+    #           #retry_if_result(lambda response: response.status_code != 200),
     #             retry_if_result(self._handle_http_result)
     #         ),
     #         before_sleep=lambda retry_state: warn_auth_retying(
@@ -209,7 +209,7 @@ class CfClient(object):
         body = AuthenticationRequest(api_key=self._sdk_key)
         response = authenticate(client=client, body=body)
         # response = self._authenticate_with_retry(client=client, body=body,
-        #                                          max_auth_retries=self._config.max_auth_retries)
+        #    max_auth_retries=self._config.max_auth_retries)
         self._auth_token = response.auth_token
 
         decoded = decode(self._auth_token, options={
@@ -221,7 +221,8 @@ class CfClient(object):
         if "accountID" in decoded:
             self._account_id = decoded["accountID"]
 
-        self._client = self.make_client(self._config.base_url, self._auth_token, self._account_id)
+        self._client = self.make_client(
+            self._config.base_url, self._auth_token, self._account_id)
 
     def make_client(self, url, token, account_id):
         client = AuthenticatedClient(
@@ -271,7 +272,8 @@ class CfClient(object):
 
             if not variation or not variation.value:
                 log.error(
-                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s "
+                    "and the "
                     "default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
                 return default
@@ -309,7 +311,8 @@ class CfClient(object):
 
             if not variation or not variation.value:
                 log.error(
-                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s "
+                    "and the "
                     "default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
                 return default
@@ -349,7 +352,8 @@ class CfClient(object):
 
             if not variation or not variation.value:
                 log.error(
-                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s "
+                    "and the "
                     "default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
                 return default
@@ -390,7 +394,8 @@ class CfClient(object):
 
             if not variation or not variation.value:
                 log.error(
-                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s "
+                    "and the "
                     "default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
                 return default
@@ -445,7 +450,8 @@ class CfClient(object):
 
             if not variation or not variation.value:
                 log.error(
-                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s "
+                    "and the "
                     "default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
                 return default
@@ -484,8 +490,8 @@ class CfClient(object):
 
             if not variation or not variation.value:
                 log.error(
-                    "SDKCODE:6001: Failed to evaluate bool variation for %s and the "
-                    "default variation '%s' is being returned",
+                    "SDKCODE:6001: Failed to evaluate bool variation for %s"
+                    " and the default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
                 return default
 

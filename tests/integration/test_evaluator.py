@@ -1,15 +1,16 @@
-import pytest
 import json
 import os
 from typing import Any, Dict, List
+
+import pytest
 from attr import define
 
+from featureflags.evaluations.auth_target import Target
+from featureflags.evaluations.evaluator import Evaluator
 from featureflags.evaluations.feature import FeatureConfig, FeatureConfigKind
 from featureflags.evaluations.segment import Segment
-from featureflags.evaluations.auth_target import Target
 from featureflags.lru_cache import LRUCache
 from featureflags.repository import Repository
-from featureflags.evaluations.evaluator import Evaluator
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
 PATH = cwd = BASE_PATH + "/ff-test-cases/tests/"
