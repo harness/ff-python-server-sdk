@@ -60,7 +60,7 @@ fmt:
 	autopep8 --in-place --recursive ./featureflags ./tests
 
 lint: ## check style with flake8
-	flake8 featureflags tests
+	flake8 featureflags tests --exclude openapi
 
 test: ## run tests quickly with the default Python
 	pytest
