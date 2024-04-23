@@ -130,7 +130,8 @@ class CfClient(object):
                 metrics_client = self.make_client(
                     self._config.events_url,
                     self._auth_token,
-                    self._account_id)
+                    self._account_id,
+                    config=self._config)
                 self._analytics = AnalyticsService(
                     config=self._config,
                     client=metrics_client,
@@ -222,12 +223,21 @@ class CfClient(object):
             self._account_id = decoded["accountID"]
 
         self._client = self.make_client(
-            self._config.base_url, self._auth_token, self._account_id)
+            self._config.base_url,
+            self._auth_token,
+            self._account_id,
+            config=self._config)
 
-    def make_client(self, url, token, account_id):
+    def make_client(self, url, token, account_id, config):
+
+        verify = True
+        if config.tls_trusted_cas_file is not None:
+            verify = self._config.tls_trusted_cas_file
+
         client = AuthenticatedClient(
             base_url=url,
             token=token,
+            verify_ssl=verify
         )
         # Additional headers used to track usage
         additional_headers = {
