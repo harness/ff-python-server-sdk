@@ -1,21 +1,25 @@
 import pytest
 
 from featureflags.evaluations.auth_target import Target
-from featureflags.evaluations.clause import Clause
-from featureflags.evaluations.constants import EQUAL_OPERATOR, \
-    STARTS_WITH_OPERATOR
-from featureflags.evaluations.distribution import Distribution
-from featureflags.evaluations.enum import FeatureState
+from featureflags.evaluations.constants import (EQUAL_OPERATOR,
+                                                STARTS_WITH_OPERATOR)
+from featureflags.openapi.config.models import FeatureState
 from featureflags.evaluations.evaluator import Evaluator
-from featureflags.evaluations.feature import FeatureConfig, FeatureConfigKind
-from featureflags.evaluations.segment import Segment
-from featureflags.evaluations.serve import Serve
-from featureflags.evaluations.serving_rule import ServingRule
-from featureflags.evaluations.target_map import TargetMap
-from featureflags.evaluations.variation import Variation
-from featureflags.evaluations.variation_map import VariationMap
-from featureflags.evaluations.weighted_variation import WeightedVariation
 from featureflags.lru_cache import LRUCache
+from featureflags.openapi.config.models.clause import Clause
+from featureflags.openapi.config.models.distribution import Distribution
+from featureflags.openapi.config.models.feature_config import (
+    FeatureConfig, FeatureConfigKind)
+from featureflags.openapi.config.models.group_serving_rule import \
+    GroupServingRule
+from featureflags.openapi.config.models.segment import Segment
+from featureflags.openapi.config.models.serve import Serve
+from featureflags.openapi.config.models.serving_rule import ServingRule
+from featureflags.openapi.config.models.target_map import TargetMap
+from featureflags.openapi.config.models.variation import Variation
+from featureflags.openapi.config.models.variation_map import VariationMap
+from featureflags.openapi.config.models.weighted_variation import \
+    WeightedVariation
 from featureflags.repository import Repository
 
 TRUE = "true"
@@ -155,7 +159,8 @@ def test_evaluate_clause(data_provider, target):
         id="",
         attribute="identifier",
         op=EQUAL_OPERATOR,
-        values=[target.identifier]
+        values=[target.identifier],
+        negate=FALSE
     )
 
     got = evaluator._evaluate_clause(clause, target)
@@ -169,28 +174,32 @@ def test_evaluate_clauses(data_provider, target):
         id="",
         attribute="identifier",
         op=EQUAL_OPERATOR,
-        values=[target.identifier]
+        values=[target.identifier],
+        negate=FALSE
     )
 
     clause2 = Clause(
         id="",
         attribute="name",
         op=EQUAL_OPERATOR,
-        values=[target.name]
+        values=[target.name],
+        negate=FALSE
     )
 
     clause3 = Clause(
         id="",
         attribute="name",
         op=EQUAL_OPERATOR,
-        values=["Not John"]
+        values=["Not John"],
+        negate=FALSE
     )
 
     clause4 = Clause(
         id="",
         attribute="name",
         op=STARTS_WITH_OPERATOR,
-        values=["Not John"]
+        values=["Not John"],
+        negate=FALSE
     )
 
     testcases = [
@@ -216,7 +225,8 @@ def test_evaluate_rules(data_provider, target):
         id="",
         attribute="identifier",
         op=EQUAL_OPERATOR,
-        values=[target.identifier]
+        values=[target.identifier],
+        negate=FALSE
     )
 
     rules = [
@@ -282,3 +292,117 @@ def test_get_flag_kind(data_provider, feature, target, true_variation):
     got = evaluator.get_kind(feature.feature)
 
     assert got == FeatureConfigKind.BOOLEAN
+
+
+def load_v2_flags(repo):
+    feature_config_or = FeatureConfig(
+        feature="boolflag_or",
+        environment="test",
+        default_serve=Serve(variation=FALSE),
+        kind=FeatureConfigKind.BOOLEAN,
+        off_variation=FALSE,
+        project="test",
+        state=FeatureState.ON,
+        variation_to_target_map=[
+            VariationMap(variation=TRUE, targets=[],
+                         target_segments=['or-segment'])
+        ],
+        variations=[
+            Variation(identifier='true', name='True', value='true'),
+            Variation(identifier='false', name='False', value='false')
+        ],
+        version=1
+    )
+
+    feature_config_and = FeatureConfig(
+        feature="boolflag_and",
+        environment="test",
+        default_serve=Serve(variation=FALSE),
+        kind=FeatureConfigKind.BOOLEAN,
+        off_variation=FALSE,
+        project="test",
+        state=FeatureState.ON,
+        variation_to_target_map=[
+            VariationMap(variation=TRUE, targets=[],
+                         target_segments=['and-segment'])
+        ],
+        variations=[
+            Variation(identifier='true', name='True', value='true'),
+            Variation(identifier='false', name='False', value='false')
+        ],
+        version=1
+    )
+    repo.set_flag(feature_config_or)
+    repo.set_flag(feature_config_and)
+
+
+def load_v2_segments(repo):
+    segment_or = Segment(
+        identifier='or-segment',
+        name='is_harness_or_somethingelse_email_OR',
+        environment='Production',
+        # only 1 servingRules needs to be true (OR)
+        serving_rules=[
+            GroupServingRule(
+                rule_id='this_or_rule_with_lower_priority_should_be_ignored',
+                priority=7, clauses=[
+                    Clause(attribute='email', op='ends_with',
+                           values=['@harness.io'], negate=FALSE)
+                ]),
+            GroupServingRule(rule_id='rule1', priority=1, clauses=[
+                Clause(attribute='email', op='ends_with',
+                       values=['@harness.io'], negate=FALSE)
+            ]),
+            GroupServingRule(rule_id='rule2', priority=2, clauses=[
+                Clause(attribute='email', op='ends_with', values=[
+                    '@somethingelse.com'], negate=FALSE)
+            ]),
+        ]
+    )
+
+    segment_and = Segment(
+        identifier='and-segment',
+        name='is_a_harness_developer_test_AND',
+        environment='Production',
+
+        serving_rules=[
+            GroupServingRule(rule_id='rule1', priority=1, clauses=[
+                # all clauses need to be true (AND)
+                Clause(attribute='email', op='ends_with',
+                       values=['@harness.io'], negate=FALSE),
+                Clause(attribute='role', op='equal',
+                       values=['developer'], negate=FALSE)
+            ]),
+        ]
+    )
+
+    repo.set_segment(segment_or)
+    repo.set_segment(segment_and)
+
+
+@pytest.mark.parametrize('flag_name,expected,email,role', [
+    # if (target.attr.email endswith '@harness.io'
+    # && target.attr.role = 'developer')
+    ('boolflag_and', True, 'user@harness.io', 'developer'),
+    ('boolflag_and', False, 'user@harness.io', 'manager'),
+    ('boolflag_and', False, 'user@gmail.com', 'developer'),
+    ('boolflag_and', False, 'user@gmail.com', 'manager'),
+    # if (target.attr.email endswith '@harness.io'
+    # || target.attr.email endswith '@somethingelse.com')
+    ('boolflag_or', True, 'user@harness.io', 'n/a'),
+    ('boolflag_or', True, 'user@somethingelse.com', 'n/a'),
+    ('boolflag_or', False, 'user@gmail.com', 'n/a'),
+])
+def test_enhanced_v2_rules(flag_name, email, role, expected):
+    cache = LRUCache()
+    repository = Repository(cache)
+
+    load_v2_flags(repository)
+    load_v2_segments(repository)
+
+    evaluator = Evaluator(repository)
+    target = Target(identifier='test', name="test",
+                    attributes={"email": email, "role": role})
+    got = evaluator.evaluate(flag_name, target, "boolean")
+
+    assert got.value.lower() == str(expected).lower()

@@ -1,9 +1,8 @@
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import mmh3
 
 from featureflags.evaluations.auth_target import Target
-from featureflags.evaluations.clause import Clause, Clauses
 from featureflags.evaluations.constants import (CONTAINS_OPERATOR,
                                                 ENDS_WITH_OPERATOR,
                                                 EQUAL_OPERATOR,
@@ -12,17 +11,65 @@ from featureflags.evaluations.constants import (CONTAINS_OPERATOR,
                                                 ONE_HUNDRED,
                                                 SEGMENT_MATCH_OPERATOR,
                                                 STARTS_WITH_OPERATOR)
-from featureflags.evaluations.distribution import Distribution
-from featureflags.evaluations.enum import FeatureState
-from featureflags.evaluations.feature import FeatureConfig, FeatureConfigKind
-from featureflags.evaluations.serving_rule import ServingRule, ServingRules
-from featureflags.evaluations.variation import Variation
-from featureflags.evaluations.variation_map import VariationMap
-from featureflags.models.unset import Unset
+from featureflags.openapi.config.models.clause import Clause
+from featureflags.openapi.config.models.distribution import Distribution
+from featureflags.openapi.config.models.feature_config import (
+    FeatureConfig, FeatureConfigKind)
+from featureflags.openapi.config.models.feature_state import FeatureState
+from featureflags.openapi.config.models.segment import Segment
+from featureflags.openapi.config.models.serve import Serve
+from featureflags.openapi.config.models.serving_rule import ServingRule
+from featureflags.openapi.config.models.variation import Variation
+from featureflags.openapi.config.models.variation_map import VariationMap
+from featureflags.openapi.config.types import Unset
 from featureflags.repository import QueryInterface
 from featureflags.util import log
 
 EMPTY_VARIATION = Variation(identifier="", value=None)
+
+
+class Segments(Dict[str, Segment]):
+
+    def evaluate(self, target: Target) -> bool:
+        for _, segment in self.items():
+            if not segment.evaluate(target):
+                return False
+        return True
+
+
+class Clauses(List[Clause]):
+    def evaluate(self, target: Target, segments: Optional['Segments']) -> bool:
+        for clause in self:
+            operator = target.get_type(clause.attribute)
+            if not clause.evaluate(target, segments, operator):
+                return False
+        return True
+
+
+class ServingRules(List[ServingRule]):
+    def get_variation_name(
+            self,
+            target: Target,
+            segments: Optional[Segments] = None,
+            default_serve: Optional[Serve] = None,
+    ) -> Optional[str]:
+        for rule in self:
+            if not rule.clauses.evaluate(target, segments):
+                continue
+
+            if not isinstance(rule.serve.distribution, Unset):
+                return rule.serve.distribution.get_key_name(target)
+
+            if not isinstance(rule.serve.variation, Unset):
+                return rule.serve.variation
+
+        if default_serve:
+            if not isinstance(default_serve.variation, Unset):
+                return default_serve.variation
+
+            if not isinstance(default_serve.distribution, Unset):
+                return default_serve.distribution.get_key_name(target)
+        return None
 
 
 class FlagKindMismatchException(Exception):
@@ -133,12 +180,26 @@ class Evaluator(object):
                               target.name, segment.name)
                     return True
 
-                # Should Target be included via segment rules
-                if segment.rules and self._evaluate_clauses(segment.rules,
-                                                            target):
-                    log.debug('Target %s included in segment %s via rules\n',
-                              target.name, segment.name)
-                    return True
+                if segment.serving_rules:
+                    log.debug('Found and using enhanced serving_rules')
+                    # Use enhanced rules first if they're available
+                    segment.serving_rules.sort(key=lambda rule: rule.priority)
+
+                    for serving_rule in segment.serving_rules:
+                        if self._evaluate_clauses_v2(serving_rule.clauses,
+                                                     target):
+                            return True
+
+                else:
+                    # Fall back to legacy rules
+                    # Should Target be included via segment rules
+                    if segment.rules and self._evaluate_clauses(segment.rules,
+                                                                target):
+                        log.debug(
+                            'Target %s included in segment %s via rules\n',
+                            target.name, segment.name)
+                        return True
+
         log.debug("Target groups empty return false")
         return False
 
@@ -162,7 +223,7 @@ class Evaluator(object):
             log.debug("Attribute type %s is none return false", type)
             return False
         log.debug("evaluate clause with object %s operator %s and value %s",
-                  object, operator, clause.values)
+                  type, operator.upper(), clause.values)
         if operator == IN_OPERATOR.lower():
             return type.in_list(clause.values)
         if operator == EQUAL_OPERATOR.lower():
@@ -189,6 +250,18 @@ class Evaluator(object):
                     return True
         log.debug("All clauses %s evaluated", clauses)
         return False
+
+    def _evaluate_clauses_v2(self, clauses: Union[Unset, Clauses],
+                             target: Target) -> bool:
+        if not clauses or isinstance(clauses, Unset):
+            return False
+
+        for clause in clauses:
+            if not self._evaluate_clause(clause, target):
+                # first false clause, short-circuit and exit with false
+                return False
+        # all clauses have passed
+        return True
 
     def _evaluate_rule(self, rule: ServingRule, target: Target) -> bool:
         return self._evaluate_clauses(rule.clauses, target)

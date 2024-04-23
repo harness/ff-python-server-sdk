@@ -11,6 +11,7 @@ def main():
     log.info("Starting example")
     api_key = "Your API Key"
     client = CfClient(api_key)
+    client.wait_for_initialization()
 
     target = Target(identifier='HT_1', name="Harness_Target_1",
                     attributes={"location": "emea"})

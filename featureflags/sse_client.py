@@ -21,17 +21,17 @@ end_of_field: Pattern[str] = re.compile(r"\r\n\r\n|\r\r|\n\n")
 
 class SSEClient(object):
     def __init__(
-        self,
-        url: str,
-        last_id: str = None,
-        retry: int = 3000,
-        session: Any = None,
-        chunk_size: int = 1024,
-        **kwargs: Dict[str, Any]
+            self,
+            url: str,
+            last_id: str = None,
+            retry_ms: int = 3000,
+            session: Any = None,
+            chunk_size: int = 1024,
+            **kwargs: Dict[str, Any]
     ):
         self.url = url
         self.last_id = last_id
-        self.retry = retry
+        self.retry = retry_ms
         self.chunk_size = chunk_size
 
         # Optional support for passing in a requests.Session()
@@ -78,9 +78,9 @@ class SSEClient(object):
         def generate():
             while True:
                 if (
-                    hasattr(self.resp.raw, "_fp")
-                    and hasattr(self.resp.raw._fp, "fp")
-                    and hasattr(self.resp.raw._fp.fp, "read1")
+                        hasattr(self.resp.raw, "_fp")
+                        and hasattr(self.resp.raw._fp, "fp")
+                        and hasattr(self.resp.raw._fp.fp, "read1")
                 ):
                     chunk = self.resp.raw._fp.fp.read1(self.chunk_size)
                 else:
@@ -145,17 +145,16 @@ class SSEClient(object):
 
 
 class Event(object):
-
     sse_line_pattern: Pattern[str] = re.compile(
         "(?P<name>[^:]*):?( ?(?P<value>.*))?"
     )
 
     def __init__(
-        self,
-        data: str = "",
-        event: str = "message",
-        id: Optional[str] = None,
-        retry: Optional[int] = None,
+            self,
+            data: str = "",
+            event: str = "message",
+            id: Optional[str] = None,
+            retry: Optional[int] = None,
     ):
         self.data = data
         self.event = event

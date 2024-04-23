@@ -1,30 +1,34 @@
-import time
-from threading import Lock, Thread
-from typing import Dict, List, Union, Set
 import concurrent.futures
+import time
+import traceback
+from threading import Lock, Thread
+from typing import Dict, List, Set, Union
 
 import attr
 import httpx
 
-from featureflags.models.metrics_data_metrics_type import \
-    MetricsDataMetricsType
-
-from .api.client import AuthenticatedClient
-from .api.default.post_metrics import sync_detailed as post_metrics
 from .config import Config
-from .evaluations.target import Target
-from .evaluations.target_attributes import TargetAttributes
-from .evaluations.variation import Variation
-from .models.key_value import KeyValue
-from .models.metrics import Metrics
-from .models.metrics_data import MetricsData
-from .models.target_data import TargetData
-from .models.unset import Unset
-from .sdk_logging_codes import info_metrics_thread_started, \
-    info_metrics_success, warn_post_metrics_failed, \
-    info_metrics_thread_existed, info_metrics_target_exceeded, \
-    warn_post_metrics_target_batch_failed, info_metrics_target_batch_success, \
-    info_evaluation_metrics_exceeded
+from .openapi.config import AuthenticatedClient
+from .openapi.config.models.target import Target
+from .openapi.config.models.target_attributes import TargetAttributes
+from .openapi.config.models.variation import Variation
+from .openapi.metrics.api.metrics.post_metrics import \
+    sync_detailed as post_metrics
+from .openapi.metrics.models.key_value import KeyValue
+from .openapi.metrics.models.metrics import Metrics
+from .openapi.metrics.models.metrics_data import MetricsData
+from .openapi.metrics.models.metrics_data_metrics_type import \
+    MetricsDataMetricsType
+from .openapi.metrics.models.target_data import TargetData
+from .openapi.metrics.types import Unset
+from .sdk_logging_codes import (info_evaluation_metrics_exceeded,
+                                info_metrics_success,
+                                info_metrics_target_batch_success,
+                                info_metrics_target_exceeded,
+                                info_metrics_thread_existed,
+                                info_metrics_thread_started,
+                                warn_post_metrics_failed,
+                                warn_post_metrics_target_batch_failed)
 from .util import log
 
 FF_METRIC_TYPE = 'FFMETRICS'
@@ -34,7 +38,7 @@ VARIATION_IDENTIFIER_ATTRIBUTE = 'variationIdentifier'
 VARIATION_VALUE_ATTRIBUTE = 'variationValue'
 TARGET_ATTRIBUTE = 'target'
 SDK_VERSION_ATTRIBUTE = 'SDK_VERSION'
-SDK_VERSION = '1.6.0'
+SDK_VERSION = '1.7.0'
 SDK_TYPE_ATTRIBUTE = 'SDK_TYPE'
 SDK_TYPE = 'server'
 SDK_LANGUAGE_ATTRIBUTE = 'SDK_LANGUAGE'
@@ -59,12 +63,15 @@ class MetricTargetData(object):
 
 class AnalyticsService(object):
 
-    def __init__(self, config: Config, client: AuthenticatedClient,
-                 environment: str) -> None:
+    def __init__(self, config: Config,
+                 client: AuthenticatedClient,
+                 environment: str,
+                 cluster: str) -> None:
         self._lock = Lock()
         self._config = config
         self._client = client
         self._environment = environment
+        self._cluster = cluster
 
         # Evaluation metrics
         self._data: Dict[str, AnalyticsEvent] = {}
@@ -137,7 +144,7 @@ class AnalyticsService(object):
             if len(self._target_data_batches) >= \
                     self._max_number_of_target_batches:
                 if len(self._target_data_batches[
-                           self._current_target_batch_index]) >= \
+                    self._current_target_batch_index]) >= \
                         self._max_target_batch_size:
                     if not self.max_target_data_exceeded:
                         self.max_target_data_exceeded = True
@@ -155,7 +162,7 @@ class AnalyticsService(object):
                 # If we've exceeded the max batch size for the current
                 # batch, then create a new batch and start using it.
                 if len(self._target_data_batches[
-                           self._current_target_batch_index]) >= \
+                    self._current_target_batch_index]) >= \
                         self._max_target_batch_size:
                     self._target_data_batches.append({})
                     self._current_target_batch_index += 1
@@ -170,7 +177,7 @@ class AnalyticsService(object):
                         identifier=event.target.identifier,
                         name=target_name,
                         attributes=event.target.attributes
-                    )
+                )
 
         finally:
             self._lock.release()
@@ -256,8 +263,9 @@ class AnalyticsService(object):
                                 metrics_data=metrics_data)
         try:
             response = post_metrics(client=self._client,
-                                    environment=self._environment,
-                                    json_body=body)
+                                    environment_uuid=self._environment,
+                                    body=body,
+                                    cluster=self._cluster)
 
             log.debug('Metrics server returns: %d', response.status_code)
             if response.status_code >= 400:
@@ -303,6 +311,7 @@ class AnalyticsService(object):
 
             info_metrics_success()
         except httpx.RequestError as ex:
+            print(traceback.format_exc())
             warn_post_metrics_failed(ex)
 
     def process_target_data_batch(self, target_data_batch):

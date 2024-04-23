@@ -1,23 +1,29 @@
 import random
 import threading
 import time
+import traceback
 from threading import Thread
 from typing import Union
 
 from tenacity import RetryError
 
 from featureflags.repository import DataProviderInterface
-from .api.client import AuthenticatedClient
-from .api.default.get_feature_config_by_identifier import \
-    sync as get_feature_config
-from .api.default.get_segment_by_identifier import sync as get_target_segment
+
 from .config import Config
-from .models.message import Message
-from .sdk_logging_codes import info_stream_connected, \
-    info_stream_event_received, warn_stream_disconnected, \
-    warn_stream_retrying, info_stream_stopped, \
-    warn_stream_retrying_long_duration, warning_fetch_feature_by_id_failed, \
-    warning_fetch_group_by_id_failed, info_polling_stopped, info_poll_started
+from .dto.message import Message
+from .openapi.config import AuthenticatedClient
+from .openapi.config.api.client.get_feature_config_by_identifier import \
+    sync as get_feature_config
+from .openapi.config.api.client.get_segment_by_identifier import \
+    sync as get_target_segment
+from .sdk_logging_codes import (info_poll_started, info_polling_stopped,
+                                info_stream_connected,
+                                info_stream_event_received,
+                                info_stream_stopped, warn_stream_disconnected,
+                                warn_stream_retrying,
+                                warn_stream_retrying_long_duration,
+                                warning_fetch_feature_by_id_failed,
+                                warning_fetch_group_by_id_failed)
 from .sse_client import SSEClient
 from .util import log
 
@@ -47,6 +53,8 @@ class StreamProcessor(Thread):
         self.reconnect_timer = 0
         self._poll_interval = config.pull_interval
         self._disconnect_notified = False
+        self._config = config
+        self._cluster = cluster
 
     def run(self):
         log.info("Starting StreamingProcessor connecting to uri: " +
@@ -77,6 +85,7 @@ class StreamProcessor(Thread):
                     if self._ready.is_set() is False:
                         self._ready.set()
             except Exception as e:
+                print(traceback.format_exc())
                 if not self._disconnect_notified:
                     warn_stream_disconnected(e)
                     info_poll_started(self._poll_interval)
@@ -107,7 +116,7 @@ class StreamProcessor(Thread):
         return SSEClient(url=self._stream_url, headers={
             'Authorization': f'Bearer {self._token}',
             'API-Key': self._api_key
-        }, retry=BACK_OFF_IN_SECONDS, verify=self._client.tls_trusted_cas_file)
+        }, verify=self._config.tls_trusted_cas_file)
 
     def process_message(self, msg: Message) -> None:
         processor: Union[FlagMsgProcessor, SegmentMsgProcessor, None] = None
@@ -116,14 +125,16 @@ class StreamProcessor(Thread):
             processor = FlagMsgProcessor(repository=self._repository,
                                          client=self._client,
                                          environment_id=self._environment_id,
-                                         msg=msg)
+                                         msg=msg,
+                                         cluster=self._cluster)
         elif msg.domain == "target-segment":
             log.debug('Starting segment message processor with %s', msg)
             processor = SegmentMsgProcessor(
                 repository=self._repository,
                 client=self._client,
                 environment_id=self._environment_id,
-                msg=msg
+                msg=msg,
+                cluster=self._cluster
             )
         if processor:
             processor.start()
@@ -137,12 +148,15 @@ class FlagMsgProcessor(Thread):
 
     def __init__(self, repository: DataProviderInterface,
                  client: AuthenticatedClient,
-                 environment_id: str, msg: Message):
+                 environment_id: str,
+                 msg: Message,
+                 cluster: str):
         Thread.__init__(self)
         self._repository = repository
         self._client = client
         self._environemnt_id = environment_id
         self._msg = msg
+        self._cluster = cluster
 
     def run(self):
         if self._msg.event == 'create' or self._msg.event == 'patch':
@@ -151,7 +165,8 @@ class FlagMsgProcessor(Thread):
                           self._msg.identifier)
                 fc = get_feature_config(client=self._client,
                                         identifier=self._msg.identifier,
-                                        environment_uuid=self._environemnt_id)
+                                        environment_uuid=self._environemnt_id,
+                                        cluster=self._cluster)
                 log.debug("Feature config '%s' loaded", fc.feature)
                 self._repository.set_flag(fc)
                 log.debug('flag %s successfully stored in the cache',
@@ -176,12 +191,15 @@ class SegmentMsgProcessor(Thread):
 
     def __init__(self, repository: DataProviderInterface,
                  client: AuthenticatedClient,
-                 environment_id: str, msg: Message):
+                 environment_id: str,
+                 msg: Message,
+                 cluster: str):
         Thread.__init__(self)
         self._repository = repository
         self._client = client
         self._environemnt_id = environment_id
         self._msg = msg
+        self._cluster = cluster
 
     def run(self):
         if self._msg.event == 'create' or self._msg.event == 'patch':
@@ -190,7 +208,8 @@ class SegmentMsgProcessor(Thread):
                           self._msg.identifier)
                 ts = get_target_segment(client=self._client,
                                         identifier=self._msg.identifier,
-                                        environment_uuid=self._environemnt_id)
+                                        environment_uuid=self._environemnt_id,
+                                        cluster=self._cluster)
                 log.debug("Target segment '%s' loaded", ts.identifier)
                 self._repository.set_segment(ts)
                 log.debug('flag %s successfully stored in cache',

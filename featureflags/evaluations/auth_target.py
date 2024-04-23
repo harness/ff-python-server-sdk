@@ -4,7 +4,7 @@ import attr
 
 from featureflags.ftypes import TYPES
 from featureflags.ftypes.interface import Interface
-from featureflags.models import UNSET, Unset
+from featureflags.openapi.config.types import UNSET, Unset
 from featureflags.util import log
 
 T = TypeVar("T", bound="Target")
@@ -12,7 +12,6 @@ T = TypeVar("T", bound="Target")
 
 @attr.s(auto_attribs=True)
 class Target():
-
     identifier: str
     name: Union[Unset, str] = UNSET
     anonymous: Union[Unset, bool] = UNSET

@@ -11,12 +11,12 @@ api_key = os.getenv('FF_API_KEY', "")
 
 
 def main():
-
     log.setLevel(logging.INFO)
     api_key = "Your API Key"
 
     # Create a Feature Flag Client
-    client = CfClient(apiKey)
+    client = CfClient(api_key)
+    client.wait_for_initialization()
 
     # Create a target (different targets can get different results based on
     # rules that you add in the UI).

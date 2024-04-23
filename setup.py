@@ -15,7 +15,7 @@ with open("HISTORY.rst") as history_file:
 requirements = [
     "httpx>=0.24.1",
     "pyjwt>=2.4.0",
-    "attrs>=21.2.0",
+    "attrs>=23.2.0",
     "mmh3>=3.0.0",
     "requests>=2.31.0",
     "tenacity==8.2.2"
@@ -52,11 +52,11 @@ setup(
     include_package_data=True,
     keywords="featureflags",
     name="harness-featureflags",
-    packages=find_packages(include=["featureflags", "featureflags.*"]),
+    packages=find_packages(include=["featureflags", "featureflags.*", "featureflags.openapi", "featureflags.openapi.config",  "featureflags.openapi.metrics"]),
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/harness/ff-python-server-sdk",
-    version='1.6.0',
+    version='1.7.0',
     zip_safe=False,
 )

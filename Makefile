@@ -48,21 +48,22 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 clean-openapi:
-	rm -fr ./featureflags/rest
+	rm -fr ./featureflags/openapi
 
-generate:
+generate: clean-openapi
+	mkdir -p ./featureflags/openapi
 	openapi-python-client generate --config=config.yaml --path=./api.yaml --meta=none
-	# docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate \
-    # -i ./local/api.yaml \
-    # -g python-legacy \
-    # -o /local/out/python
+	openapi-python-client generate --config=config-metrics.yaml --path=./metrics.yaml --meta=none
+	touch featureflags/openapi/config/__init__.py
+	touch featureflags/openapi/metrics/__init__.py
+	touch featureflags/openapi/__init__.py
 
 fmt:
 	isort ./featureflags ./tests
 	autopep8 --in-place --recursive ./featureflags ./tests
 
 lint: ## check style with flake8
-	flake8 featureflags tests
+	flake8 featureflags tests --exclude openapi
 
 test: ## run tests quickly with the default Python
 	pytest
