@@ -1,3 +1,0 @@
-[submodule "tests/integration/ff-test-cases"]
-	path = tests/integration/ff-test-cases
-	url = git@github.com:drone/ff-test-cases.git
