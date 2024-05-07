@@ -17,8 +17,8 @@ from .openapi.config.models import AuthenticationRequest, \
 
 from featureflags.openapi.config import AuthenticatedClient, Client
 from featureflags.openapi.config.types import Unset, UNSET
-from openapi.config.errors import UnexpectedStatus
-from openapi.config.models import Segment, FeatureConfig
+from .openapi.config.errors import UnexpectedStatus
+from .openapi.config.models import Segment, FeatureConfig
 
 MAX_RETRY_ATTEMPTS = 10
 
