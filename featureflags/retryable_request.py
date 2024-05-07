@@ -11,6 +11,10 @@ from .openapi.config.api.client.get_all_segments import \
     sync as retrieve_segments
 from .openapi.config.api.client.get_feature_config import \
     sync as retrieve_flags
+from .openapi.config.api.client.get_feature_config_by_identifier import \
+    sync as retrieve_flag_by_identifier
+from .openapi.config.api.client.get_segment_by_identifier import \
+    sync as retrieve_segment_by_identifier
 
 MAX_RETRY_ATTEMPTS = 10
 
@@ -69,3 +73,27 @@ def retryable_retrieve_feature_config(environment_uuid: str,
     return retrieve_flags(client=client,
                           environment_uuid=environment_uuid,
                           cluster=cluster)
+
+
+@default_retry_strategy()
+def retryable_retrieve_feature_config_by_identifier(environment_uuid: str,
+                                                    client:
+                                                    AuthenticatedClient,
+                                                    cluster: Union[
+                                                        Unset, str] = UNSET) \
+        -> Optional[FeatureConfig]:
+    return retrieve_flag_by_identifier(client=client,
+                                       environment_uuid=environment_uuid,
+                                       cluster=cluster)
+
+
+@default_retry_strategy()
+def retryable_retrieve_segment_by_identifier(environment_uuid: str,
+                                             client:
+                                             AuthenticatedClient,
+                                             cluster: Union[
+                                                 Unset, str] = UNSET) \
+        -> Optional[Union[Any, Segment]]:
+    return retrieve_segment_by_identifier(client=client,
+                                          environment_uuid=environment_uuid,
+                                          cluster=cluster)
