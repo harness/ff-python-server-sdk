@@ -1,7 +1,7 @@
 from tenacity import retry_if_result, wait_exponential, \
     stop_after_attempt, retry
 from http import HTTPStatus
-from typing import Callable, Any, Optional, Union, List
+from typing import Any, Optional, Union, List
 
 from featureflags.openapi.config import AuthenticatedClient
 from featureflags.openapi.config.types import Unset, UNSET
@@ -17,29 +17,6 @@ from .openapi.config.api.client.get_segment_by_identifier import \
     sync as retrieve_segment_by_identifier
 
 MAX_RETRY_ATTEMPTS = 10
-
-
-def retryable_request(
-        api_call: Callable[[str, AuthenticatedClient, Union[Unset, str]], Any],
-        before_sleep_func=None,
-        *args, **kwargs) -> Any:
-    @retry(
-        retry=(
-                retry_if_result(
-                    lambda response: response.status_code in [
-                        HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
-                        HTTPStatus.INTERNAL_SERVER_ERROR, UnexpectedStatus])),
-        wait=wait_exponential(multiplier=1, max=10),
-        before_sleep=lambda retry_state: before_sleep_func(
-            retry_state.attempt_number,
-            retry_state.outcome.result()),
-        stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
-
-    )
-    def make_call():
-        return api_call(*args, **kwargs)
-
-    return make_call()
 
 
 def default_retry_strategy(before_sleep_func=None):
