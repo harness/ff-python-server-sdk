@@ -1,0 +1,71 @@
+from tenacity import retry_if_result, wait_exponential, \
+    stop_after_attempt, retry
+from http import HTTPStatus
+from typing import Callable, Any, Optional, Union, List
+
+from featureflags.openapi.config import AuthenticatedClient
+from featureflags.openapi.config.types import Unset, UNSET
+from openapi.config.errors import UnexpectedStatus
+from openapi.config.models import Segment, FeatureConfig
+from .openapi.config.api.client.get_all_segments import \
+    sync as retrieve_segments
+from .openapi.config.api.client.get_feature_config import \
+    sync as retrieve_flags
+
+MAX_RETRY_ATTEMPTS = 10
+
+
+def retryable_request(
+        api_call: Callable[[str, AuthenticatedClient, Union[Unset, str]], Any],
+        before_sleep_func=None,
+        *args, **kwargs) -> Any:
+    @retry(
+        retry=(
+                retry_if_result(
+                    lambda response: response.status_code in [
+                        HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
+                        HTTPStatus.INTERNAL_SERVER_ERROR, UnexpectedStatus])),
+        wait=wait_exponential(multiplier=1, max=10),
+        before_sleep=lambda retry_state: before_sleep_func(
+            retry_state.attempt_number,
+            retry_state.outcome.result()),
+        stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
+
+    )
+    def make_call():
+        return api_call(*args, **kwargs)
+
+    return make_call()
+
+
+def default_retry_strategy(before_sleep_func=None):
+    return retry(
+        retry=(
+            retry_if_result(
+                lambda response: response.status_code in [
+                    HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
+                    HTTPStatus.INTERNAL_SERVER_ERROR, UnexpectedStatus])),
+        wait=wait_exponential(multiplier=1, max=10),
+        before_sleep=before_sleep_func,
+        stop=stop_after_attempt(MAX_RETRY_ATTEMPTS)
+    )
+
+
+@default_retry_strategy()
+def retryable_retrieve_segments(environment_uuid: str,
+                                client: AuthenticatedClient,
+                                cluster: Union[Unset, str] = UNSET) -> \
+        Optional[Union[Any, List["Segment"]]]:
+    return retrieve_segments(client=client,
+                             environment_uuid=environment_uuid,
+                             cluster=cluster)
+
+
+@default_retry_strategy()
+def retryable_retrieve_feature_config(environment_uuid: str,
+                                      client: AuthenticatedClient,
+                                      cluster: Union[Unset, str] = UNSET) -> \
+        Optional[List["FeatureConfig"]]:
+    return retrieve_flags(client=client,
+                          environment_uuid=environment_uuid,
+                          cluster=cluster)

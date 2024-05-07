@@ -3,7 +3,6 @@ from concurrent.futures import Future
 from threading import Event, Thread
 from typing import Dict
 
-from tenacity import RetryError
 
 from featureflags.repository import DataProviderInterface
 
@@ -168,19 +167,6 @@ class PollingProcessor(Thread):
             future.set_result(
                 "Success")
 
-        except RetryError as e:
-            last_exception = e.last_attempt.exception()
-            if last_exception:
-                warning_fetch_all_features_failed(e.last_attempt.exception())
-                future.set_exception(
-                    RetrievalError(
-                        f"Failed to retrieve flags '{last_exception}'"))
-            else:
-                result_error = e.last_attempt.result()
-                warning_fetch_all_features_failed(result_error)
-                future.set_exception(
-                    RetrievalError(
-                        f"Failed to retrieve flags '{result_error}'"))
 
         except Exception as e:
             future.set_exception(
@@ -202,19 +188,7 @@ class PollingProcessor(Thread):
             future.set_result(
                 "Success")
 
-        except RetryError as e:
-            last_exception = e.last_attempt.exception()
-            if last_exception:
-                warning_fetch_all_groups_failed(e.last_attempt.exception())
-                future.set_exception(
-                    RetrievalError(
-                        f"Failed to retrieve segments '{last_exception}'"))
-            else:
-                result_error = e.last_attempt.result()
-                warning_fetch_all_groups_failed(result_error)
-                future.set_exception(
-                    RetrievalError(
-                        f"Failed to retrieve segments '{result_error}'"))
+
 
         except Exception as ex:
             future.set_exception(
