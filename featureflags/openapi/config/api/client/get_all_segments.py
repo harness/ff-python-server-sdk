@@ -13,13 +13,10 @@ def _get_kwargs(
     environment_uuid: str,
     *,
     cluster: Union[Unset, str] = UNSET,
-    rules: Union[Unset, str] = UNSET,
 ) -> Dict[str, Any]:
     params: Dict[str, Any] = {}
 
     params["cluster"] = cluster
-
-    params["rules"] = rules
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
@@ -80,7 +77,6 @@ def sync_detailed(
     *,
     client: AuthenticatedClient,
     cluster: Union[Unset, str] = UNSET,
-    rules: Union[Unset, str] = UNSET,
 ) -> Response[Union[Any, List["Segment"]]]:
     """Retrieve all segments.
 
@@ -89,7 +85,6 @@ def sync_detailed(
     Args:
         environment_uuid (str):
         cluster (Union[Unset, str]):
-        rules (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -102,7 +97,6 @@ def sync_detailed(
     kwargs = _get_kwargs(
         environment_uuid=environment_uuid,
         cluster=cluster,
-        rules=rules,
     )
 
     response = client.get_httpx_client().request(
@@ -117,7 +111,6 @@ def sync(
     *,
     client: AuthenticatedClient,
     cluster: Union[Unset, str] = UNSET,
-    rules: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Any, List["Segment"]]]:
     """Retrieve all segments.
 
@@ -126,7 +119,6 @@ def sync(
     Args:
         environment_uuid (str):
         cluster (Union[Unset, str]):
-        rules (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -140,7 +132,6 @@ def sync(
         environment_uuid=environment_uuid,
         client=client,
         cluster=cluster,
-        rules=rules,
     ).parsed
 
 
@@ -149,7 +140,6 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient,
     cluster: Union[Unset, str] = UNSET,
-    rules: Union[Unset, str] = UNSET,
 ) -> Response[Union[Any, List["Segment"]]]:
     """Retrieve all segments.
 
@@ -158,7 +148,6 @@ async def asyncio_detailed(
     Args:
         environment_uuid (str):
         cluster (Union[Unset, str]):
-        rules (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -171,7 +160,6 @@ async def asyncio_detailed(
     kwargs = _get_kwargs(
         environment_uuid=environment_uuid,
         cluster=cluster,
-        rules=rules,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -184,7 +172,6 @@ async def asyncio(
     *,
     client: AuthenticatedClient,
     cluster: Union[Unset, str] = UNSET,
-    rules: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Any, List["Segment"]]]:
     """Retrieve all segments.
 
@@ -193,7 +180,6 @@ async def asyncio(
     Args:
         environment_uuid (str):
         cluster (Union[Unset, str]):
-        rules (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -208,6 +194,5 @@ async def asyncio(
             environment_uuid=environment_uuid,
             client=client,
             cluster=cluster,
-            rules=rules,
         )
     ).parsed

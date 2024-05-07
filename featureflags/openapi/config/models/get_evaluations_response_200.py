@@ -6,16 +6,15 @@ from attrs import field as _attrs_field
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.proxy_config_environments_item import ProxyConfigEnvironmentsItem
+    from ..models.evaluation import Evaluation
 
 
-T = TypeVar("T", bound="ProxyConfig")
+T = TypeVar("T", bound="GetEvaluationsResponse200")
 
 
 @_attrs_define
-class ProxyConfig:
-    """TBD
-
+class GetEvaluationsResponse200:
+    """
     Attributes:
         page_count (int): The total number of pages Example: 100.
         item_count (int): The total number of items Example: 1.
@@ -23,7 +22,7 @@ class ProxyConfig:
         page_index (int): The current page
         version (Union[Unset, int]): The version of this object.  The version will be incremented each time the object
             is modified Example: 5.
-        environments (Union[Unset, List['ProxyConfigEnvironmentsItem']]):
+        evaluations (Union[Unset, List['Evaluation']]):
     """
 
     page_count: int
@@ -31,7 +30,7 @@ class ProxyConfig:
     page_size: int
     page_index: int
     version: Union[Unset, int] = UNSET
-    environments: Union[Unset, List["ProxyConfigEnvironmentsItem"]] = UNSET
+    evaluations: Union[Unset, List["Evaluation"]] = UNSET
     additional_properties: Dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -45,12 +44,14 @@ class ProxyConfig:
 
         version = self.version
 
-        environments: Union[Unset, List[Dict[str, Any]]] = UNSET
-        if not isinstance(self.environments, Unset):
-            environments = []
-            for environments_item_data in self.environments:
-                environments_item = environments_item_data.to_dict()
-                environments.append(environments_item)
+        evaluations: Union[Unset, List[Dict[str, Any]]] = UNSET
+        if not isinstance(self.evaluations, Unset):
+            evaluations = []
+            for componentsschemas_evaluations_item_data in self.evaluations:
+                componentsschemas_evaluations_item = (
+                    componentsschemas_evaluations_item_data.to_dict()
+                )
+                evaluations.append(componentsschemas_evaluations_item)
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -64,14 +65,14 @@ class ProxyConfig:
         )
         if version is not UNSET:
             field_dict["version"] = version
-        if environments is not UNSET:
-            field_dict["environments"] = environments
+        if evaluations is not UNSET:
+            field_dict["evaluations"] = evaluations
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
-        from ..models.proxy_config_environments_item import ProxyConfigEnvironmentsItem
+        from ..models.evaluation import Evaluation
 
         d = src_dict.copy()
         page_count = d.pop("pageCount")
@@ -84,26 +85,26 @@ class ProxyConfig:
 
         version = d.pop("version", UNSET)
 
-        environments = []
-        _environments = d.pop("environments", UNSET)
-        for environments_item_data in _environments or []:
-            environments_item = ProxyConfigEnvironmentsItem.from_dict(
-                environments_item_data
+        evaluations = []
+        _evaluations = d.pop("evaluations", UNSET)
+        for componentsschemas_evaluations_item_data in _evaluations or []:
+            componentsschemas_evaluations_item = Evaluation.from_dict(
+                componentsschemas_evaluations_item_data
             )
 
-            environments.append(environments_item)
+            evaluations.append(componentsschemas_evaluations_item)
 
-        proxy_config = cls(
+        get_evaluations_response_200 = cls(
             page_count=page_count,
             item_count=item_count,
             page_size=page_size,
             page_index=page_index,
             version=version,
-            environments=environments,
+            evaluations=evaluations,
         )
 
-        proxy_config.additional_properties = d
-        return proxy_config
+        get_evaluations_response_200.additional_properties = d
+        return get_evaluations_response_200
 
     @property
     def additional_keys(self) -> List[str]:
