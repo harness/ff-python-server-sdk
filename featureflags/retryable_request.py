@@ -27,7 +27,7 @@ def default_retry_strategy(before_sleep_func=None):
     return retry(
         retry=(
             retry_if_result(
-                lambda response: response.status_code in [
+                lambda response: response in [
                     HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
                     HTTPStatus.INTERNAL_SERVER_ERROR, UnexpectedStatus])),
         wait=wait_exponential(multiplier=1, max=10),
