@@ -54,23 +54,27 @@ def retryable_retrieve_feature_config(environment_uuid: str,
 
 @default_retry_strategy()
 def retryable_retrieve_feature_config_by_identifier(environment_uuid: str,
+                                                    identifier: str,
                                                     client:
                                                     AuthenticatedClient,
                                                     cluster: Union[
                                                         Unset, str] = UNSET) \
         -> Optional[FeatureConfig]:
     return retrieve_flag_by_identifier(client=client,
+                                       identifier=identifier,
                                        environment_uuid=environment_uuid,
                                        cluster=cluster)
 
 
 @default_retry_strategy()
 def retryable_retrieve_segment_by_identifier(environment_uuid: str,
+                                             identifier: str,
                                              client:
                                              AuthenticatedClient,
                                              cluster: Union[
                                                  Unset, str] = UNSET) \
         -> Optional[Union[Any, Segment]]:
     return retrieve_segment_by_identifier(client=client,
+                                          identifier=identifier,
                                           environment_uuid=environment_uuid,
                                           cluster=cluster)

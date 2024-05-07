@@ -12,10 +12,10 @@ from featureflags.repository import DataProviderInterface
 from .config import Config
 from .dto.message import Message
 from .openapi.config import AuthenticatedClient
-from .openapi.config.api.client.get_feature_config_by_identifier import \
-    sync as get_feature_config
-from .openapi.config.api.client.get_segment_by_identifier import \
-    sync as get_target_segment
+
+from .retryable_request import \
+    retryable_retrieve_feature_config_by_identifier, \
+    retryable_retrieve_segment_by_identifier
 from .sdk_logging_codes import (info_poll_started, info_polling_stopped,
                                 info_stream_connected,
                                 info_stream_event_received,
@@ -163,10 +163,11 @@ class FlagMsgProcessor(Thread):
             try:
                 log.debug("Fetching flag config '%s' from server",
                           self._msg.identifier)
-                fc = get_feature_config(client=self._client,
-                                        identifier=self._msg.identifier,
-                                        environment_uuid=self._environemnt_id,
-                                        cluster=self._cluster)
+                fc = retryable_retrieve_feature_config_by_identifier(
+                    client=self._client,
+                    identifier=self._msg.identifier,
+                    environment_uuid=self._environemnt_id,
+                    cluster=self._cluster)
                 log.debug("Feature config '%s' loaded", fc.feature)
                 self._repository.set_flag(fc)
                 log.debug('flag %s successfully stored in the cache',
@@ -206,10 +207,11 @@ class SegmentMsgProcessor(Thread):
             try:
                 log.debug("Fetching target segment '%s' from server",
                           self._msg.identifier)
-                ts = get_target_segment(client=self._client,
-                                        identifier=self._msg.identifier,
-                                        environment_uuid=self._environemnt_id,
-                                        cluster=self._cluster)
+                ts = retryable_retrieve_segment_by_identifier(
+                    client=self._client,
+                    identifier=self._msg.identifier,
+                    environment_uuid=self._environemnt_id,
+                    cluster=self._cluster)
                 log.debug("Target segment '%s' loaded", ts.identifier)
                 self._repository.set_segment(ts)
                 log.debug('flag %s successfully stored in cache',

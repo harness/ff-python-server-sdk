@@ -3,15 +3,14 @@ from concurrent.futures import Future
 from threading import Event, Thread
 from typing import Dict
 
+from tenacity import RetryError
 
 from featureflags.repository import DataProviderInterface
 
 from .config import Config
 from .openapi.config import AuthenticatedClient
-from .openapi.config.api.client.get_all_segments import \
-    sync as retrieve_segments
-from .openapi.config.api.client.get_feature_config import \
-    sync as retrieve_flags
+from .retryable_request import retryable_retrieve_feature_config, \
+    retryable_retrieve_segments
 from .sdk_logging_codes import (info_poll_ran_successfully, info_poll_started,
                                 info_polling_stopped, info_sdk_init_ok,
                                 warn_failed_init_fetch_error,
@@ -156,7 +155,7 @@ class PollingProcessor(Thread):
     def __retrieve_flags(self, future: Future):
         try:
             log.debug("Loading feature flags")
-            flags = retrieve_flags(
+            flags = retryable_retrieve_feature_config(
                 client=self.__client, environment_uuid=self.__environment_id,
                 cluster=self.__cluster
             )
@@ -167,6 +166,19 @@ class PollingProcessor(Thread):
             future.set_result(
                 "Success")
 
+        except RetryError as e:
+            last_exception = e.last_attempt.exception()
+            if last_exception:
+                warning_fetch_all_features_failed(e.last_attempt.exception())
+                future.set_exception(
+                    RetrievalError(
+                        f"Failed to retrieve flags '{last_exception}'"))
+            else:
+                result_error = e.last_attempt.result()
+                warning_fetch_all_features_failed(result_error)
+                future.set_exception(
+                    RetrievalError(
+                        f"Failed to retrieve flags '{result_error}'"))
 
         except Exception as e:
             future.set_exception(
@@ -176,7 +188,7 @@ class PollingProcessor(Thread):
     def __retrieve_segments(self, future: Future):
         try:
             log.debug("Loading target segments")
-            segments = retrieve_segments(
+            segments = retryable_retrieve_segments(
                 client=self.__client,
                 environment_uuid=self.__environment_id,
                 cluster=self.__cluster
@@ -188,7 +200,19 @@ class PollingProcessor(Thread):
             future.set_result(
                 "Success")
 
-
+        except RetryError as e:
+            last_exception = e.last_attempt.exception()
+            if last_exception:
+                warning_fetch_all_groups_failed(e.last_attempt.exception())
+                future.set_exception(
+                    RetrievalError(
+                        f"Failed to retrieve segments '{last_exception}'"))
+            else:
+                result_error = e.last_attempt.result()
+                warning_fetch_all_groups_failed(result_error)
+                future.set_exception(
+                    RetrievalError(
+                        f"Failed to retrieve segments '{result_error}'"))
 
         except Exception as ex:
             future.set_exception(
