@@ -3,10 +3,7 @@ from tenacity import retry_if_result, wait_exponential, \
 from http import HTTPStatus
 from typing import Any, Optional, Union, List
 
-from featureflags.openapi.config import AuthenticatedClient
-from featureflags.openapi.config.types import Unset, UNSET
-from openapi.config.errors import UnexpectedStatus
-from openapi.config.models import Segment, FeatureConfig
+from .openapi.config.api.client.authenticate import sync as authenticate
 from .openapi.config.api.client.get_all_segments import \
     sync as retrieve_segments
 from .openapi.config.api.client.get_feature_config import \
@@ -15,6 +12,13 @@ from .openapi.config.api.client.get_feature_config_by_identifier import \
     sync as retrieve_flag_by_identifier
 from .openapi.config.api.client.get_segment_by_identifier import \
     sync as retrieve_segment_by_identifier
+from .openapi.config.models import AuthenticationRequest, \
+    AuthenticationResponse
+
+from featureflags.openapi.config import AuthenticatedClient, Client
+from featureflags.openapi.config.types import Unset, UNSET
+from openapi.config.errors import UnexpectedStatus
+from openapi.config.models import Segment, FeatureConfig
 
 MAX_RETRY_ATTEMPTS = 10
 
@@ -30,6 +34,14 @@ def default_retry_strategy(before_sleep_func=None):
         before_sleep=before_sleep_func,
         stop=stop_after_attempt(MAX_RETRY_ATTEMPTS)
     )
+
+
+@default_retry_strategy()
+def retryable_authenticate(
+        client: Union[AuthenticatedClient, Client],
+        body: AuthenticationRequest) -> Optional[
+    Union[Any, AuthenticationResponse]]:
+    return authenticate(client=client, body=body)
 
 
 @default_retry_strategy()
