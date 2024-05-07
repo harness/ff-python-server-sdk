@@ -22,6 +22,7 @@ from .openapi.config.api.client.authenticate import AuthenticationRequest
 from .openapi.config.api.client.authenticate import sync as authenticate
 from .openapi.config.client import AuthenticatedClient, Client
 from .polling import PollingProcessor
+from .retryable_request import retryable_authenticate
 from .streaming import StreamProcessor
 from .util import log
 
@@ -184,23 +185,6 @@ class CfClient(object):
                 'will not attempt to reconnect')
             return False
 
-    # TODO this will require rework as response no longer contain status_code
-    #  after openapi code was regenerated
-    # def _authenticate_with_retry(self, client, body, max_auth_retries):
-    #     retryer = Retrying(
-    #         wait=wait_exponential(multiplier=1, min=4, max=10),
-    #         retry=retry_all(
-    #             retry_if_exception,
-    #           #retry_if_result(lambda response: response.status_code != 200),
-    #             retry_if_result(self._handle_http_result)
-    #         ),
-    #         before_sleep=lambda retry_state: warn_auth_retying(
-    #             retry_state.attempt_number,
-    #             retry_state.outcome.result()),
-    #         stop=stop_after_attempt(max_auth_retries),
-    #     )
-    #     return retryer(authenticate, client=client, body=body)
-
     def authenticate(self):
         verify = True
         if self._config.tls_trusted_cas_file is not None:
@@ -208,9 +192,7 @@ class CfClient(object):
 
         client = Client(base_url=self._config.base_url, verify_ssl=verify)
         body = AuthenticationRequest(api_key=self._sdk_key)
-        response = authenticate(client=client, body=body)
-        # response = self._authenticate_with_retry(client=client, body=body,
-        #    max_auth_retries=self._config.max_auth_retries)
+        response = retryable_authenticate(client=client, body=body)
         self._auth_token = response.auth_token
 
         decoded = decode(self._auth_token, options={
