@@ -62,7 +62,7 @@ def handle_http_result(response):
     if code in RETRYABLE_CODES:
         return True
     else:
-        raise Exception(
+        raise UnrecoverableRequestException(
             f'Request failed with unrecoverable error: status_code='
             f'{response.status_code}, content={response.content}')
 
