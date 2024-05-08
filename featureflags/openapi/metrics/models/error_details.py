@@ -10,7 +10,8 @@ T = TypeVar("T", bound="ErrorDetails")
 class ErrorDetails:
     """Additional details about the error"""
 
-    additional_properties: Dict[str, Any] = _attrs_field(init=False, factory=dict)
+    additional_properties: Dict[str, Any] = _attrs_field(
+        init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         field_dict: Dict[str, Any] = {}
