@@ -162,7 +162,7 @@ def retryable_retrieve_segment_by_identifier(environment_uuid: str,
                                              AuthenticatedClient,
                                              cluster: Union[
                                                  Unset, str] = UNSET) \
-        -> Optional[Union[Any, Segment]]:
+        ->  Response[Segment]:
     return retrieve_segment_by_identifier(client=client,
                                           identifier=identifier,
                                           environment_uuid=environment_uuid,

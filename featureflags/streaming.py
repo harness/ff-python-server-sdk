@@ -165,7 +165,7 @@ class FlagMsgProcessor(Thread):
                     client=self._client,
                     identifier=self._msg.identifier,
                     environment_uuid=self._environemnt_id,
-                    cluster=self._cluster)
+                    cluster=self._cluster).parsed
                 log.debug("Feature config '%s' loaded", fc.feature)
                 self._repository.set_flag(fc)
                 log.debug('flag %s successfully stored in the cache',
@@ -206,7 +206,7 @@ class SegmentMsgProcessor(Thread):
                     client=self._client,
                     identifier=self._msg.identifier,
                     environment_uuid=self._environemnt_id,
-                    cluster=self._cluster)
+                    cluster=self._cluster).parsed
                 log.debug("Target segment '%s' loaded", ts.identifier)
                 self._repository.set_segment(ts)
                 log.debug('flag %s successfully stored in cache',
