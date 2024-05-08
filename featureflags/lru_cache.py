@@ -39,7 +39,8 @@ class LRUCache(Cache):
 
     def remove(self, keys: List[str]) -> None:
         for key in keys:
-            del self.cache[key]
+            if key in self.cache:
+                del self.cache[key]
 
     def keys(self) -> List[str]:
         return list(self.cache.keys())
