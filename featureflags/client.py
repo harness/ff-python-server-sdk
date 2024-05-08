@@ -158,8 +158,7 @@ class CfClient(object):
             self._initialized.set()
         except Exception as ex:
             sdk_codes.warn_failed_init_auth_error(ex)
-            self._initialised_failed_reason[True] \
-                = str(ex)
+            self._initialised_failed_reason[True] = str(ex)
             self._initialized.set()
 
     def wait_for_initialization(self):
