@@ -3,8 +3,6 @@ from concurrent.futures import Future
 from threading import Event, Thread
 from typing import Dict
 
-from tenacity import RetryError
-
 from featureflags.repository import DataProviderInterface
 
 from .config import Config

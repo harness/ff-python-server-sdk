@@ -70,12 +70,12 @@ def handle_http_result(response):
 
 
 def handle_retries_exceeded(retry_state):
-    # Convert RetryError into a custom exception or handle it differently
     content = retry_state.outcome.result().content
     if content == b'':
         content = ""
-    raise UnrecoverableRequestException(retry_state.outcome.result().status_code,
-                                        content)
+    raise UnrecoverableRequestException(
+        retry_state.outcome.result().status_code,
+        content)
 
 
 @default_retry_strategy(

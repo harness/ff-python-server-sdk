@@ -5,8 +5,6 @@ import traceback
 from threading import Thread
 from typing import Union
 
-from tenacity import RetryError
-
 from featureflags.repository import DataProviderInterface
 
 from .config import Config
@@ -15,7 +13,7 @@ from .openapi.config import AuthenticatedClient
 
 from .retryable_request import \
     retryable_retrieve_feature_config_by_identifier, \
-    retryable_retrieve_segment_by_identifier
+    retryable_retrieve_segment_by_identifier, UnrecoverableRequestException
 from .sdk_logging_codes import (info_poll_started, info_polling_stopped,
                                 info_stream_connected,
                                 info_stream_event_received,
@@ -173,11 +171,8 @@ class FlagMsgProcessor(Thread):
                 log.debug('flag %s successfully stored in the cache',
                           fc.feature)
 
-            except RetryError as e:
-                error = e.last_attempt.exception()
-                if not error:
-                    error = e.last_attempt.result()
-                warning_fetch_feature_by_id_failed(error)
+            except UnrecoverableRequestException as e:
+                warning_fetch_feature_by_id_failed(e)
 
             except Exception as ex:
                 warning_fetch_feature_by_id_failed(ex)
@@ -217,11 +212,8 @@ class SegmentMsgProcessor(Thread):
                 log.debug('flag %s successfully stored in cache',
                           ts.identifier)
 
-            except RetryError as e:
-                error = e.last_attempt.exception()
-                if not error:
-                    error = e.last_attempt.result()
-                warning_fetch_group_by_id_failed(error)
+            except UnrecoverableRequestException as e:
+                warning_fetch_group_by_id_failed(e)
 
             except Exception as ex:
                 warning_fetch_group_by_id_failed(ex)
