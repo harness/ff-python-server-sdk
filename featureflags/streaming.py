@@ -179,6 +179,9 @@ class FlagMsgProcessor(Thread):
                     error = e.last_attempt.result()
                 warning_fetch_feature_by_id_failed(error)
 
+            except Exception as ex:
+                warning_fetch_feature_by_id_failed(ex)
+
         elif self._msg.event == 'delete':
             self._repository.remove_flag(self._msg.identifier)
             log.debug('flag %s successfully removed from cache',
@@ -219,6 +222,9 @@ class SegmentMsgProcessor(Thread):
                 if not error:
                     error = e.last_attempt.result()
                 warning_fetch_group_by_id_failed(error)
+                
+            except Exception as ex:
+                warning_fetch_group_by_id_failed(ex)
 
         elif self._msg.event == 'delete':
             self._repository.remove_segment(self._msg.identifier)
