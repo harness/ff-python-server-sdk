@@ -62,9 +62,8 @@ def handle_http_result(response):
     if code in RETRYABLE_CODES:
         return True
     else:
-        raise UnrecoverableRequestException(
-            f'Request failed with unrecoverable error: status_code='
-            f'{response.status_code}, content={response.content}')
+        raise UnrecoverableRequestException(response.status_code,
+                                            response.content)
 
 
 def handle_retries_exceeded(retry_state):
@@ -78,19 +77,24 @@ def handle_retries_exceeded(retry_state):
 
 def make_log_warning_before_sleep(warning_fun):
     def log_warning_before_sleep(retry_state):
-        try:
-            result = retry_state.outcome.result()
-            status_code = result.status_code
-            content = result.content if result.content != b'' else ""
-            error_message = f"status_code={status_code}, content={content}"
-        # Defensive check in case getting result of outcome throws
-        except Exception as e:
-            status_code = None
-            content = str(e)
-            error_message = f"status_code={status_code}, content={content}"
+        error_message = build_retry_warning_message(retry_state)
         warning_fun(retry_state.attempt_number, error_message)
 
     return log_warning_before_sleep
+
+
+def build_retry_warning_message(retry_state):
+    # Defensive check in case getting result of outcome throws
+    try:
+        result = retry_state.outcome.result()
+        status_code = result.status_code
+        content = result.content if result.content != b'' else ""
+        error_message = f"status_code={status_code}, content={content}"
+    except Exception as e:
+        status_code = None
+        content = str(e)
+        error_message = f"status_code={status_code}, content={content}"
+    return error_message
 
 
 @default_retry_strategy(
