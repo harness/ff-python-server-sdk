@@ -51,7 +51,8 @@ def handle_http_result(response):
         return True
     else:
         raise Exception(
-            f'Request failed on an unrecoverable error: status_code({response.status_code}), content({response.content}')
+            f'Request failed on an unrecoverable error: status_code('
+            f'{response.status_code}), content({response.content}')
 
 
 @default_retry_strategy(
