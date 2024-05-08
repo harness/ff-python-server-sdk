@@ -24,11 +24,10 @@ from .sdk_logging_codes import warn_auth_retying, \
     warning_fetch_all_segments_retrying, warning_fetch_all_features_retrying, \
     warning_fetch_feature_by_id_retrying, warning_fetch_group_by_id_retrying
 
-# TODO change to 10
-MAX_RETRY_ATTEMPTS = 2
+MAX_RETRY_ATTEMPTS = 10
 
 RETRYABLE_CODES = {HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
-                   HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.FORBIDDEN}
+                   HTTPStatus.INTERNAL_SERVER_ERROR}
 
 
 class UnrecoverableRequestException(Exception):
