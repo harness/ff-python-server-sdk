@@ -7,7 +7,6 @@ from enum import Enum
 from typing import Any, Callable, Dict, Optional, Union
 
 from jwt import decode
-from tenacity import (RetryError)
 
 import featureflags.sdk_logging_codes as sdk_codes
 from featureflags.analytics import AnalyticsService
@@ -19,7 +18,6 @@ from featureflags.repository import Repository
 from .config import Config, default_config
 from .evaluations.auth_target import Target
 from .openapi.config.api.client.authenticate import AuthenticationRequest
-from .openapi.config.api.client.authenticate import sync as authenticate
 from .openapi.config.client import AuthenticatedClient, Client
 from .polling import PollingProcessor
 from .retryable_request import retryable_authenticate, \
