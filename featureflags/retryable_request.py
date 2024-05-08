@@ -52,7 +52,6 @@ def default_retry_strategy(before_sleep_func=None, on_retry_error=None):
         stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
         retry_error_callback=lambda response: on_retry_error(
             response),
-
     )
 
 
@@ -78,10 +77,24 @@ def handle_retries_exceeded(retry_state):
         content)
 
 
+def make_log_warning_before_sleep(warning_fun):
+    def log_warning_before_sleep(retry_state):
+        try:
+            result = retry_state.outcome.result()
+            status_code = result.status_code
+            content = result.content if result.content != b'' else ""
+            error_message = f"status_code={status_code}, content={content}"
+        # Defensive check in case getting result of outcome throws
+        except Exception as e:
+            status_code = None
+            content = str(e)
+            error_message = f"status_code={status_code}, content={content}"
+        warning_fun(retry_state.attempt_number, error_message)
+    return log_warning_before_sleep
+
+
 @default_retry_strategy(
-    before_sleep_func=lambda retry_state: warn_auth_retying(
-        retry_state.attempt_number,
-        retry_state.outcome.result()),
+    before_sleep_func=make_log_warning_before_sleep(warn_auth_retying),
     on_retry_error=handle_retries_exceeded)
 def retryable_authenticate(
         client: Union[AuthenticatedClient, Client],
