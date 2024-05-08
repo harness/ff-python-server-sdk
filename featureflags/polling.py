@@ -167,19 +167,14 @@ class PollingProcessor(Thread):
                 "Success")
 
         except RetryError as e:
-            last_exception = e.last_attempt.exception()
-            if last_exception:
-                warning_fetch_all_features_failed(e.last_attempt.exception())
-                future.set_exception(
-                    RetrievalError(
-                        f"Failed to retrieve flags '{last_exception}'"))
-            else:
-                result_error = e.last_attempt.result()
-                warning_fetch_all_features_failed(result_error)
-                future.set_exception(
-                    RetrievalError(
-                        f"Failed to retrieve flags '{result_error}'"))
+            error = e.last_attempt.exception()
+            if not error:
+                error = e.last_attempt.result()
 
+            warning_fetch_all_features_failed(error)
+            future.set_exception(
+                RetrievalError(
+                    f"Failed to retrieve flags '{error}'"))
         except Exception as e:
             future.set_exception(
                 RetrievalError(

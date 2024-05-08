@@ -143,6 +143,7 @@ class CfClient(object):
             error = e.last_attempt.exception()
             if not error:
                 error = e.last_attempt.result()
+
             sdk_codes.warn_auth_failed_exceed_retries()
             sdk_codes.warn_failed_init_auth_error(error)
             self._initialized_failed = True
