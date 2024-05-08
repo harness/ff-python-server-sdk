@@ -44,6 +44,9 @@ def default_retry_strategy(before_sleep_func=None):
 
 def handle_http_result(response):
     code = response.status_code
+    if code == HTTPStatus.OK:
+        return False
+
     if code in RETRYABLE_CODES:
         return True
     else:
