@@ -18,7 +18,7 @@ from .evaluations.auth_target import Target
 from .openapi.config.api.client.authenticate import AuthenticationRequest
 from .openapi.config.client import AuthenticatedClient, Client
 from .polling import PollingProcessor
-from .retryable_request import retryable_authenticate, \
+from .api import retryable_authenticate, \
     UnrecoverableRequestException
 from .streaming import StreamProcessor
 from .util import log

@@ -7,7 +7,7 @@ from featureflags.repository import DataProviderInterface
 
 from .config import Config
 from .openapi.config import AuthenticatedClient
-from .retryable_request import retryable_retrieve_feature_config, \
+from .api import retryable_retrieve_feature_config, \
     retryable_retrieve_segments, UnrecoverableRequestException
 from .sdk_logging_codes import (info_poll_ran_successfully, info_poll_started,
                                 info_polling_stopped, info_sdk_init_ok,

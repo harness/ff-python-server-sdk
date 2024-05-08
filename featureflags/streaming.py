@@ -11,7 +11,7 @@ from .config import Config
 from .dto.message import Message
 from .openapi.config import AuthenticatedClient
 
-from .retryable_request import \
+from .api import \
     retryable_retrieve_feature_config_by_identifier, \
     retryable_retrieve_segment_by_identifier, UnrecoverableRequestException
 from .sdk_logging_codes import (info_poll_started, info_polling_stopped,
