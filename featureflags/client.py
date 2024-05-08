@@ -2,16 +2,13 @@
 
 import json
 import threading
-import traceback
 from enum import Enum
 from typing import Any, Callable, Dict, Optional, Union
 
 from jwt import decode
-from tenacity import (RetryError)
 
 import featureflags.sdk_logging_codes as sdk_codes
 from featureflags.analytics import AnalyticsService
-from featureflags.config import RETRYABLE_CODES
 from featureflags.evaluations.evaluator import (Evaluator,
                                                 FlagKindMismatchException)
 from featureflags.repository import Repository
@@ -19,9 +16,10 @@ from featureflags.repository import Repository
 from .config import Config, default_config
 from .evaluations.auth_target import Target
 from .openapi.config.api.client.authenticate import AuthenticationRequest
-from .openapi.config.api.client.authenticate import sync as authenticate
 from .openapi.config.client import AuthenticatedClient, Client
 from .polling import PollingProcessor
+from .retryable_request import retryable_authenticate, \
+    UnrecoverableRequestException
 from .streaming import StreamProcessor
 from .util import log
 
@@ -139,9 +137,10 @@ class CfClient(object):
                     cluster=self._cluster,
                 )
 
-        except RetryError:
+        except UnrecoverableRequestException as e:
+
             sdk_codes.warn_auth_failed_exceed_retries()
-            sdk_codes.warn_failed_init_auth_error()
+            sdk_codes.warn_failed_init_auth_error(e)
             self._initialized_failed = True
             # We just need to unblock the thread here
             # in case wait_for_intialization was called. The SDK has already
@@ -155,10 +154,8 @@ class CfClient(object):
             # And again, unblock the thread.
             self._initialized.set()
         except Exception as ex:
-            print(traceback.format_exc())
-            sdk_codes.warn_failed_init_auth_error(str(ex))
-            self._initialised_failed_reason[True] \
-                = str(ex)
+            sdk_codes.warn_failed_init_auth_error(ex)
+            self._initialised_failed_reason[True] = str(ex)
             self._initialized.set()
 
     def wait_for_initialization(self):
@@ -174,43 +171,15 @@ class CfClient(object):
     def get_environment_id(self):
         return self._environment_id
 
-    def _handle_http_result(response):
-        code = response.status_code
-        if code in RETRYABLE_CODES:
-            return True
-        else:
-            log.error(
-                f'Authentication received HTTP code #{code} and '
-                'will not attempt to reconnect')
-            return False
-
-    # TODO this will require rework as response no longer contain status_code
-    #  after openapi code was regenerated
-    # def _authenticate_with_retry(self, client, body, max_auth_retries):
-    #     retryer = Retrying(
-    #         wait=wait_exponential(multiplier=1, min=4, max=10),
-    #         retry=retry_all(
-    #             retry_if_exception,
-    #           #retry_if_result(lambda response: response.status_code != 200),
-    #             retry_if_result(self._handle_http_result)
-    #         ),
-    #         before_sleep=lambda retry_state: warn_auth_retying(
-    #             retry_state.attempt_number,
-    #             retry_state.outcome.result()),
-    #         stop=stop_after_attempt(max_auth_retries),
-    #     )
-    #     return retryer(authenticate, client=client, body=body)
-
     def authenticate(self):
         verify = True
         if self._config.tls_trusted_cas_file is not None:
             verify = self._config.tls_trusted_cas_file
 
-        client = Client(base_url=self._config.base_url, verify_ssl=verify)
+        client = Client(base_url=self._config.base_url, verify_ssl=verify,
+                        raise_on_unexpected_status=True)
         body = AuthenticationRequest(api_key=self._sdk_key)
-        response = authenticate(client=client, body=body)
-        # response = self._authenticate_with_retry(client=client, body=body,
-        #    max_auth_retries=self._config.max_auth_retries)
+        response = retryable_authenticate(client=client, body=body).parsed
         self._auth_token = response.auth_token
 
         decoded = decode(self._auth_token, options={
