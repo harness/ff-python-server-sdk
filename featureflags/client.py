@@ -11,7 +11,6 @@ from tenacity import RetryError
 
 import featureflags.sdk_logging_codes as sdk_codes
 from featureflags.analytics import AnalyticsService
-from featureflags.config import RETRYABLE_CODES
 from featureflags.evaluations.evaluator import (Evaluator,
                                                 FlagKindMismatchException)
 from featureflags.repository import Repository
@@ -159,8 +158,8 @@ class CfClient(object):
             # And again, unblock the thread.
             self._initialized.set()
         except Exception as ex:
-            print(traceback.format_exc())
-            sdk_codes.warn_failed_init_auth_error(str(ex))
+            # print(traceback.format_exc())
+            sdk_codes.warn_failed_init_auth_error(ex)
             self._initialised_failed_reason[True] \
                 = str(ex)
             self._initialized.set()

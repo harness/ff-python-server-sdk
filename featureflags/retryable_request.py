@@ -1,5 +1,5 @@
 from tenacity import retry_if_result, wait_exponential, \
-    stop_after_attempt, retry
+    stop_after_attempt, retry, retry_if_exception_type, retry_all
 from http import HTTPStatus
 from typing import Any, Optional, Union
 
@@ -25,19 +25,32 @@ from .sdk_logging_codes import warn_auth_retying
 # TODO change to 10
 MAX_RETRY_ATTEMPTS = 2
 
+RETRYABLE_CODES = {HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
+                   HTTPStatus.INTERNAL_SERVER_ERROR}
+
 
 def default_retry_strategy(before_sleep_func=None):
     return retry(
         retry=(
-            retry_if_result(
-                lambda response: response.status_code in [
-                    HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
-                    HTTPStatus.INTERNAL_SERVER_ERROR, UnexpectedStatus,
-                    HTTPStatus.FORBIDDEN, HTTPStatus.UNAUTHORIZED])),
+                retry_all(
+                    retry_if_result(
+                        lambda response: response.status_code != 200),
+                    retry_if_result(handle_http_result))
+                | retry_if_exception_type(UnexpectedStatus)),
+
         wait=wait_exponential(multiplier=1, max=10),
         before_sleep=before_sleep_func,
         stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
     )
+
+
+def handle_http_result(response):
+    code = response.status_code
+    if code in RETRYABLE_CODES:
+        return True
+    else:
+        raise Exception(
+            f'Authentication failed on an unrecoverable error: {response}')
 
 
 @default_retry_strategy(
@@ -48,7 +61,10 @@ def retryable_authenticate(
         client: Union[AuthenticatedClient, Client],
         body: AuthenticationRequest) -> \
         Response[Union[AuthenticationResponse, Any]]:
-    return authenticate(client=client, body=body)
+    response = authenticate(client=client, body=body)
+    # if response.status_code != HTTPStatus.OK:
+    #     raise Exception("Authentication failed: " + str(response))
+    return response
 
 
 @default_retry_strategy()
