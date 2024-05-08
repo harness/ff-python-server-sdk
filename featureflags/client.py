@@ -2,7 +2,6 @@
 
 import json
 import threading
-import traceback
 from enum import Enum
 from typing import Any, Callable, Dict, Optional, Union
 
@@ -158,7 +157,6 @@ class CfClient(object):
             # And again, unblock the thread.
             self._initialized.set()
         except Exception as ex:
-            # print(traceback.format_exc())
             sdk_codes.warn_failed_init_auth_error(ex)
             self._initialised_failed_reason[True] \
                 = str(ex)
@@ -176,16 +174,6 @@ class CfClient(object):
 
     def get_environment_id(self):
         return self._environment_id
-
-    def _handle_http_result(response):
-        code = response.status_code
-        if code in RETRYABLE_CODES:
-            return True
-        else:
-            log.error(
-                f'Authentication received HTTP code #{code} and '
-                'will not attempt to reconnect')
-            return False
 
     def authenticate(self):
         verify = True

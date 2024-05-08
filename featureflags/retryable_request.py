@@ -1,5 +1,5 @@
 from tenacity import retry_if_result, wait_exponential, \
-    stop_after_attempt, retry, retry_if_exception_type, retry_all
+    stop_after_attempt, retry, retry_if_exception_type
 from http import HTTPStatus
 from typing import Any, Optional, Union
 
@@ -32,15 +32,13 @@ RETRYABLE_CODES = {HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
 def default_retry_strategy(before_sleep_func=None):
     return retry(
         retry=(
-                retry_all(
-                    retry_if_result(
-                        lambda response: response.status_code != 200),
-                    retry_if_result(handle_http_result))
-                | retry_if_exception_type(UnexpectedStatus)),
+                retry_if_result(handle_http_result) |
+                retry_if_exception_type(UnexpectedStatus)),
 
         wait=wait_exponential(multiplier=1, max=10),
         before_sleep=before_sleep_func,
         stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
+
     )
 
 
@@ -62,8 +60,6 @@ def retryable_authenticate(
         body: AuthenticationRequest) -> \
         Response[Union[AuthenticationResponse, Any]]:
     response = authenticate(client=client, body=body)
-    # if response.status_code != HTTPStatus.OK:
-    #     raise Exception("Authentication failed: " + str(response))
     return response
 
 
