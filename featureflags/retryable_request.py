@@ -31,7 +31,17 @@ RETRYABLE_CODES = {HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
                    HTTPStatus.INTERNAL_SERVER_ERROR}
 
 
-def default_retry_strategy(before_sleep_func=None):
+class UnrecoverableRequestException(Exception):
+    def __init__(self, status_code, content):
+        self.status_code = status_code
+        self.content = content
+
+    def __str__(self):
+        return f'Request failed with unrecoverable error: ' \
+               f'status_code={self.status_code}, contents={self.content}'
+
+
+def default_retry_strategy(before_sleep_func=None, on_retry_error=None):
     return retry(
         retry=(
                 retry_if_result(handle_http_result) |
@@ -40,6 +50,8 @@ def default_retry_strategy(before_sleep_func=None):
         wait=wait_exponential(multiplier=1, max=10),
         before_sleep=before_sleep_func,
         stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
+        retry_error_callback=lambda response: on_retry_error(
+            response),
 
     )
 
@@ -53,14 +65,24 @@ def handle_http_result(response):
         return True
     else:
         raise Exception(
-            f'Request failed with unrecoverable error: status_code('
-            f'{response.status_code}), content({response.content}')
+            f'Request failed with unrecoverable error: status_code='
+            f'{response.status_code}, content={response.content}')
+
+
+def handle_retries_exceeded(retry_state):
+    # Convert RetryError into a custom exception or handle it differently
+    content = retry_state.outcome.result().content
+    if content == b'':
+        content = ""
+    raise UnrecoverableRequestException(retry_state.outcome.result().status_code,
+                                        content)
 
 
 @default_retry_strategy(
     before_sleep_func=lambda retry_state: warn_auth_retying(
         retry_state.attempt_number,
-        retry_state.outcome.result()))
+        retry_state.outcome.result()),
+    on_retry_error=handle_retries_exceeded)
 def retryable_authenticate(
         client: Union[AuthenticatedClient, Client],
         body: AuthenticationRequest) -> \
@@ -72,7 +94,8 @@ def retryable_authenticate(
 @default_retry_strategy(
     before_sleep_func=lambda retry_state: warning_fetch_all_segments_retrying(
         retry_state.attempt_number,
-        retry_state.outcome.result()))
+        retry_state.outcome.result()),
+    on_retry_error=handle_retries_exceeded)
 def retryable_retrieve_segments(environment_uuid: str,
                                 client: AuthenticatedClient,
                                 cluster: Union[Unset, str] = UNSET) -> \
@@ -85,7 +108,8 @@ def retryable_retrieve_segments(environment_uuid: str,
 @default_retry_strategy(
     before_sleep_func=lambda retry_state: warning_fetch_all_features_retrying(
         retry_state.attempt_number,
-        retry_state.outcome.result()))
+        retry_state.outcome.result()),
+    on_retry_error=handle_retries_exceeded)
 def retryable_retrieve_feature_config(environment_uuid: str,
                                       client: AuthenticatedClient,
                                       cluster: Union[Unset, str] = UNSET) -> \
