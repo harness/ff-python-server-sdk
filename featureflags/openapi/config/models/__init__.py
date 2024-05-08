@@ -1,5 +1,6 @@
 """Contains all the data models used in inputs/outputs"""
 
+from .authenticate_proxy_key_body import AuthenticateProxyKeyBody
 from .authentication_request import AuthenticationRequest
 from .authentication_request_target import AuthenticationRequestTarget
 from .authentication_request_target_attributes import (
@@ -14,11 +15,15 @@ from .evaluation import Evaluation
 from .feature_config import FeatureConfig
 from .feature_config_kind import FeatureConfigKind
 from .feature_state import FeatureState
-from .get_evaluations_response_200 import GetEvaluationsResponse200
 from .group_serving_rule import GroupServingRule
 from .key_value import KeyValue
+from .metrics import Metrics
+from .metrics_data import MetricsData
+from .metrics_data_metrics_type import MetricsDataMetricsType
 from .pagination import Pagination
 from .prerequisite import Prerequisite
+from .proxy_config import ProxyConfig
+from .proxy_config_environments_item import ProxyConfigEnvironmentsItem
 from .segment import Segment
 from .serve import Serve
 from .serving_rule import ServingRule
@@ -32,6 +37,7 @@ from .variation_map import VariationMap
 from .weighted_variation import WeightedVariation
 
 __all__ = (
+    "AuthenticateProxyKeyBody",
     "AuthenticationRequest",
     "AuthenticationRequestTarget",
     "AuthenticationRequestTargetAttributes",
@@ -44,11 +50,15 @@ __all__ = (
     "FeatureConfig",
     "FeatureConfigKind",
     "FeatureState",
-    "GetEvaluationsResponse200",
     "GroupServingRule",
     "KeyValue",
+    "Metrics",
+    "MetricsData",
+    "MetricsDataMetricsType",
     "Pagination",
     "Prerequisite",
+    "ProxyConfig",
+    "ProxyConfigEnvironmentsItem",
     "Segment",
     "Serve",
     "ServingRule",
