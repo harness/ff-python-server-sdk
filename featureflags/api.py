@@ -24,10 +24,7 @@ from .sdk_logging_codes import warn_auth_retying, \
     warning_fetch_all_segments_retrying, warning_fetch_all_features_retrying, \
     warning_fetch_feature_by_id_retrying, warning_fetch_group_by_id_retrying
 
-MAX_RETRY_ATTEMPTS = 10
-
-RETRYABLE_CODES = {HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
-                   HTTPStatus.INTERNAL_SERVER_ERROR}
+TARGET_SEGMENT_RULES_PARAM = "v2"
 
 
 class UnrecoverableRequestException(Exception):
@@ -41,6 +38,7 @@ class UnrecoverableRequestException(Exception):
 
 
 def default_retry_strategy(before_sleep_func=None, on_retry_error=None):
+    max_retry_attempts = 10
     return retry(
         retry=(
                 retry_if_result(handle_http_result) |
@@ -48,18 +46,20 @@ def default_retry_strategy(before_sleep_func=None, on_retry_error=None):
 
         wait=wait_exponential(multiplier=1, max=10),
         before_sleep=before_sleep_func,
-        stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
+        stop=stop_after_attempt(max_retry_attempts),
         retry_error_callback=lambda response: on_retry_error(
             response),
     )
 
 
 def handle_http_result(response):
+    retryable_codes = {HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
+                       HTTPStatus.INTERNAL_SERVER_ERROR}
     code = response.status_code
     if code == HTTPStatus.OK:
         return False
 
-    if code in RETRYABLE_CODES:
+    if code in retryable_codes:
         return True
     else:
         raise UnrecoverableRequestException(response.status_code,
@@ -118,7 +118,8 @@ def retryable_retrieve_segments(environment_uuid: str,
         Response[list[Segment]]:
     return retrieve_segments(client=client,
                              environment_uuid=environment_uuid,
-                             cluster=cluster)
+                             cluster=cluster,
+                             rules=TARGET_SEGMENT_RULES_PARAM)
 
 
 @default_retry_strategy(
@@ -165,4 +166,5 @@ def retryable_retrieve_segment_by_identifier(environment_uuid: str,
     return retrieve_segment_by_identifier(client=client,
                                           identifier=identifier,
                                           environment_uuid=environment_uuid,
-                                          cluster=cluster)
+                                          cluster=cluster,
+                                          rules=TARGET_SEGMENT_RULES_PARAM)
