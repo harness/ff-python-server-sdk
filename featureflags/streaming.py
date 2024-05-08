@@ -222,7 +222,7 @@ class SegmentMsgProcessor(Thread):
                 if not error:
                     error = e.last_attempt.result()
                 warning_fetch_group_by_id_failed(error)
-                
+
             except Exception as ex:
                 warning_fetch_group_by_id_failed(ex)
 
