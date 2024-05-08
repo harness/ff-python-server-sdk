@@ -158,7 +158,7 @@ class PollingProcessor(Thread):
             flags = retryable_retrieve_feature_config(
                 client=self.__client, environment_uuid=self.__environment_id,
                 cluster=self.__cluster
-            )
+            ).parsed
             log.debug("Feature flags loaded")
             for flag in flags:
                 log.debug("Put flag %s into repository", flag.feature)
@@ -192,7 +192,7 @@ class PollingProcessor(Thread):
                 client=self.__client,
                 environment_uuid=self.__environment_id,
                 cluster=self.__cluster
-            )
+            ).parsed
             log.debug("Target segments loaded")
             for segment in segments:
                 log.debug("Put %s segment into repository", segment.identifier)

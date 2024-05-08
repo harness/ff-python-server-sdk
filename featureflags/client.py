@@ -191,9 +191,10 @@ class CfClient(object):
         if self._config.tls_trusted_cas_file is not None:
             verify = self._config.tls_trusted_cas_file
 
-        client = Client(base_url=self._config.base_url, verify_ssl=verify, raise_on_unexpected_status=True)
+        client = Client(base_url=self._config.base_url, verify_ssl=verify,
+                        raise_on_unexpected_status=True)
         body = AuthenticationRequest(api_key=self._sdk_key)
-        response = retryable_authenticate(client=client, body=body)
+        response = retryable_authenticate(client=client, body=body).parsed
         self._auth_token = response.auth_token
 
         decoded = decode(self._auth_token, options={

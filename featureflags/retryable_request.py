@@ -22,6 +22,7 @@ from .openapi.config.errors import UnexpectedStatus
 from .openapi.config.models import Segment, FeatureConfig
 from .sdk_logging_codes import warn_auth_retying
 
+# TODO change to 10
 MAX_RETRY_ATTEMPTS = 2
 
 
@@ -57,17 +58,16 @@ def default_retry_strategy(before_sleep_func=None, retries_exceeded_func=None):
     retries_exceeded_func=lambda retry_state: handle_auth_failed(retry_state))
 def retryable_authenticate(
         client: Union[AuthenticatedClient, Client],
-        body: AuthenticationRequest) -> Optional[
-    Union[Any, AuthenticationResponse]]:
-    response = authenticate(client=client, body=body)
-    return response
+        body: AuthenticationRequest) -> Response[
+    Union[AuthenticationResponse, Any]]:
+    return authenticate(client=client, body=body)
 
 
 @default_retry_strategy()
 def retryable_retrieve_segments(environment_uuid: str,
                                 client: AuthenticatedClient,
                                 cluster: Union[Unset, str] = UNSET) -> \
-        Optional[Union[Any, List["Segment"]]]:
+        Response[list[Segment]]:
     return retrieve_segments(client=client,
                              environment_uuid=environment_uuid,
                              cluster=cluster)
