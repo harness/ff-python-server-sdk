@@ -1,49 +1,40 @@
 from http import HTTPStatus
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, Optional, Union, cast
 
 import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.segment import Segment
-from ...types import UNSET, Response, Unset
+from ...models.authenticate_proxy_key_body import AuthenticateProxyKeyBody
+from ...models.authentication_response import AuthenticationResponse
+from ...types import Response
 
 
 def _get_kwargs(
-    environment_uuid: str,
     *,
-    cluster: Union[Unset, str] = UNSET,
-    rules: Union[Unset, str] = UNSET,
+    body: AuthenticateProxyKeyBody,
 ) -> Dict[str, Any]:
-    params: Dict[str, Any] = {}
-
-    params["cluster"] = cluster
-
-    params["rules"] = rules
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+    headers: Dict[str, Any] = {}
 
     _kwargs: Dict[str, Any] = {
-        "method": "get",
-        "url": "/client/env/{environment_uuid}/target-segments".format(
-            environment_uuid=environment_uuid,
-        ),
-        "params": params,
+        "method": "post",
+        "url": "/proxy/auth",
     }
 
+    _body = body.to_dict()
+
+    _kwargs["json"] = _body
+    headers["Content-Type"] = "application/json"
+
+    _kwargs["headers"] = headers
     return _kwargs
 
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Any, List["Segment"]]]:
+) -> Optional[Union[Any, AuthenticationResponse]]:
     if response.status_code == HTTPStatus.OK:
-        response_200 = []
-        _response_200 = response.json()
-        for response_200_item_data in _response_200:
-            response_200_item = Segment.from_dict(response_200_item_data)
-
-            response_200.append(response_200_item)
+        response_200 = AuthenticationResponse.from_dict(response.json())
 
         return response_200
     if response.status_code == HTTPStatus.UNAUTHORIZED:
@@ -66,7 +57,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Any, List["Segment"]]]:
+) -> Response[Union[Any, AuthenticationResponse]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -76,33 +67,27 @@ def _build_response(
 
 
 def sync_detailed(
-    environment_uuid: str,
     *,
-    client: AuthenticatedClient,
-    cluster: Union[Unset, str] = UNSET,
-    rules: Union[Unset, str] = UNSET,
-) -> Response[Union[Any, List["Segment"]]]:
-    """Retrieve all segments.
+    client: Union[AuthenticatedClient, Client],
+    body: AuthenticateProxyKeyBody,
+) -> Response[Union[Any, AuthenticationResponse]]:
+    """Endpoint that the Proxy can use to authenticate with the client server
 
-     Used to retrieve all segments for certain account id.
+     Endpoint that the Proxy can use to authenticate with the client server
 
     Args:
-        environment_uuid (str):
-        cluster (Union[Unset, str]):
-        rules (Union[Unset, str]):
+        body (AuthenticateProxyKeyBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, List['Segment']]]
+        Response[Union[Any, AuthenticationResponse]]
     """
 
     kwargs = _get_kwargs(
-        environment_uuid=environment_uuid,
-        cluster=cluster,
-        rules=rules,
+        body=body,
     )
 
     response = client.get_httpx_client().request(
@@ -113,65 +98,53 @@ def sync_detailed(
 
 
 def sync(
-    environment_uuid: str,
     *,
-    client: AuthenticatedClient,
-    cluster: Union[Unset, str] = UNSET,
-    rules: Union[Unset, str] = UNSET,
-) -> Optional[Union[Any, List["Segment"]]]:
-    """Retrieve all segments.
+    client: Union[AuthenticatedClient, Client],
+    body: AuthenticateProxyKeyBody,
+) -> Optional[Union[Any, AuthenticationResponse]]:
+    """Endpoint that the Proxy can use to authenticate with the client server
 
-     Used to retrieve all segments for certain account id.
+     Endpoint that the Proxy can use to authenticate with the client server
 
     Args:
-        environment_uuid (str):
-        cluster (Union[Unset, str]):
-        rules (Union[Unset, str]):
+        body (AuthenticateProxyKeyBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, List['Segment']]
+        Union[Any, AuthenticationResponse]
     """
 
     return sync_detailed(
-        environment_uuid=environment_uuid,
         client=client,
-        cluster=cluster,
-        rules=rules,
+        body=body,
     ).parsed
 
 
 async def asyncio_detailed(
-    environment_uuid: str,
     *,
-    client: AuthenticatedClient,
-    cluster: Union[Unset, str] = UNSET,
-    rules: Union[Unset, str] = UNSET,
-) -> Response[Union[Any, List["Segment"]]]:
-    """Retrieve all segments.
+    client: Union[AuthenticatedClient, Client],
+    body: AuthenticateProxyKeyBody,
+) -> Response[Union[Any, AuthenticationResponse]]:
+    """Endpoint that the Proxy can use to authenticate with the client server
 
-     Used to retrieve all segments for certain account id.
+     Endpoint that the Proxy can use to authenticate with the client server
 
     Args:
-        environment_uuid (str):
-        cluster (Union[Unset, str]):
-        rules (Union[Unset, str]):
+        body (AuthenticateProxyKeyBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, List['Segment']]]
+        Response[Union[Any, AuthenticationResponse]]
     """
 
     kwargs = _get_kwargs(
-        environment_uuid=environment_uuid,
-        cluster=cluster,
-        rules=rules,
+        body=body,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -180,34 +153,28 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    environment_uuid: str,
     *,
-    client: AuthenticatedClient,
-    cluster: Union[Unset, str] = UNSET,
-    rules: Union[Unset, str] = UNSET,
-) -> Optional[Union[Any, List["Segment"]]]:
-    """Retrieve all segments.
+    client: Union[AuthenticatedClient, Client],
+    body: AuthenticateProxyKeyBody,
+) -> Optional[Union[Any, AuthenticationResponse]]:
+    """Endpoint that the Proxy can use to authenticate with the client server
 
-     Used to retrieve all segments for certain account id.
+     Endpoint that the Proxy can use to authenticate with the client server
 
     Args:
-        environment_uuid (str):
-        cluster (Union[Unset, str]):
-        rules (Union[Unset, str]):
+        body (AuthenticateProxyKeyBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, List['Segment']]
+        Union[Any, AuthenticationResponse]
     """
 
     return (
         await asyncio_detailed(
-            environment_uuid=environment_uuid,
             client=client,
-            cluster=cluster,
-            rules=rules,
+            body=body,
         )
     ).parsed
