@@ -22,7 +22,8 @@ from .openapi.config.api.client.authenticate import AuthenticationRequest
 from .openapi.config.api.client.authenticate import sync as authenticate
 from .openapi.config.client import AuthenticatedClient, Client
 from .polling import PollingProcessor
-from .retryable_request import retryable_authenticate
+from .retryable_request import retryable_authenticate, \
+    UnrecoverableRequestException
 from .streaming import StreamProcessor
 from .util import log
 
@@ -140,9 +141,9 @@ class CfClient(object):
                     cluster=self._cluster,
                 )
 
-        except RetryError:
+        except UnrecoverableRequestException as u:
             sdk_codes.warn_auth_failed_exceed_retries()
-            sdk_codes.warn_failed_init_auth_error()
+            sdk_codes.warn_failed_init_auth_error(u)
             self._initialized_failed = True
             # We just need to unblock the thread here
             # in case wait_for_intialization was called. The SDK has already

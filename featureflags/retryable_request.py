@@ -25,15 +25,17 @@ from .sdk_logging_codes import warn_auth_retying
 MAX_RETRY_ATTEMPTS = 2
 
 
-class UnrecoverableAuthenticationException(Exception):
-    def __init__(self, message):
+class UnrecoverableRequestException(Exception):
+    def __init__(self, request_type, message):
+        self.request_type = request_type
         self.message = message
 
     def __str__(self):
-        return f"UnrecoverableAuthenticationException: {self.message}"
+        return f"{self.request_type} failed on an unrecoverable error: " \
+               f"{self.message}"
 
 
-def default_retry_strategy(before_sleep_func=None):
+def default_retry_strategy(before_sleep_func=None, retries_exceeded_func=None):
     return retry(
         retry=(
             retry_if_result(
@@ -44,12 +46,15 @@ def default_retry_strategy(before_sleep_func=None):
         wait=wait_exponential(multiplier=1, max=10),
         before_sleep=before_sleep_func,
         stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
+        retry_error_callback=retries_exceeded_func
     )
 
 
-@default_retry_strategy(lambda retry_state: warn_auth_retying(
-    retry_state.attempt_number,
-    retry_state.outcome.result()))
+@default_retry_strategy(
+    before_sleep_func=lambda retry_state: warn_auth_retying(
+        retry_state.attempt_number,
+        retry_state.outcome.result()),
+    retries_exceeded_func=lambda retry_state: handle_auth_failed(retry_state))
 def retryable_authenticate(
         client: Union[AuthenticatedClient, Client],
         body: AuthenticationRequest) -> Optional[
@@ -104,3 +109,10 @@ def retryable_retrieve_segment_by_identifier(environment_uuid: str,
                                           identifier=identifier,
                                           environment_uuid=environment_uuid,
                                           cluster=cluster)
+
+
+def handle_auth_failed(retry_state):
+    # Convert RetryError into a custom exception or handle it differently
+    raise UnrecoverableRequestException(
+        "Authentication",
+        retry_state.outcome.result())
