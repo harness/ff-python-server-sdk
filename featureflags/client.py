@@ -7,6 +7,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, Optional, Union
 
 from jwt import decode
+from tenacity import RetryError
 
 import featureflags.sdk_logging_codes as sdk_codes
 from featureflags.analytics import AnalyticsService
@@ -20,8 +21,7 @@ from .evaluations.auth_target import Target
 from .openapi.config.api.client.authenticate import AuthenticationRequest
 from .openapi.config.client import AuthenticatedClient, Client
 from .polling import PollingProcessor
-from .retryable_request import retryable_authenticate, \
-    UnrecoverableRequestException
+from .retryable_request import retryable_authenticate
 from .streaming import StreamProcessor
 from .util import log
 
@@ -139,9 +139,12 @@ class CfClient(object):
                     cluster=self._cluster,
                 )
 
-        except UnrecoverableRequestException as u:
+        except RetryError as e:
+            error = e.last_attempt.exception()
+            if not error:
+                error = e.last_attempt.result()
             sdk_codes.warn_auth_failed_exceed_retries()
-            sdk_codes.warn_failed_init_auth_error(u)
+            sdk_codes.warn_failed_init_auth_error(error)
             self._initialized_failed = True
             # We just need to unblock the thread here
             # in case wait_for_intialization was called. The SDK has already
