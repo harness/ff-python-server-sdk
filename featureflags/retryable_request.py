@@ -5,13 +5,13 @@ from typing import Any, Optional, Union, List
 
 from .openapi.config.api.client.authenticate import sync_detailed as authenticate
 from .openapi.config.api.client.get_all_segments import \
-    sync as retrieve_segments
+    sync_detailed as retrieve_segments
 from .openapi.config.api.client.get_feature_config import \
-    sync as retrieve_flags
+    sync_detailed as retrieve_flags
 from .openapi.config.api.client.get_feature_config_by_identifier import \
-    sync as retrieve_flag_by_identifier
+    sync_detailed as retrieve_flag_by_identifier
 from .openapi.config.api.client.get_segment_by_identifier import \
-    sync as retrieve_segment_by_identifier
+    sync_detailed as retrieve_segment_by_identifier
 from .openapi.config.models import AuthenticationRequest, \
     AuthenticationResponse
 
