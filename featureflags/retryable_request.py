@@ -20,7 +20,9 @@ from featureflags.openapi.config import AuthenticatedClient, Client
 from featureflags.openapi.config.types import Unset, UNSET, Response
 from .openapi.config.errors import UnexpectedStatus
 from .openapi.config.models import Segment, FeatureConfig
-from .sdk_logging_codes import warn_auth_retying
+from .sdk_logging_codes import warn_auth_retying, \
+    warning_fetch_all_segments_retrying, warning_fetch_all_features_retrying, \
+    warning_fetch_feature_by_id_retrying, warning_fetch_group_by_id_retrying
 
 # TODO change to 10
 MAX_RETRY_ATTEMPTS = 2
@@ -67,7 +69,10 @@ def retryable_authenticate(
     return response
 
 
-@default_retry_strategy()
+@default_retry_strategy(
+    before_sleep_func=lambda retry_state: warning_fetch_all_segments_retrying(
+        retry_state.attempt_number,
+        retry_state.outcome.result()))
 def retryable_retrieve_segments(environment_uuid: str,
                                 client: AuthenticatedClient,
                                 cluster: Union[Unset, str] = UNSET) -> \
@@ -77,7 +82,10 @@ def retryable_retrieve_segments(environment_uuid: str,
                              cluster=cluster)
 
 
-@default_retry_strategy()
+@default_retry_strategy(
+    before_sleep_func=lambda retry_state: warning_fetch_all_features_retrying(
+        retry_state.attempt_number,
+        retry_state.outcome.result()))
 def retryable_retrieve_feature_config(environment_uuid: str,
                                       client: AuthenticatedClient,
                                       cluster: Union[Unset, str] = UNSET) -> \
@@ -87,7 +95,10 @@ def retryable_retrieve_feature_config(environment_uuid: str,
                           cluster=cluster)
 
 
-@default_retry_strategy()
+@default_retry_strategy(
+    before_sleep_func=lambda retry_state: warning_fetch_feature_by_id_retrying(
+        retry_state.attempt_number,
+        retry_state.outcome.result()))
 def retryable_retrieve_feature_config_by_identifier(environment_uuid: str,
                                                     identifier: str,
                                                     client:
@@ -101,7 +112,10 @@ def retryable_retrieve_feature_config_by_identifier(environment_uuid: str,
                                        cluster=cluster)
 
 
-@default_retry_strategy()
+@default_retry_strategy(
+    before_sleep_func=lambda retry_state: warning_fetch_group_by_id_retrying(
+        retry_state.attempt_number,
+        retry_state.outcome.result()))
 def retryable_retrieve_segment_by_identifier(environment_uuid: str,
                                              identifier: str,
                                              client:
