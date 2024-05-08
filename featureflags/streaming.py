@@ -174,13 +174,10 @@ class FlagMsgProcessor(Thread):
                           fc.feature)
 
             except RetryError as e:
-                last_exception = e.last_attempt.exception()
-                if last_exception:
-                    warning_fetch_feature_by_id_failed(
-                        e.last_attempt.exception())
-                else:
-                    result_error = e.last_attempt.result()
-                    warning_fetch_feature_by_id_failed(result_error)
+                error = e.last_attempt.exception()
+                if not error:
+                    error = e.last_attempt.result()
+                warning_fetch_feature_by_id_failed(error)
 
         elif self._msg.event == 'delete':
             self._repository.remove_flag(self._msg.identifier)
@@ -218,13 +215,10 @@ class SegmentMsgProcessor(Thread):
                           ts.identifier)
 
             except RetryError as e:
-                last_exception = e.last_attempt.exception()
-                if last_exception:
-                    warning_fetch_group_by_id_failed(
-                        e.last_attempt.exception())
-                else:
-                    result_error = e.last_attempt.result()
-                    warning_fetch_group_by_id_failed(result_error)
+                error = e.last_attempt.exception()
+                if not error:
+                    error = e.last_attempt.result()
+                warning_fetch_group_by_id_failed(error)
 
         elif self._msg.event == 'delete':
             self._repository.remove_segment(self._msg.identifier)
