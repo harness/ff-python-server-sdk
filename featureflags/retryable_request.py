@@ -28,7 +28,7 @@ from .sdk_logging_codes import warn_auth_retying, \
 MAX_RETRY_ATTEMPTS = 2
 
 RETRYABLE_CODES = {HTTPStatus.BAD_GATEWAY, HTTPStatus.NOT_FOUND,
-                   HTTPStatus.INTERNAL_SERVER_ERROR}
+                   HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.FORBIDDEN}
 
 
 class UnrecoverableRequestException(Exception):
@@ -90,6 +90,7 @@ def make_log_warning_before_sleep(warning_fun):
             content = str(e)
             error_message = f"status_code={status_code}, content={content}"
         warning_fun(retry_state.attempt_number, error_message)
+
     return log_warning_before_sleep
 
 
@@ -105,9 +106,8 @@ def retryable_authenticate(
 
 
 @default_retry_strategy(
-    before_sleep_func=lambda retry_state: warning_fetch_all_segments_retrying(
-        retry_state.attempt_number,
-        retry_state.outcome.result()),
+    before_sleep_func=make_log_warning_before_sleep(
+        warning_fetch_all_segments_retrying),
     on_retry_error=handle_retries_exceeded)
 def retryable_retrieve_segments(environment_uuid: str,
                                 client: AuthenticatedClient,
@@ -119,9 +119,8 @@ def retryable_retrieve_segments(environment_uuid: str,
 
 
 @default_retry_strategy(
-    before_sleep_func=lambda retry_state: warning_fetch_all_features_retrying(
-        retry_state.attempt_number,
-        retry_state.outcome.result()),
+    before_sleep_func=make_log_warning_before_sleep(
+        warning_fetch_all_features_retrying),
     on_retry_error=handle_retries_exceeded)
 def retryable_retrieve_feature_config(environment_uuid: str,
                                       client: AuthenticatedClient,
@@ -133,9 +132,9 @@ def retryable_retrieve_feature_config(environment_uuid: str,
 
 
 @default_retry_strategy(
-    before_sleep_func=lambda retry_state: warning_fetch_feature_by_id_retrying(
-        retry_state.attempt_number,
-        retry_state.outcome.result()))
+    before_sleep_func=make_log_warning_before_sleep(
+        warning_fetch_feature_by_id_retrying),
+    on_retry_error=handle_retries_exceeded)
 def retryable_retrieve_feature_config_by_identifier(environment_uuid: str,
                                                     identifier: str,
                                                     client:
@@ -150,9 +149,9 @@ def retryable_retrieve_feature_config_by_identifier(environment_uuid: str,
 
 
 @default_retry_strategy(
-    before_sleep_func=lambda retry_state: warning_fetch_group_by_id_retrying(
-        retry_state.attempt_number,
-        retry_state.outcome.result()))
+    before_sleep_func=make_log_warning_before_sleep(
+        warning_fetch_group_by_id_retrying),
+    on_retry_error=handle_retries_exceeded)
 def retryable_retrieve_segment_by_identifier(environment_uuid: str,
                                              identifier: str,
                                              client:
