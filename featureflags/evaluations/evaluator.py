@@ -250,7 +250,7 @@ class Evaluator(object):
         log.debug("All clauses %s evaluated", clauses)
         return False
 
-    def _evaluate_clauses_v2(self, clauses: list[Clause],
+    def _evaluate_clauses_v2(self, clauses: List[Clause],
                              target: Target) -> bool:
         if not clauses or isinstance(clauses, Unset):
             return False
