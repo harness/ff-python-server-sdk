@@ -147,6 +147,10 @@ class Repository(DataProviderInterface):
             log.debug("Segment %s already exists", segment.identifier)
             return None
 
+        # Sort the serving rules by priority
+        if segment.serving_rules is not Unset:
+            segment.serving_rules.sort(key=lambda rule: rule.priority)
+
         segment_key = format_segment_key(segment.identifier)
 
         if self.store:
