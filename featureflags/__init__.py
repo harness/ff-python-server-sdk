@@ -2,4 +2,4 @@
 
 __author__ = """Harness"""
 __email__ = "support@harness.io"
-__version__ = '1.6.1'
+__version__ = '1.6.2'
