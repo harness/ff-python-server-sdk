@@ -181,9 +181,8 @@ class Evaluator(object):
                     return True
 
                 if segment.serving_rules:
-                    log.debug('Found and using enhanced serving_rules')
                     # Use enhanced rules first if they're available
-                    segment.serving_rules.sort(key=lambda rule: rule.priority)
+                    log.debug('Found and using enhanced serving_rules')
 
                     for serving_rule in segment.serving_rules:
                         if self._evaluate_clauses_v2(serving_rule.clauses,
@@ -251,7 +250,7 @@ class Evaluator(object):
         log.debug("All clauses %s evaluated", clauses)
         return False
 
-    def _evaluate_clauses_v2(self, clauses: Union[Unset, Clauses],
+    def _evaluate_clauses_v2(self, clauses: List[Clause],
                              target: Target) -> bool:
         if not clauses or isinstance(clauses, Unset):
             return False

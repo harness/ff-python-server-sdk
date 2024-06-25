@@ -1,7 +1,7 @@
 from tenacity import retry_if_result, wait_exponential, \
     stop_after_attempt, retry, retry_if_exception_type
 from http import HTTPStatus
-from typing import Any, Union
+from typing import Any, Union, List
 
 from .openapi.config.api.client.authenticate import \
     sync_detailed as authenticate
@@ -115,7 +115,7 @@ def retryable_authenticate(
 def retryable_retrieve_segments(environment_uuid: str,
                                 client: AuthenticatedClient,
                                 cluster: Union[Unset, str] = UNSET) -> \
-        Response[list[Segment]]:
+        Response[List[Segment]]:
     return retrieve_segments(client=client,
                              environment_uuid=environment_uuid,
                              cluster=cluster,
@@ -129,7 +129,7 @@ def retryable_retrieve_segments(environment_uuid: str,
 def retryable_retrieve_feature_config(environment_uuid: str,
                                       client: AuthenticatedClient,
                                       cluster: Union[Unset, str] = UNSET) -> \
-        Response[list[FeatureConfig]]:
+        Response[List[FeatureConfig]]:
     return retrieve_flags(client=client,
                           environment_uuid=environment_uuid,
                           cluster=cluster)

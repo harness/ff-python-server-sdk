@@ -18,7 +18,8 @@ requirements = [
     "attrs>=23.2.0",
     "mmh3>=3.0.0",
     "requests>=2.31.0",
-    "tenacity==8.2.2"
+    "tenacity==8.2.2",
+    "typing_extensions==4.12.2"
 ]
 
 setup_requirements = [
@@ -57,6 +58,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/harness/ff-python-server-sdk",
-    version='1.6.1',
+    version='1.6.2',
     zip_safe=False,
 )

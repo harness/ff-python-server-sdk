@@ -4,12 +4,14 @@ from http import HTTPStatus
 from typing import (
     BinaryIO,
     Generic,
-    Literal,
     MutableMapping,
     Optional,
     Tuple,
     TypeVar,
 )
+
+from typing_extensions import Literal
+
 
 from attrs import define
 
