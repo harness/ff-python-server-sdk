@@ -21,6 +21,7 @@ from .openapi.metrics.models.metrics_data_metrics_type import \
     MetricsDataMetricsType
 from .openapi.metrics.models.target_data import TargetData
 from .openapi.metrics.types import Unset
+from .openapi.config.types import Unset as ConfigUnset
 from .sdk_logging_codes import (info_evaluation_metrics_exceeded,
                                 info_metrics_success,
                                 info_metrics_target_batch_success,
@@ -326,7 +327,7 @@ class AnalyticsService(object):
 
     def process_target(self, target_data, unique_target):
         target_attributes: List[KeyValue] = []
-        if not isinstance(unique_target.attributes, Unset):
+        if not isinstance(unique_target.attributes, ConfigUnset):
             for key, value in unique_target.attributes.items():
                 # Attribute values need to be sent as string to
                 # ff-server so convert all values to strings.
