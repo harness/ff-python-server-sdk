@@ -19,7 +19,7 @@ requirements = [
     "mmh3>=3.0.0",
     "requests>=2.31.0",
     "tenacity==8.2.2",
-    "typing_extensions==4.12.2 w"
+    "typing_extensions==4.12.2"
 ]
 
 setup_requirements = [
