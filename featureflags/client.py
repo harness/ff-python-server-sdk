@@ -23,7 +23,7 @@ from .api import retryable_authenticate, \
 from .streaming import StreamProcessor
 from .util import log
 
-VERSION: str = "1.6.2"
+VERSION: str = "1.6.3"
 
 
 class MissingOrEmptyAPIKeyException(Exception):
