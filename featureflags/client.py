@@ -33,6 +33,13 @@ class MissingOrEmptyAPIKeyException(Exception):
     def __str__(self):
         return f"MissingOrEmptyAPIKeyException: {self.message}"
 
+class SDKInitTimeoutException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return f"SDKInitTimeoutException: {self.message}"
+
 
 class FeatureFlagType(str, Enum):
     BOOLEAN = "boolean"
@@ -158,9 +165,11 @@ class CfClient(object):
             self._initialised_failed_reason[True] = str(ex)
             self._initialized.set()
 
-    def wait_for_initialization(self):
+    def wait_for_initialization(self, timeout_delay=None):
         sdk_codes.info_sdk_init_waiting()
-        self._initialized.wait()
+        self._initialized.wait(timeout=timeout_delay)
+        if self._initialized.is_set() is False:
+            raise SDKInitTimeoutException("SDK init timeout")
 
     def is_initialized(self):
         if self._initialized_failed \
