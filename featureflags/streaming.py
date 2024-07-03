@@ -166,10 +166,14 @@ class FlagMsgProcessor(Thread):
                     identifier=self._msg.identifier,
                     environment_uuid=self._environemnt_id,
                     cluster=self._cluster).parsed
-                log.debug("Feature config '%s' loaded", fc.feature)
-                self._repository.set_flag(fc)
-                log.debug('flag %s successfully stored in the cache',
-                          fc.feature)
+
+                if fc is None:
+                    log.debug("Feature config '%s' not loaded", self._msg.identifier)
+                else:
+                    log.debug("Feature config '%s' loaded", fc.feature)
+                    self._repository.set_flag(fc)
+                    log.debug('flag %s successfully stored in the cache',
+                              fc.feature)
 
             except UnrecoverableRequestException as e:
                 warning_fetch_feature_by_id_failed(e)
