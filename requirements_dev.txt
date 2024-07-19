@@ -14,7 +14,7 @@ twine==3.4.1
 pytest>=7
 pytest-runner==5.1
 pytest-mock==3.6.1
-setuptools~=65.5.1
+setuptools~=70.0.0
 httpx~=0.24.1
 attrs==23.2.0
 
