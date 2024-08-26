@@ -1,7 +1,7 @@
 """Configuration is a base class that has default values that you can change
 during the instance of the client class"""
 
-from typing import Callable
+from typing import Any, Callable, Dict
 
 from .interface import Cache
 from .lru_cache import LRUCache
@@ -28,7 +28,8 @@ class Config(object):
             enable_stream: bool = True,
             enable_analytics: bool = True,
             max_auth_retries: int = 10,
-            tls_trusted_cas_file: str = None
+            tls_trusted_cas_file: str = None,
+            httpx_args: Dict[str, Any] = None,
     ):
         self.base_url = base_url
         self.events_url = events_url
@@ -49,6 +50,9 @@ class Config(object):
         self.enable_analytics = enable_analytics
         self.max_auth_retries = max_auth_retries
         self.tls_trusted_cas_file = tls_trusted_cas_file
+        self.httpx_args = httpx_args
+        if self.httpx_args is None:
+            self.httpx_args = {}
 
 
 default_config = Config()
@@ -104,5 +108,12 @@ def with_tls_trusted_cas_file(value: str) -> Callable:
     """
     def func(config: Config) -> None:
         config.tls_trusted_cas_file = value
+
+    return func
+
+
+def with_httpx_args(args: Dict[str, Any]) -> Callable:
+    def func(config: Config) -> None:
+        config.httpx_args.update(args)
 
     return func
