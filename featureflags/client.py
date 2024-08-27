@@ -23,7 +23,7 @@ from .api import retryable_authenticate, \
 from .streaming import StreamProcessor
 from .util import log
 
-VERSION: str = "1.6.4"
+VERSION: str = "1.7.0"
 
 
 class MissingOrEmptyAPIKeyException(Exception):
@@ -177,7 +177,8 @@ class CfClient(object):
             verify = self._config.tls_trusted_cas_file
 
         client = Client(base_url=self._config.base_url, verify_ssl=verify,
-                        raise_on_unexpected_status=True, httpx_args=self._config.httpx_args)
+                        raise_on_unexpected_status=True,
+                        httpx_args=self._config.httpx_args)
         body = AuthenticationRequest(api_key=self._sdk_key)
         response = retryable_authenticate(client=client, body=body).parsed
         self._auth_token = response.auth_token
