@@ -106,10 +106,18 @@ def with_tls_trusted_cas_file(value: str) -> Callable:
     It takes a filename of a CA bundle. It should include all intermediate CAs
     and the root CA (concatenated in PEM format).
     """
+
     def func(config: Config) -> None:
         config.tls_trusted_cas_file = value
 
     return func
+
+
+"""
+    Allows the user to pass additional arguments to the HTTPx client
+    configuration, such as proxies, timeouts, or custom headers. See
+    https://www.python-httpx.org/advanced/clients/ for further information.
+"""
 
 
 def with_httpx_args(args: Dict[str, Any]) -> Callable:
