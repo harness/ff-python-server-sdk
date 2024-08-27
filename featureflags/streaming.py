@@ -168,7 +168,8 @@ class FlagMsgProcessor(Thread):
                     cluster=self._cluster).parsed
 
                 if fc is None:
-                    log.debug("Feature config '%s' not loaded", self._msg.identifier)
+                    log.debug("Feature config '%s' not loaded",
+                              self._msg.identifier)
                 else:
                     log.debug("Feature config '%s' loaded", fc.feature)
                     self._repository.set_flag(fc)

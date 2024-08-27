@@ -109,3 +109,35 @@ Then pass them with the new URLs when creating your client.
 
 [Example](../examples/url_change_example/url_change.py)
 
+## HTTPX Configuration Options
+The `httpx` client allows you to apply various configurations to all outgoing requests by passing parameters to the Client constructor. 
+
+Here are some of the options you can configure:
+
+* `proxies`: Configure proxy settings to route requests through a specific proxy server.
+* `headers`: Add custom headers to all outgoing requests.
+* `timeout`: Set request and connection timeouts.
+* `transport`: Use a custom transport layer for advanced scenarios.
+
+**Important**: ensure you supply a valid httpx option. if you supply an option that doesn't exist in `httpx` the SDK will fail to initialize with `got an unexpected keyword argument` 
+
+Further Reading:
+
+* [HTTPX Advanced Client Configuration](https://www.python-httpx.org/advanced/clients/)
+
+Example of Custom HTTPX Client Configuration
+
+Here's an example demonstrating how to use httpx client arguments in the SDK:
+
+
+```python
+from featureflags.config import with_httpx_args
+
+client = CfClient(api_key,
+                  with_base_url("https://config.ff.harness.io/api/1.0"),
+                  with_httpx_args({
+                      'proxies': 'http://localhost:8888'}
+                  }))
+```
+
+[Example](../examples/with_httpx_args_example/with_httpx_args.py)
