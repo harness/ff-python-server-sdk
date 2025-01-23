@@ -1,11 +1,12 @@
 from collections import OrderedDict
 from typing import Any, List
+from featureflags.util import log
 
 from .interface import Cache
 
 
 class LRUCache(Cache):
-    def __init__(self, *args: Any, size: int = 1000, **kwargs: Any) -> None:
+    def __init__(self, *args: Any, size: int = 2500, **kwargs: Any) -> None:
         self.size = size
         init = args
         if len(init) > 0:
@@ -25,6 +26,7 @@ class LRUCache(Cache):
         while len(self.cache) > self.size:
             oldkey = next(iter(self.cache))
             del self.cache[oldkey]
+            log.warning("key evicted from cache: %s", oldkey)
 
     def __len__(self) -> int:
         return len(self.cache)
