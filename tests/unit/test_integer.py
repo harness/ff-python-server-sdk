@@ -12,10 +12,15 @@ from featureflags.ftypes.integer import Integer
         ("", [], None, "contains", False),
         ("", [], None, "equal_sensitive", False),
         (1, 1, 1, "equal", True),
+        (2, 2, 1, "equal", False),
         (2, 1, 1, "greater_than", True),
+        (1, 1, 2, "greater_than", False),
         (2, 1, 2, "greater_than_equal", True),
+        (1, 1, 2, "greater_than_equal", False),
         (1, 1, 2, "less_than", True),
+        (2, 1, 2, "less_than", False),
         (1, 1, 2, "less_than_equal", True),
+        (2, 2, 1, "less_than_equal", False),
     ],
 )
 def test_type_methods(mocker, arg, input, mocked, method, expected):

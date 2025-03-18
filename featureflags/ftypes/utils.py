@@ -20,3 +20,6 @@ def get_int_value(value: typing.List[typing.Any]) -> int:
 
 def get_float_value(value: typing.List[typing.Any]) -> float:
     return float(get_value(value))
+
+def get_bool_value(value: typing.List[typing.Any]) -> int:
+    return bool(get_value(value))
