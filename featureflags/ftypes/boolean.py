@@ -3,7 +3,7 @@ import typing
 import attr
 
 from .interface import Interface
-from .utils import get_value
+from .utils import get_bool_value
 
 
 @attr.s(auto_attribs=True)
@@ -27,7 +27,7 @@ class Boolean(Interface):
         return False
 
     def equal(self, value: typing.Any) -> bool:
-        _value = get_value(value)
+        _value = get_bool_value(value)
         return self.value is _value
 
     def greater_than(self, value: typing.Any) -> bool:

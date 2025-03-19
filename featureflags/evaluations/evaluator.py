@@ -214,29 +214,37 @@ class Evaluator(object):
         operator = clause.op.lower()
         type = target.get_type(clause.attribute)
 
-        if type is None:
-            if operator == SEGMENT_MATCH_OPERATOR.lower():
-                log.debug("Clause operator is %s, evaluate on segment",
-                          operator)
-                return self._check_target_in_segment(clause.values, target)
-            log.debug("Attribute type %s is none return false", type)
-            return False
-        log.debug("evaluate clause with object %s operator %s and value %s",
-                  type, operator.upper(), clause.values)
-        if operator == IN_OPERATOR.lower():
-            return type.in_list(clause.values)
-        if operator == EQUAL_OPERATOR.lower():
-            return type.equal(clause.values)
-        if operator == GT_OPERATOR.lower():
-            return type.greater_than(clause.values)
-        if operator == STARTS_WITH_OPERATOR.lower():
-            return type.starts_with(clause.values)
-        if operator == ENDS_WITH_OPERATOR.lower():
-            return type.ends_with(clause.values)
-        if operator == CONTAINS_OPERATOR.lower():
-            return type.contains(clause.values)
-        if operator == EQUAL_SENSITIVE_OPERATOR.lower():
-            return type.equal_sensitive(clause.values)
+        try:
+            if type is None:
+                if operator == SEGMENT_MATCH_OPERATOR.lower():
+                    log.debug("Clause operator is %s, evaluate on segment",
+                              operator)
+                    return self._check_target_in_segment(clause.values, target)
+                log.debug("Attribute type %s is none return false", type)
+                return False
+            log.debug("evaluate clause with object %s "
+                      "operator %s and value %s",
+                      type, operator.upper(), clause.values)
+            if operator == IN_OPERATOR.lower():
+                return type.in_list(clause.values)
+            if operator == EQUAL_OPERATOR.lower():
+                return type.equal(clause.values)
+            if operator == GT_OPERATOR.lower():
+                return type.greater_than(clause.values)
+            if operator == STARTS_WITH_OPERATOR.lower():
+                return type.starts_with(clause.values)
+            if operator == ENDS_WITH_OPERATOR.lower():
+                return type.ends_with(clause.values)
+            if operator == CONTAINS_OPERATOR.lower():
+                return type.contains(clause.values)
+            if operator == EQUAL_SENSITIVE_OPERATOR.lower():
+                return type.equal_sensitive(clause.values)
+        except ValueError:
+            log.debug("couldn't convert %s to type %s", clause.values, type)
+        except Exception as e:
+            log.warning("exception processing clause: "
+                        "values: %s, type: %s, "
+                        "error: %s", clause.values, type, e)
         # unknown operation
         return False
 

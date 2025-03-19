@@ -11,11 +11,16 @@ from featureflags.ftypes.number import Number
         ("", [], None, "match", False),
         ("", [], None, "contains", False),
         ("", [], None, "equal_sensitive", False),
+        (1.5, 1.5, 1.1, "equal", False),
         (1.1, 1.1, 1.1, "equal", True),
         (2.0, 1.0, 1.0, "greater_than", True),
+        (1.0, 1.0, 2.0, "greater_than", False),
         (2.0, 1.0, 2.0, "greater_than_equal", True),
+        (1.0, 1.0, 2.0, "greater_than_equal", False),
         (1.0, 1.0, 2.0, "less_than", True),
+        (2.0, 2.0, 1.0, "less_than", False),
         (1.1, 1.1, 2.0, "less_than_equal", True),
+        (2.0, 2.0, 1.0, "less_than_equal", False),
     ],
 )
 def test_type_methods(mocker, arg, input, mocked, method, expected):
