@@ -21,6 +21,6 @@ attrs==23.2.0
 pyjwt==2.4.0
 
 openapi-python-client==0.19.1
-requests==2.32.0
+requests==2.32.4
 
 mmh3
