@@ -13,13 +13,12 @@ from featureflags.evaluations.evaluator import (Evaluator,
                                                 FlagKindMismatchException)
 from featureflags.repository import Repository
 
+from .api import UnrecoverableRequestException, retryable_authenticate
 from .config import Config, default_config
 from .evaluations.auth_target import Target
 from .openapi.config.api.client.authenticate import AuthenticationRequest
 from .openapi.config.client import AuthenticatedClient, Client
 from .polling import PollingProcessor
-from .api import retryable_authenticate, \
-    UnrecoverableRequestException
 from .streaming import StreamProcessor
 from .util import log
 
@@ -238,6 +237,9 @@ class CfClient(object):
 
     def bool_variation(self, identifier: str, target: Target,
                        default: bool) -> bool:
+        log.debug("bool_variation: evaluating flag='%s', target='%s', "
+                  "default=%s", identifier, target.identifier, default)
+
         # If initialization has failed, then return the default variation
         # immediately
         if self._initialised_failed_reason[True] is not None:
@@ -246,6 +248,8 @@ class CfClient(object):
                 " and the default variation '%s' is being returned. Reason: "
                 "`Client is not initialized: %s'",
                 identifier, default, self._initialised_failed_reason[True])
+            log.debug("bool_variation: returning %s (client not initialized)",
+                      default)
             return default
 
         try:
@@ -257,6 +261,8 @@ class CfClient(object):
                     "and the "
                     "default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
+                log.debug("bool_variation: returning %s (no variation found)",
+                          default)
                 return default
 
             # Only register metrics if analytics is enabled,
@@ -265,26 +271,37 @@ class CfClient(object):
             # an empty identifier.
             if self._config.enable_analytics and variation.identifier != "":
                 self._analytics.enqueue(target, identifier, variation)
-            return variation.value.lower() == "true"
+
+            result = variation.value.lower() == "true"
+            log.debug("bool_variation: returning %s (variation='%s', "
+                      "value='%s')", result, variation.identifier,
+                      variation.value)
+            return result
 
         except FlagKindMismatchException as ex:
             log.error(
                 "SDKCODE:6001: Failed to evaluate bool variation for flag '%s'"
                 " and the default variation '%s' is being returned. Reason: "
                 "'%s'", identifier, default, str(ex))
+            log.debug("bool_variation: returning %s (flag kind mismatch)",
+                      default)
             return default
 
     def int_variation(self, identifier: str, target: Target,
                       default: int) -> int:
+        log.debug("int_variation: evaluating flag='%s', target='%s', "
+                  "default=%s", identifier, target.identifier, default)
 
         # If initialization has failed, then return the default variation
         # immediately
         if self._initialised_failed_reason[True] is not None:
             log.error(
-                "SDKCODE:6001: Failed to evaluate bool variation for flag '%s'"
+                "SDKCODE:6001: Failed to evaluate int variation for flag '%s'"
                 " and the default variation '%s' is being returned. Reason: "
                 "`Client is not initialized: %s'",
                 identifier, default, self._initialised_failed_reason[True])
+            log.debug("int_variation: returning %s (client not initialized)",
+                      default)
             return default
 
         try:
@@ -292,10 +309,12 @@ class CfClient(object):
 
             if not variation or not variation.value:
                 log.error(
-                    "SDKCODE:6001: Failed to evaluate bool variation for %s "
+                    "SDKCODE:6001: Failed to evaluate int variation for %s "
                     "and the "
                     "default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
+                log.debug("int_variation: returning %s (no variation found)",
+                          default)
                 return default
 
             # Only register metrics if analytics is enabled,
@@ -305,17 +324,25 @@ class CfClient(object):
             if self._config.enable_analytics and variation.identifier != "":
                 self._analytics.enqueue(target, identifier, variation)
 
-            return int(variation.value)
+            result = int(variation.value)
+            log.debug("int_variation: returning %s (variation='%s', "
+                      "value='%s')", result, variation.identifier,
+                      variation.value)
+            return result
 
         except FlagKindMismatchException as ex:
             log.error(
                 "SDKCODE:6001: Failed to evaluate int variation for flag '%s'"
                 " and the default variation '%s' is being returned. Reason: "
                 "'%s'", identifier, default, str(ex))
+            log.debug("int_variation: returning %s (flag kind mismatch)",
+                      default)
             return default
 
     def number_variation(self, identifier: str, target: Target,
                          default: float) -> float:
+        log.debug("number_variation: evaluating flag='%s', target='%s', "
+                  "default=%s", identifier, target.identifier, default)
 
         # If initialization has failed, then return the default variation
         # immediately
@@ -325,6 +352,8 @@ class CfClient(object):
                 "'%s' and the default variation '%s' is being returned. "
                 "Reason: `Client is not initialized: %s'",
                 identifier, default, self._initialised_failed_reason[True])
+            log.debug("number_variation: returning %s (client not init)",
+                      default)
             return default
 
         try:
@@ -333,10 +362,12 @@ class CfClient(object):
 
             if not variation or not variation.value:
                 log.error(
-                    "SDKCODE:6001: Failed to evaluate bool variation for %s "
+                    "SDKCODE:6001: Failed to evaluate number variation for %s "
                     "and the "
                     "default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
+                log.debug("number_variation: returning %s (no variation)",
+                          default)
                 return default
 
             # Only register metrics if analytics is enabled,
@@ -346,18 +377,26 @@ class CfClient(object):
             if self._config.enable_analytics and variation.identifier != "":
                 self._analytics.enqueue(target, identifier, variation)
 
-            return float(variation.value)
+            result = float(variation.value)
+            log.debug("number_variation: returning %s (variation='%s', "
+                      "value='%s')", result, variation.identifier,
+                      variation.value)
+            return result
 
         except FlagKindMismatchException as ex:
             log.error(
                 "SDKCODE:6001: Failed to evaluate number variation for flag "
                 "'%s'  and the default variation '%s' is being returned. "
                 "Reason: '%s'", identifier, default, str(ex))
+            log.debug("number_variation: returning %s (flag kind mismatch)",
+                      default)
             return default
 
     def int_or_float_variation(self, identifier: str, target: Target,
                                default: Union[float, int]) -> \
             Union[float, int]:
+        log.debug("int_or_float_variation: evaluating flag='%s', target='%s', "
+                  "default=%s", identifier, target.identifier, default)
 
         # If initialization has failed, then return the default variation
         # immediately
@@ -367,6 +406,8 @@ class CfClient(object):
                 "flag '%s' and the default variation '%s' is being returned. "
                 "Reason: `Client is not initialized: %s'",
                 identifier, default, self._initialised_failed_reason[True])
+            log.debug("int_or_float_variation: returning %s (client not "
+                      "initialized)", default)
             return default
 
         try:
@@ -375,10 +416,12 @@ class CfClient(object):
 
             if not variation or not variation.value:
                 log.error(
-                    "SDKCODE:6001: Failed to evaluate bool variation for %s "
-                    "and the "
+                    "SDKCODE:6001: Failed to evaluate int_or_float variation "
+                    "for %s and the "
                     "default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
+                log.debug("int_or_float_variation: returning %s (no variation "
+                          "found)", default)
                 return default
 
             # Only register metrics if analytics is enabled,
@@ -401,8 +444,13 @@ class CfClient(object):
                         "Expected a number but got '%s'",
                         {"flag": identifier, "value": variation.value}
                     )
+                    log.debug("int_or_float_variation: returning %s (invalid "
+                              "number format)", default)
                     return default
 
+            log.debug("int_or_float_variation: returning %s (variation='%s', "
+                      "value='%s')", result, variation.identifier,
+                      variation.value)
             return result
 
         except FlagKindMismatchException as ex:
@@ -410,10 +458,14 @@ class CfClient(object):
                 "SDKCODE:6001: Failed to evaluate int_or_float variation for "
                 "flag '%s'  and the default variation '%s' is being returned. "
                 "Reason: '%s'", identifier, default, str(ex))
+            log.debug("int_or_float_variation: returning %s (flag kind "
+                      "mismatch)", default)
             return default
 
     def string_variation(self, identifier: str, target: Target,
                          default: str) -> str:
+        log.debug("string_variation: evaluating flag='%s', target='%s', "
+                  "default='%s'", identifier, target.identifier, default)
 
         # If initialization has failed, then return the default variation
         # immediately
@@ -423,6 +475,8 @@ class CfClient(object):
                 "'%s' and the default variation '%s' is being returned. "
                 "Reason: `Client is not initialized: %s'",
                 identifier, default, self._initialised_failed_reason[True])
+            log.debug("string_variation: returning '%s' (client not "
+                      "initialized)", default)
             return default
 
         try:
@@ -431,10 +485,12 @@ class CfClient(object):
 
             if not variation or not variation.value:
                 log.error(
-                    "SDKCODE:6001: Failed to evaluate bool variation for %s "
+                    "SDKCODE:6001: Failed to evaluate string variation for %s "
                     "and the "
                     "default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
+                log.debug("string_variation: returning '%s' (no variation "
+                          "found)", default)
                 return default
 
             # Only register metrics if analytics is enabled,
@@ -444,6 +500,9 @@ class CfClient(object):
             if self._config.enable_analytics and variation.identifier != "":
                 self._analytics.enqueue(target, identifier, variation)
 
+            log.debug("string_variation: returning '%s' (variation='%s', "
+                      "value='%s')", variation.value, variation.identifier,
+                      variation.value)
             return variation.value
 
         except FlagKindMismatchException as ex:
@@ -451,10 +510,14 @@ class CfClient(object):
                 "SDKCODE:6001: Failed to evaluate string variation for flag "
                 "'%s' and the default variation '%s' is being returned. "
                 "Reason: '%s'", identifier, default, str(ex))
+            log.debug("string_variation: returning '%s' (flag kind mismatch)",
+                      default)
             return default
 
     def json_variation(self, identifier: str, target: Target,
                        default: Dict[str, Any]) -> Dict[str, Any]:
+        log.debug("json_variation: evaluating flag='%s', target='%s', "
+                  "default=%s", identifier, target.identifier, default)
 
         # If initialization has failed, then return the default variation
         # immediately
@@ -464,6 +527,8 @@ class CfClient(object):
                 " and the default variation '%s' is being returned. Reason: "
                 "`Client is not initialized: %s'",
                 identifier, default, self._initialised_failed_reason[True])
+            log.debug("json_variation: returning %s (client not initialized)",
+                      default)
             return default
 
         try:
@@ -471,9 +536,11 @@ class CfClient(object):
 
             if not variation or not variation.value:
                 log.error(
-                    "SDKCODE:6001: Failed to evaluate bool variation for %s"
+                    "SDKCODE:6001: Failed to evaluate json variation for %s"
                     " and the default variation '%s' is being returned",
                     {"target": target, "flag": identifier}, default)
+                log.debug("json_variation: returning %s (no variation found)",
+                          default)
                 return default
 
             # Only register metrics if analytics is enabled,
@@ -483,13 +550,19 @@ class CfClient(object):
             if self._config.enable_analytics and variation.identifier != "":
                 self._analytics.enqueue(target, identifier, variation)
 
-            return json.loads(variation.value)
+            result = json.loads(variation.value)
+            log.debug("json_variation: returning %s (variation='%s', "
+                      "value='%s')", result, variation.identifier,
+                      variation.value)
+            return result
 
         except FlagKindMismatchException as ex:
             log.error(
                 "SDKCODE:6001: Failed to evaluate json variation for flag "
                 "'%s' and the default variation '%s' is being returned. "
                 "Reason: '%s'", identifier, default, str(ex))
+            log.debug("json_variation: returning %s (flag kind mismatch)",
+                      default)
             return default
 
     def close(self):

@@ -87,12 +87,12 @@ class Repository(DataProviderInterface):
         flag_key = format_flag_key(identifier)
         try:
             flag = self.cache.get(flag_key)
-            log.debug("return flag from cache %s", identifier)
+            log.debug("get_flag: '%s' from cache", identifier)
             return flag
         except KeyError:
             if self.store:
                 flag = self.store.get(flag_key)
-                log.debug("return flag from store %s", identifier)
+                log.debug("get_flag: '%s' from store", identifier)
                 if flag and cacheable:
                     log.debug("set flag to the cache %s", identifier)
                     self.cache.set(flag_key, flag)
@@ -109,12 +109,12 @@ class Repository(DataProviderInterface):
         segment_key = format_segment_key(identifier)
         try:
             segment = self.cache.get(segment_key)
-            log.debug("return segment from cache %s", identifier)
+            log.debug("get_segment: '%s' from cache", identifier)
             return segment
         except KeyError:
             if self.store:
                 segment = self.store.get(segment_key)
-                log.debug("return segment from store %s", identifier)
+                log.debug("get_segment: '%s' from store", identifier)
                 if segment and cacheable:
                     log.debug("set segment to the cache %s", identifier)
                     self.cache.set(segment_key, segment)
@@ -127,7 +127,7 @@ class Repository(DataProviderInterface):
 
     def set_flag(self, flag: FeatureConfig) -> None:
         if self.is_flag_outdated(flag.feature, flag):
-            log.debug("Flag %s already exists", flag.feature)
+            log.debug("set_flag: '%s' skipped (outdated)", flag.feature)
             return None
 
         flag_key = format_flag_key(flag.feature)
@@ -135,16 +135,16 @@ class Repository(DataProviderInterface):
         if self.store:
             self.store.set(flag_key, flag)
             self.cache.remove([flag_key])
-            log.debug(
-                "Flag %s successfully stored and cache invalidated",
-                flag.feature)
+            log.debug("set_flag: '%s' stored and cache invalidated",
+                      flag.feature)
         else:
             self.cache.set(flag_key, flag)
-            log.debug("Flag %s successfully cached", flag.feature)
+            log.debug("set_flag: '%s' cached", flag.feature)
 
     def set_segment(self, segment: Segment) -> None:
         if self.is_segment_outdated(segment.identifier, segment):
-            log.debug("Segment %s already exists", segment.identifier)
+            log.debug("set_segment: '%s' skipped (outdated)",
+                      segment.identifier)
             return None
 
         # Sort the serving rules by priority
@@ -156,12 +156,11 @@ class Repository(DataProviderInterface):
         if self.store:
             self.store.set(segment_key, segment)
             self.cache.remove([segment_key])
-            log.debug(
-                "Segment %s successfully stored and cache invalidated",
-                segment.identifier)
+            log.debug("set_segment: '%s' stored and cache invalidated",
+                      segment.identifier)
         else:
             self.cache.set(segment_key, segment)
-            log.debug("Segment %s successfully cached", segment.identifier)
+            log.debug("set_segment: '%s' cached", segment.identifier)
 
     def find_flags_by_segment(self, segment: str) -> List[str]:
         result = []

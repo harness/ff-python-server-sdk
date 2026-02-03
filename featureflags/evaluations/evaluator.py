@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Optional, Union
 
 import mmh3
@@ -152,6 +153,9 @@ class Evaluator(object):
 
     def _check_target_in_segment(self, segments: List[str],
                                  target: Target) -> bool:
+        log.debug("_check_target_in_segment: target='%s', segments=%s",
+                  target.identifier, segments)
+
         for segment_identifier in segments:
             segment = self.provider.get_segment(segment_identifier)
 
@@ -163,9 +167,8 @@ class Evaluator(object):
                             (val for val in segment.excluded
                              if val.identifier == target.identifier),
                             None) is not None:
-                    log.debug('Target % s excluded from segment % s' +
-                              'via exclude list\n',
-                              target.name, segment.name)
+                    log.debug("Target '%s' EXCLUDED from segment '%s'",
+                              target.identifier, segment.name)
                     return False
 
                 # Should Target be included - if in included list
@@ -175,9 +178,8 @@ class Evaluator(object):
                             (val for val in segment.included
                              if val.identifier == target.identifier),
                             None) is not None:
-                    log.debug('Target %s included in segment %s' +
-                              ' via include list\n',
-                              target.name, segment.name)
+                    log.debug("Target '%s' INCLUDED in segment '%s'",
+                              target.identifier, segment.name)
                     return True
 
                 if segment.serving_rules:
@@ -187,6 +189,9 @@ class Evaluator(object):
                     for serving_rule in segment.serving_rules:
                         if self._evaluate_clauses_v2(serving_rule.clauses,
                                                      target):
+                            log.debug("Target '%s' matched segment '%s' "
+                                      "via serving rule",
+                                      target.identifier, segment_identifier)
                             return True
 
                 else:
@@ -199,7 +204,7 @@ class Evaluator(object):
                             target.name, segment.name)
                         return True
 
-        log.debug("Target groups empty return false")
+        log.debug("Target '%s' not found in any segment", target.identifier)
         return False
 
     def _evaluate_clause(self, clause: Clause, target: Target) -> bool:
@@ -309,6 +314,8 @@ class Evaluator(object):
                 log.debug("Return rule variation identifier %s", identifier)
                 identifier = variation
 
+            log.debug("_evaluate_rules: matched, returning variation='%s'",
+                      identifier)
             return identifier
 
         log.debug("All rules failed, return empty variation identifier")
@@ -320,23 +327,35 @@ class Evaluator(object):
             log.debug("Target is none")
             return None
 
+        # Only collect all target IDs if debug logging is enabled
+        if log.isEnabledFor(logging.DEBUG):
+            all_ids = [t.identifier for vm in var_target_map
+                       if not isinstance(vm.targets, Unset) and vm.targets
+                       for t in vm.targets
+                       if not isinstance(t, Unset) and
+                       hasattr(t, 'identifier')]
+            log.debug("_evaluate_variation_map: target='%s', "
+                      "all_targets_in_map=%s", target.identifier, all_ids)
+
         for variation_map in var_target_map:
             if not isinstance(variation_map.targets, Unset) and next(
                     (val for val in variation_map.targets
                      if not isinstance(val, Unset) and val.identifier ==
                         target.identifier), None) is not None:
-                log.debug("Evaluate variation map with result %s",
-                          variation_map.variation)
+                log.debug("MATCH FOUND: target='%s' in variation='%s'",
+                          target.identifier, variation_map.variation)
                 return variation_map.variation
 
             segment_identifiers = variation_map.target_segments
             if not isinstance(segment_identifiers, Unset) and \
                     self._check_target_in_segment(segment_identifiers, target):
-                log.debug("Evaluate variationMap with segment " +
-                          "identifiers % s and return % s",
-                          segment_identifiers, variation_map.variation)
+                log.debug("MATCH FOUND: target='%s' in segment, "
+                          "variation='%s'",
+                          target.identifier, variation_map.variation)
                 return variation_map.variation
 
+        log.debug("NO MATCH: target='%s' not in variation map",
+                  target.identifier)
         return None
 
     def _evaluate_flag(self, fc: FeatureConfig,
@@ -405,9 +424,20 @@ class Evaluator(object):
 
     def evaluate(self, identifier: str, target: Target,
                  kind: str) -> Variation:
+        log.debug("evaluate: flag='%s', kind='%s', target='%s'",
+                  identifier, kind, target.identifier)
+
         fc = self.provider.get_flag(identifier)
         if not fc:
+            log.debug("evaluate: flag '%s' not found", identifier)
             return Variation(identifier="", value=None)
+
+        # Log flag metadata only if debug enabled
+        if log.isEnabledFor(logging.DEBUG):
+            version = fc.version if not isinstance(fc.version, Unset) \
+                else 'Unset'
+            log.debug("evaluate: flag='%s', state=%s, kind=%s, version=%s",
+                      fc.feature, fc.state, fc.kind, version)
 
         if fc.kind != kind:
             raise FlagKindMismatchException(
@@ -418,4 +448,7 @@ class Evaluator(object):
             if not prereq:
                 return self._find_variation(fc.variations, fc.off_variation)
 
-        return self._evaluate_flag(fc, target)
+        result = self._evaluate_flag(fc, target)
+        log.debug("evaluate: flag='%s', result='%s', value=%s",
+                  identifier, result.identifier, result.value)
+        return result
