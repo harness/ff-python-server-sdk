@@ -1,3 +1,4 @@
+import threading
 from collections import OrderedDict
 from typing import Any, List
 from featureflags.util import log
@@ -8,6 +9,7 @@ from .interface import Cache
 class LRUCache(Cache):
     def __init__(self, *args: Any, size: int = 2500, **kwargs: Any) -> None:
         self.size = size
+        self._lock = threading.Lock()
         init = args
         if len(init) > 0:
             init = args[0][-size:]
@@ -17,32 +19,43 @@ class LRUCache(Cache):
         return self.get(key) is not None
 
     def __getitem__(self, key: str) -> Any:
-        return self.get(key)
+        with self._lock:
+            if key not in self.cache:
+                raise KeyError(key)
+            val = self.cache[key]
+            self.cache.move_to_end(key)
+            return val
 
     def __setitem__(self, key: str, value: Any) -> Any:
-        self.cache[key] = value
-        self.cache.move_to_end(key)
+        with self._lock:
+            self.cache[key] = value
+            self.cache.move_to_end(key)
 
-        while len(self.cache) > self.size:
-            oldkey = next(iter(self.cache))
-            del self.cache[oldkey]
-            log.warning("key evicted from cache: %s", oldkey)
+            while len(self.cache) > self.size:
+                oldkey = next(iter(self.cache))
+                del self.cache[oldkey]
+                log.warning("key evicted from cache: %s", oldkey)
 
     def __len__(self) -> int:
-        return len(self.cache)
+        with self._lock:
+            return len(self.cache)
 
     def set(self, key: str, value: Any) -> None:
         self.__setitem__(key, value)
 
     def get(self, key: str) -> Any:
-        val = self.cache.get(key)
-        self.cache.move_to_end(key)
-        return val
+        with self._lock:
+            val = self.cache.get(key)
+            if val is not None:
+                self.cache.move_to_end(key)
+            return val
 
     def remove(self, keys: List[str]) -> None:
-        for key in keys:
-            if key in self.cache:
-                del self.cache[key]
+        with self._lock:
+            for key in keys:
+                if key in self.cache:
+                    del self.cache[key]
 
     def keys(self) -> List[str]:
-        return list(self.cache.keys())
+        with self._lock:
+            return list(self.cache.keys())
