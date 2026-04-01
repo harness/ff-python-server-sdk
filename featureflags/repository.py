@@ -13,13 +13,15 @@ class QueryInterface(metaclass=abc.ABCMeta):
 
     @classmethod
     def __subclasshook__(cls, subclass):
-        return (hasattr(subclass, 'get_flag') and
-                callable(subclass.get_flag) and
-                hasattr(subclass, 'get_segment') and
-                callable(subclass.get_segment) or
-                hasattr(subclass, 'find_flags_by_segment') and
-                callable(subclass.find_flags_by_segment) or
-                NotImplemented)
+        return (
+            hasattr(subclass, "get_flag")
+            and callable(subclass.get_flag)
+            and hasattr(subclass, "get_segment")
+            and callable(subclass.get_segment)
+            or hasattr(subclass, "find_flags_by_segment")
+            and callable(subclass.find_flags_by_segment)
+            or NotImplemented
+        )
 
     @abc.abstractmethod
     def get_flag(self, identifier: str) -> Optional[FeatureConfig]:
@@ -41,13 +43,15 @@ class DataProviderInterface(QueryInterface):
 
     @classmethod
     def __subclasshook__(cls, subclass):
-        return (hasattr(subclass, 'get_flag') and
-                callable(subclass.get_flag) and
-                hasattr(subclass, 'get_segment') and
-                callable(subclass.get_segment) or
-                hasattr(subclass, 'close') and
-                callable(subclass.close) or
-                NotImplemented)
+        return (
+            hasattr(subclass, "get_flag")
+            and callable(subclass.get_flag)
+            and hasattr(subclass, "get_segment")
+            and callable(subclass.get_segment)
+            or hasattr(subclass, "close")
+            and callable(subclass.close)
+            or NotImplemented
+        )
 
     @abc.abstractmethod
     def set_flag(self, flag: FeatureConfig) -> None:
@@ -81,9 +85,9 @@ class Repository(DataProviderInterface):
         self.cache = cache
         self.store = store
 
-    def get_flag(self, identifier: str,
-                 cacheable: bool = None, is_outdated_check=False) -> \
-            Optional[FeatureConfig]:
+    def get_flag(
+        self, identifier: str, cacheable: bool = None, is_outdated_check=False
+    ) -> Optional[FeatureConfig]:
         flag_key = format_flag_key(identifier)
         flag = self.cache.get(flag_key)
         if flag is not None:
@@ -102,9 +106,9 @@ class Repository(DataProviderInterface):
             log.warning("flag not found %s", identifier)
         return None
 
-    def get_segment(self, identifier: str,
-                    cacheable: bool = None, is_outdated_check=False) -> \
-            Optional[Segment]:
+    def get_segment(
+        self, identifier: str, cacheable: bool = None, is_outdated_check=False
+    ) -> Optional[Segment]:
         segment_key = format_segment_key(identifier)
         segment = self.cache.get(segment_key)
         if segment is not None:
@@ -133,16 +137,14 @@ class Repository(DataProviderInterface):
         if self.store:
             self.store.set(flag_key, flag)
             self.cache.remove([flag_key])
-            log.debug("set_flag: '%s' stored and cache invalidated",
-                      flag.feature)
+            log.debug("set_flag: '%s' stored and cache invalidated", flag.feature)
         else:
             self.cache.set(flag_key, flag)
             log.debug("set_flag: '%s' cached", flag.feature)
 
     def set_segment(self, segment: Segment) -> None:
         if self.is_segment_outdated(segment.identifier, segment):
-            log.debug("set_segment: '%s' skipped (outdated)",
-                      segment.identifier)
+            log.debug("set_segment: '%s' skipped (outdated)", segment.identifier)
             return None
 
         # Sort the serving rules by priority
@@ -154,8 +156,9 @@ class Repository(DataProviderInterface):
         if self.store:
             self.store.set(segment_key, segment)
             self.cache.remove([segment_key])
-            log.debug("set_segment: '%s' stored and cache invalidated",
-                      segment.identifier)
+            log.debug(
+                "set_segment: '%s' stored and cache invalidated", segment.identifier
+            )
         else:
             self.cache.set(segment_key, segment)
             log.debug("set_segment: '%s' cached", segment.identifier)
@@ -172,11 +175,9 @@ class Repository(DataProviderInterface):
             for serving_rule in flag.rules:
                 for clause in serving_rule.clauses:
                     if clause.op == SEGMENT_MATCH_OPERATOR and not next(
-                            (val for val in clause.values if val == segment),
-                            None
+                        (val for val in clause.values if val == segment), None
                     ):
-                        log.debug("Flag %s evaluated in segments",
-                                  flag.feature)
+                        log.debug("Flag %s evaluated in segments", flag.feature)
                         result.append(flag.feature)
         return result
 
@@ -204,30 +205,32 @@ class Repository(DataProviderInterface):
         if self.store:
             self.store.close()
 
-    def is_flag_outdated(self, identifier: str,
-                         new_config: FeatureConfig) -> bool:
-        flag = self.get_flag(identifier, cacheable=False,
-                             is_outdated_check=True)
-        if flag and not isinstance(flag.version, Unset) and \
-                not isinstance(new_config, Unset) and \
-                not isinstance(new_config.version, Unset):
+    def is_flag_outdated(self, identifier: str, new_config: FeatureConfig) -> bool:
+        flag = self.get_flag(identifier, cacheable=False, is_outdated_check=True)
+        if (
+            flag
+            and not isinstance(flag.version, Unset)
+            and not isinstance(new_config, Unset)
+            and not isinstance(new_config.version, Unset)
+        ):
             return flag.version >= new_config.version
         return False
 
-    def is_segment_outdated(self, identifier: str,
-                            new_segment: Segment) -> bool:
-        segment = self.get_segment(identifier, cacheable=False,
-                                   is_outdated_check=True)
-        if segment and not isinstance(segment.version, Unset) and \
-                not isinstance(new_segment, Unset) and \
-                not isinstance(new_segment.version, Unset):
+    def is_segment_outdated(self, identifier: str, new_segment: Segment) -> bool:
+        segment = self.get_segment(identifier, cacheable=False, is_outdated_check=True)
+        if (
+            segment
+            and not isinstance(segment.version, Unset)
+            and not isinstance(new_segment, Unset)
+            and not isinstance(new_segment.version, Unset)
+        ):
             return segment.version >= new_segment.version
         return False
 
 
 def format_flag_key(identifier: str) -> str:
-    return f'flags/{identifier}'
+    return f"flags/{identifier}"
 
 
 def format_segment_key(identifier: str) -> str:
-    return f'segments/{identifier}'
+    return f"segments/{identifier}"

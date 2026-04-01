@@ -29,8 +29,7 @@ import pytest
 
 from featureflags.lru_cache import LRUCache
 from featureflags.openapi.config.models.feature_config import FeatureConfig
-from featureflags.openapi.config.models.feature_config_kind import \
-    FeatureConfigKind
+from featureflags.openapi.config.models.feature_config_kind import FeatureConfigKind
 from featureflags.openapi.config.models.feature_state import FeatureState
 from featureflags.openapi.config.models.serve import Serve
 from featureflags.openapi.config.models.variation import Variation
@@ -94,6 +93,7 @@ expect_failure_on_unfixed = pytest.mark.xfail(
 # ===============================================================
 # TEST 1: DETERMINISTIC — proves the bug without threads
 # ===============================================================
+
 
 class TestDeterministicBugs:
     """Deterministic proof of bugs in unfixed LRUCache.
@@ -185,15 +185,14 @@ class TestDeterministicBugs:
             return
 
         repo.set_flag(make_flag("test_flag", version=1))
-        result = repo.get_flag(
-            "nonexistent_flag", is_outdated_check=True
-        )
+        result = repo.get_flag("nonexistent_flag", is_outdated_check=True)
         assert result is None
 
 
 # ===============================================================
 # TEST 2: CONCURRENT — Raw LRUCache race condition
 # ===============================================================
+
 
 class TestConcurrentCacheAccess:
     """Race condition: concurrent get() + set() on OrderedDict.
@@ -222,10 +221,7 @@ class TestConcurrentCacheAccess:
                     try:
                         cache.get(f"flags/{fid}")
                     except (KeyError, RuntimeError) as e:
-                        errors.append(
-                            f"reader_{tid}: "
-                            f"{type(e).__name__}: {e}"
-                        )
+                        errors.append(f"reader_{tid}: " f"{type(e).__name__}: {e}")
 
         def writer(tid):
             v = 0
@@ -237,23 +233,24 @@ class TestConcurrentCacheAccess:
                             {"feature": fid, "v": v},
                         )
                     except (KeyError, RuntimeError) as e:
-                        errors.append(
-                            f"writer_{tid}: "
-                            f"{type(e).__name__}: {e}"
-                        )
+                        errors.append(f"writer_{tid}: " f"{type(e).__name__}: {e}")
                     v += 1
 
         threads = []
         for i in range(STRESS_READER_THREADS):
             threads.append(
                 threading.Thread(
-                    target=reader, args=(i,), daemon=True,
+                    target=reader,
+                    args=(i,),
+                    daemon=True,
                 )
             )
         for i in range(STRESS_WRITER_THREADS):
             threads.append(
                 threading.Thread(
-                    target=writer, args=(i,), daemon=True,
+                    target=writer,
+                    args=(i,),
+                    daemon=True,
                 )
             )
 
@@ -264,9 +261,7 @@ class TestConcurrentCacheAccess:
         for t in threads:
             t.join(timeout=5)
 
-        assert len(errors) == 0, (
-            f"{len(errors)} errors! First 5: {errors[:5]}"
-        )
+        assert len(errors) == 0, f"{len(errors)} errors! First 5: {errors[:5]}"
 
     @expect_failure_on_unfixed
     def test_concurrent_get_remove_set_no_errors(self):
@@ -284,10 +279,7 @@ class TestConcurrentCacheAccess:
                     try:
                         cache.get(f"flags/{fid}")
                     except (KeyError, RuntimeError) as e:
-                        errors.append(
-                            f"reader_{tid}: "
-                            f"{type(e).__name__}: {e}"
-                        )
+                        errors.append(f"reader_{tid}: " f"{type(e).__name__}: {e}")
 
         def writer(tid):
             v = 0
@@ -301,23 +293,24 @@ class TestConcurrentCacheAccess:
                             {"feature": fid, "v": v},
                         )
                     except (KeyError, RuntimeError) as e:
-                        errors.append(
-                            f"writer_{tid}: "
-                            f"{type(e).__name__}: {e}"
-                        )
+                        errors.append(f"writer_{tid}: " f"{type(e).__name__}: {e}")
                     v += 1
 
         threads = []
         for i in range(STRESS_READER_THREADS):
             threads.append(
                 threading.Thread(
-                    target=reader, args=(i,), daemon=True,
+                    target=reader,
+                    args=(i,),
+                    daemon=True,
                 )
             )
         for i in range(STRESS_WRITER_THREADS):
             threads.append(
                 threading.Thread(
-                    target=writer, args=(i,), daemon=True,
+                    target=writer,
+                    args=(i,),
+                    daemon=True,
                 )
             )
 
@@ -328,9 +321,7 @@ class TestConcurrentCacheAccess:
         for t in threads:
             t.join(timeout=5)
 
-        assert len(errors) == 0, (
-            f"{len(errors)} errors! First 5: {errors[:5]}"
-        )
+        assert len(errors) == 0, f"{len(errors)} errors! First 5: {errors[:5]}"
 
     @expect_failure_on_unfixed
     def test_concurrent_mixed_flags_and_segments(self):
@@ -356,10 +347,7 @@ class TestConcurrentCacheAccess:
                     try:
                         cache.get(f"flags/flag_{i}")
                     except (KeyError, RuntimeError) as e:
-                        errors.append(
-                            f"flag_reader_{tid}: "
-                            f"{type(e).__name__}: {e}"
-                        )
+                        errors.append(f"flag_reader_{tid}: " f"{type(e).__name__}: {e}")
 
         def segment_writer(tid):
             v = 0
@@ -378,10 +366,7 @@ class TestConcurrentCacheAccess:
                                 {"identifier": f"seg_{i}", "v": v},
                             )
                     except (KeyError, RuntimeError) as e:
-                        errors.append(
-                            f"seg_writer_{tid}: "
-                            f"{type(e).__name__}: {e}"
-                        )
+                        errors.append(f"seg_writer_{tid}: " f"{type(e).__name__}: {e}")
                     v += 1
 
         def flag_writer(tid):
@@ -394,10 +379,7 @@ class TestConcurrentCacheAccess:
                             {"feature": f"flag_{i}", "v": v},
                         )
                     except (KeyError, RuntimeError) as e:
-                        errors.append(
-                            f"flag_writer_{tid}: "
-                            f"{type(e).__name__}: {e}"
-                        )
+                        errors.append(f"flag_writer_{tid}: " f"{type(e).__name__}: {e}")
                     v += 1
 
         threads = []
@@ -433,14 +415,13 @@ class TestConcurrentCacheAccess:
         for t in threads:
             t.join(timeout=5)
 
-        assert len(errors) == 0, (
-            f"{len(errors)} errors! First 5: {errors[:5]}"
-        )
+        assert len(errors) == 0, f"{len(errors)} errors! First 5: {errors[:5]}"
 
 
 # ===============================================================
 # TEST 3: CONCURRENT Repository-level false FLAG_NOT_FOUND
 # ===============================================================
+
 
 class TestRepositoryFlagNotFound:
     """Repository.get_flag() returns None for existing flags.
@@ -470,20 +451,20 @@ class TestRepositoryFlagNotFound:
                     result = repo.get_flag(fid)
                     local_evals += 1
                     if result is None:
-                        false_not_found.append({
-                            "thread": tid,
-                            "flag": fid,
-                            "eval": local_evals,
-                        })
+                        false_not_found.append(
+                            {
+                                "thread": tid,
+                                "flag": fid,
+                                "eval": local_evals,
+                            }
+                        )
             eval_count[0] += local_evals
 
         def sse_flag_processor(tid):
             v = 2
             while not stop.is_set():
                 for fid in FLAG_IDS:
-                    repo.set_flag(
-                        make_flag(fid, version=v)
-                    )
+                    repo.set_flag(make_flag(fid, version=v))
                 v += 1
 
         def sse_segment_processor(tid):
@@ -532,15 +513,11 @@ class TestRepositoryFlagNotFound:
             t.join(timeout=5)
 
         if false_not_found:
-            counts = Counter(
-                f["flag"] for f in false_not_found
-            )
+            counts = Counter(f["flag"] for f in false_not_found)
             top = counts.most_common(5)
             total = eval_count[0] or 1
             rate = len(false_not_found) / total * 100
-            detail = ", ".join(
-                f"{f}: {c}" for f, c in top
-            )
+            detail = ", ".join(f"{f}: {c}" for f, c in top)
             pytest.fail(
                 f"{len(false_not_found)} false "
                 f"FLAG_NOT_FOUND out of "
@@ -564,17 +541,13 @@ class TestRepositoryFlagNotFound:
                 for fid in FLAG_IDS:
                     result = repo.get_flag(fid)
                     if result is None:
-                        false_not_found.append(
-                            {"thread": tid, "flag": fid}
-                        )
+                        false_not_found.append({"thread": tid, "flag": fid})
 
         def polling_processor():
             v = 2
             while not stop.is_set():
                 for fid in FLAG_IDS:
-                    repo.set_flag(
-                        make_flag(fid, version=v)
-                    )
+                    repo.set_flag(make_flag(fid, version=v))
                 v += 1
 
         threads = []
@@ -602,14 +575,14 @@ class TestRepositoryFlagNotFound:
             t.join(timeout=5)
 
         assert len(false_not_found) == 0, (
-            f"{len(false_not_found)} false "
-            f"FLAG_NOT_FOUND during polling"
+            f"{len(false_not_found)} false " f"FLAG_NOT_FOUND during polling"
         )
 
 
 # ===============================================================
 # TEST 4: Verify fix preserves correct behavior
 # ===============================================================
+
 
 class TestFixPreservesCorrectBehavior:
     """Fix must not break existing LRUCache semantics."""
@@ -637,9 +610,7 @@ class TestFixPreservesCorrectBehavior:
             result = cache.get("a")
             assert result is None
         except KeyError:
-            pytest.skip(
-                "Unfixed SDK: get() KeyError on evicted"
-            )
+            pytest.skip("Unfixed SDK: get() KeyError on evicted")
 
         assert cache.get("b") == 2
         assert len(cache) == 3
@@ -683,7 +654,9 @@ class TestFixPreservesCorrectBehavior:
         cache.set("flags/b", 2)
         cache.set("segments/c", 3)
         assert sorted(cache.keys()) == [
-            "flags/a", "flags/b", "segments/c",
+            "flags/a",
+            "flags/b",
+            "segments/c",
         ]
 
     def test_getitem_raises_keyerror_for_missing(self):
@@ -702,7 +675,5 @@ class TestFixPreservesCorrectBehavior:
         """get_flag() returns None for never-inserted flag."""
         cache = LRUCache(size=10)
         repo = Repository(cache)
-        result = repo.get_flag(
-            "never_existed", is_outdated_check=True
-        )
+        result = repo.get_flag("never_existed", is_outdated_check=True)
         assert result is None
