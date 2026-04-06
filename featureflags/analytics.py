@@ -12,6 +12,7 @@ from .openapi.config import AuthenticatedClient
 from .openapi.config.models.target import Target
 from .openapi.config.models.target_attributes import TargetAttributes
 from .openapi.config.models.variation import Variation
+from .openapi.config.types import Unset as ConfigUnset
 from .openapi.metrics.api.metrics.post_metrics import \
     sync_detailed as post_metrics
 from .openapi.metrics.models.key_value import KeyValue
@@ -21,7 +22,6 @@ from .openapi.metrics.models.metrics_data_metrics_type import \
     MetricsDataMetricsType
 from .openapi.metrics.models.target_data import TargetData
 from .openapi.metrics.types import Unset
-from .openapi.config.types import Unset as ConfigUnset
 from .sdk_logging_codes import (info_evaluation_metrics_exceeded,
                                 info_metrics_success,
                                 info_metrics_target_batch_success,

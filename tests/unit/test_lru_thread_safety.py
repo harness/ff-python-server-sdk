@@ -29,7 +29,8 @@ import pytest
 
 from featureflags.lru_cache import LRUCache
 from featureflags.openapi.config.models.feature_config import FeatureConfig
-from featureflags.openapi.config.models.feature_config_kind import FeatureConfigKind
+from featureflags.openapi.config.models.feature_config_kind import \
+    FeatureConfigKind
 from featureflags.openapi.config.models.feature_state import FeatureState
 from featureflags.openapi.config.models.serve import Serve
 from featureflags.openapi.config.models.variation import Variation
@@ -221,7 +222,8 @@ class TestConcurrentCacheAccess:
                     try:
                         cache.get(f"flags/{fid}")
                     except (KeyError, RuntimeError) as e:
-                        errors.append(f"reader_{tid}: " f"{type(e).__name__}: {e}")
+                        errors.append(
+                            f"reader_{tid}: " f"{type(e).__name__}: {e}")
 
         def writer(tid):
             v = 0
@@ -233,7 +235,8 @@ class TestConcurrentCacheAccess:
                             {"feature": fid, "v": v},
                         )
                     except (KeyError, RuntimeError) as e:
-                        errors.append(f"writer_{tid}: " f"{type(e).__name__}: {e}")
+                        errors.append(
+                            f"writer_{tid}: " f"{type(e).__name__}: {e}")
                     v += 1
 
         threads = []
@@ -279,7 +282,8 @@ class TestConcurrentCacheAccess:
                     try:
                         cache.get(f"flags/{fid}")
                     except (KeyError, RuntimeError) as e:
-                        errors.append(f"reader_{tid}: " f"{type(e).__name__}: {e}")
+                        errors.append(
+                            f"reader_{tid}: " f"{type(e).__name__}: {e}")
 
         def writer(tid):
             v = 0
@@ -293,7 +297,8 @@ class TestConcurrentCacheAccess:
                             {"feature": fid, "v": v},
                         )
                     except (KeyError, RuntimeError) as e:
-                        errors.append(f"writer_{tid}: " f"{type(e).__name__}: {e}")
+                        errors.append(
+                            f"writer_{tid}: " f"{type(e).__name__}: {e}")
                     v += 1
 
         threads = []
@@ -347,7 +352,8 @@ class TestConcurrentCacheAccess:
                     try:
                         cache.get(f"flags/flag_{i}")
                     except (KeyError, RuntimeError) as e:
-                        errors.append(f"flag_reader_{tid}: " f"{type(e).__name__}: {e}")
+                        errors.append(
+                            f"flag_reader_{tid}: " f"{type(e).__name__}: {e}")
 
         def segment_writer(tid):
             v = 0
@@ -366,7 +372,8 @@ class TestConcurrentCacheAccess:
                                 {"identifier": f"seg_{i}", "v": v},
                             )
                     except (KeyError, RuntimeError) as e:
-                        errors.append(f"seg_writer_{tid}: " f"{type(e).__name__}: {e}")
+                        errors.append(
+                            f"seg_writer_{tid}: " f"{type(e).__name__}: {e}")
                     v += 1
 
         def flag_writer(tid):
@@ -379,7 +386,8 @@ class TestConcurrentCacheAccess:
                             {"feature": f"flag_{i}", "v": v},
                         )
                     except (KeyError, RuntimeError) as e:
-                        errors.append(f"flag_writer_{tid}: " f"{type(e).__name__}: {e}")
+                        errors.append(
+                            f"flag_writer_{tid}: " f"{type(e).__name__}: {e}")
                     v += 1
 
         threads = []

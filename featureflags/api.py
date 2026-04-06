@@ -1,7 +1,11 @@
-from tenacity import retry_if_result, wait_exponential, \
-    stop_after_attempt, retry, retry_if_exception_type
 from http import HTTPStatus
-from typing import Any, Union, List
+from typing import Any, List, Union
+
+from tenacity import (retry, retry_if_exception_type, retry_if_result,
+                      stop_after_attempt, wait_exponential)
+
+from featureflags.openapi.config import AuthenticatedClient, Client
+from featureflags.openapi.config.types import UNSET, Response, Unset
 
 from .openapi.config.api.client.authenticate import \
     sync_detailed as authenticate
@@ -13,16 +17,15 @@ from .openapi.config.api.client.get_feature_config_by_identifier import \
     sync_detailed as retrieve_flag_by_identifier
 from .openapi.config.api.client.get_segment_by_identifier import \
     sync_detailed as retrieve_segment_by_identifier
-from .openapi.config.models import AuthenticationRequest, \
-    AuthenticationResponse
-
-from featureflags.openapi.config import AuthenticatedClient, Client
-from featureflags.openapi.config.types import Unset, UNSET, Response
 from .openapi.config.errors import UnexpectedStatus
-from .openapi.config.models import Segment, FeatureConfig
-from .sdk_logging_codes import warn_auth_retying, \
-    warning_fetch_all_segments_retrying, warning_fetch_all_features_retrying, \
-    warning_fetch_feature_by_id_retrying, warning_fetch_group_by_id_retrying
+from .openapi.config.models import (AuthenticationRequest,
+                                    AuthenticationResponse, FeatureConfig,
+                                    Segment)
+from .sdk_logging_codes import (warn_auth_retying,
+                                warning_fetch_all_features_retrying,
+                                warning_fetch_all_segments_retrying,
+                                warning_fetch_feature_by_id_retrying,
+                                warning_fetch_group_by_id_retrying)
 
 TARGET_SEGMENT_RULES_PARAM = "v2"
 
@@ -34,15 +37,15 @@ class UnrecoverableRequestException(Exception):
 
     def __str__(self):
         return f'Request failed with unrecoverable error: ' \
-               f'status_code={self.status_code}, contents={self.content}'
+            f'status_code={self.status_code}, contents={self.content}'
 
 
 def default_retry_strategy(before_sleep_func=None, on_retry_error=None):
     max_retry_attempts = 10
     return retry(
         retry=(
-                retry_if_result(handle_http_result) |
-                retry_if_exception_type(UnexpectedStatus)),
+            retry_if_result(handle_http_result) |
+            retry_if_exception_type(UnexpectedStatus)),
 
         wait=wait_exponential(multiplier=1, max=10),
         before_sleep=before_sleep_func,

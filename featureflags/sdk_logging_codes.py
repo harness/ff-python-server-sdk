@@ -62,7 +62,7 @@ def get_sdk_code_message(key):
 
 def sdk_err_msg(error_code, append_text=""):
     return f"SDKCODE:{error_code}: {get_sdk_code_message(error_code)} " \
-           f"{append_text} "
+        f"{append_text} "
 
 
 def wan_missing_sdk_key():

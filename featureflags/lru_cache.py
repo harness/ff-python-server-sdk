@@ -1,6 +1,7 @@
 import threading
 from collections import OrderedDict
 from typing import Any, List
+
 from featureflags.util import log
 
 from .interface import Cache
