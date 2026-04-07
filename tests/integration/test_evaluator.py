@@ -7,10 +7,10 @@ from attr import define
 
 from featureflags.evaluations.auth_target import Target
 from featureflags.evaluations.evaluator import Evaluator
+from featureflags.lru_cache import LRUCache
 from featureflags.openapi.config.models.feature_config import (
     FeatureConfig, FeatureConfigKind)
 from featureflags.openapi.config.models.segment import Segment
-from featureflags.lru_cache import LRUCache
 from featureflags.repository import Repository
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))

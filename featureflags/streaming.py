@@ -7,13 +7,12 @@ from typing import Union
 
 from featureflags.repository import DataProviderInterface
 
+from .api import (UnrecoverableRequestException,
+                  retryable_retrieve_feature_config_by_identifier,
+                  retryable_retrieve_segment_by_identifier)
 from .config import Config
 from .dto.message import Message
 from .openapi.config import AuthenticatedClient
-
-from .api import \
-    retryable_retrieve_feature_config_by_identifier, \
-    retryable_retrieve_segment_by_identifier, UnrecoverableRequestException
 from .sdk_logging_codes import (info_poll_started, info_polling_stopped,
                                 info_stream_connected,
                                 info_stream_event_received,

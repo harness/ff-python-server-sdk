@@ -5,10 +5,11 @@ from typing import Dict
 
 from featureflags.repository import DataProviderInterface
 
+from .api import (UnrecoverableRequestException,
+                  retryable_retrieve_feature_config,
+                  retryable_retrieve_segments)
 from .config import Config
 from .openapi.config import AuthenticatedClient
-from .api import retryable_retrieve_feature_config, \
-    retryable_retrieve_segments, UnrecoverableRequestException
 from .sdk_logging_codes import (info_poll_ran_successfully, info_poll_started,
                                 info_polling_stopped, info_sdk_init_ok,
                                 warn_failed_init_fetch_error,
@@ -117,8 +118,8 @@ class PollingProcessor(Thread):
                 if elapsed < self.__config.pull_interval:
                     log.debug("Poller sleeping for " +
                               (
-                                      self.__config.pull_interval -
-                                      elapsed).__str__())
+                                  self.__config.pull_interval -
+                                  elapsed).__str__())
                     " seconds"
                     time.sleep(self.__config.pull_interval - elapsed)
 
