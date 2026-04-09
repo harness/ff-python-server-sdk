@@ -85,18 +85,17 @@ class Repository(DataProviderInterface):
                  cacheable: bool = None, is_outdated_check=False) -> \
             Optional[FeatureConfig]:
         flag_key = format_flag_key(identifier)
-        try:
-            flag = self.cache.get(flag_key)
+        flag = self.cache.get(flag_key)
+        if flag is not None:
             log.debug("get_flag: '%s' from cache", identifier)
             return flag
-        except KeyError:
-            if self.store:
-                flag = self.store.get(flag_key)
-                log.debug("get_flag: '%s' from store", identifier)
-                if flag and cacheable:
-                    log.debug("set flag to the cache %s", identifier)
-                    self.cache.set(flag_key, flag)
-                return flag
+        if self.store:
+            flag = self.store.get(flag_key)
+            log.debug("get_flag: '%s' from store", identifier)
+            if flag and cacheable:
+                log.debug("set flag to the cache %s", identifier)
+                self.cache.set(flag_key, flag)
+            return flag
         # If we are checking if a flag is outdated, it might not be in the
         # cache to start with, so don't log a warning here
         if not is_outdated_check:
@@ -107,18 +106,17 @@ class Repository(DataProviderInterface):
                     cacheable: bool = None, is_outdated_check=False) -> \
             Optional[Segment]:
         segment_key = format_segment_key(identifier)
-        try:
-            segment = self.cache.get(segment_key)
+        segment = self.cache.get(segment_key)
+        if segment is not None:
             log.debug("get_segment: '%s' from cache", identifier)
             return segment
-        except KeyError:
-            if self.store:
-                segment = self.store.get(segment_key)
-                log.debug("get_segment: '%s' from store", identifier)
-                if segment and cacheable:
-                    log.debug("set segment to the cache %s", identifier)
-                    self.cache.set(segment_key, segment)
-                return segment
+        if self.store:
+            segment = self.store.get(segment_key)
+            log.debug("get_segment: '%s' from store", identifier)
+            if segment and cacheable:
+                log.debug("set segment to the cache %s", identifier)
+                self.cache.set(segment_key, segment)
+            return segment
         # If we are checking if a segment is outdated, it might not be in the
         # cache to start with, so don't log a warning here
         if not is_outdated_check:
