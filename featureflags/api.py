@@ -3,6 +3,8 @@ from tenacity import retry_if_result, wait_exponential, \
 from http import HTTPStatus
 from typing import Any, Union, List
 
+import httpx
+
 from .openapi.config.api.client.authenticate import \
     sync_detailed as authenticate
 from .openapi.config.api.client.get_all_segments import \
@@ -42,7 +44,8 @@ def default_retry_strategy(before_sleep_func=None, on_retry_error=None):
     return retry(
         retry=(
                 retry_if_result(handle_http_result) |
-                retry_if_exception_type(UnexpectedStatus)),
+                retry_if_exception_type(UnexpectedStatus) |
+                retry_if_exception_type(httpx.TransportError)),
 
         wait=wait_exponential(multiplier=1, max=10),
         before_sleep=before_sleep_func,
@@ -67,12 +70,14 @@ def handle_http_result(response):
 
 
 def handle_retries_exceeded(retry_state):
-    content = retry_state.outcome.result().content
+    if retry_state.outcome.failed:
+        exc = retry_state.outcome.exception()
+        raise UnrecoverableRequestException(0, str(exc))
+    result = retry_state.outcome.result()
+    content = result.content
     if content == b'':
         content = ""
-    raise UnrecoverableRequestException(
-        retry_state.outcome.result().status_code,
-        content)
+    raise UnrecoverableRequestException(result.status_code, content)
 
 
 def make_log_warning_before_sleep(warning_fun):
