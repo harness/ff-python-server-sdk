@@ -15,13 +15,12 @@ from threading import Event
 from unittest.mock import MagicMock, patch
 
 from featureflags.api import UnrecoverableRequestException
-from featureflags.config import default_config
+from featureflags.config import Config
 from featureflags.polling import PollingProcessor
 
 
 def _make_processor(failed_reason):
-    config = default_config
-    config.enable_stream = True  # skip the pre-loop pull_interval sleep
+    config = Config()  # enable_stream=True by default: skips pre-loop sleep
     return PollingProcessor(
         client=MagicMock(),
         config=config,

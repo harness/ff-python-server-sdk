@@ -128,12 +128,8 @@ class PollingProcessor(Thread):
         info_polling_stopped("Client was closed")
 
     def __recover_failed_init(self):
-        # The init attempt latches __initialised_failed_reason on failure,
-        # but this polling loop keeps fetching in the background. Once a
-        # fetch succeeds the cache is healthy again, so clear the latch —
-        # the _initialized Event was already set during the initial attempt,
-        # which makes is_initialized() flip back to True and evaluations
-        # resume serving real values instead of defaults.
+        # A successful poll means the cache is healthy again; clear the
+        # failure latch so evaluations resume real values.
         if self.__initialised_failed_reason[True] is not None:
             self.__initialised_failed_reason[True] = None
             info_sdk_init_ok()
