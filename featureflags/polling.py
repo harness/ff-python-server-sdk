@@ -104,6 +104,7 @@ class PollingProcessor(Thread):
                         self.retrieve_flags_and_segments()
                         info_poll_ran_successfully()
                         self.__ready.set()
+                    self.__recover_failed_init()
                 except RetrievalError as ex:
                     log.error('Polling error: %s',
                               ex)
@@ -125,6 +126,17 @@ class PollingProcessor(Thread):
     def stop(self):
         self.__running = False
         info_polling_stopped("Client was closed")
+
+    def __recover_failed_init(self):
+        # The init attempt latches __initialised_failed_reason on failure,
+        # but this polling loop keeps fetching in the background. Once a
+        # fetch succeeds the cache is healthy again, so clear the latch —
+        # the _initialized Event was already set during the initial attempt,
+        # which makes is_initialized() flip back to True and evaluations
+        # resume serving real values instead of defaults.
+        if self.__initialised_failed_reason[True] is not None:
+            self.__initialised_failed_reason[True] = None
+            info_sdk_init_ok()
 
     def retrieve_flags_and_segments(self):
         flags_future = Future()
