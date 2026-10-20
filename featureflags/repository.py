@@ -5,7 +5,7 @@ from featureflags.evaluations.constants import SEGMENT_MATCH_OPERATOR
 from featureflags.interface import Cache, Store
 from featureflags.openapi.config.models.feature_config import FeatureConfig
 from featureflags.openapi.config.models.segment import Segment
-from featureflags.openapi.config.types import Unset
+from featureflags.openapi.config.types import UNSET, Unset
 from featureflags.util import log
 
 
@@ -146,7 +146,7 @@ class Repository(DataProviderInterface):
             return None
 
         # Sort the serving rules by priority
-        if segment.serving_rules is not Unset:
+        if segment.serving_rules is not UNSET:
             segment.serving_rules.sort(key=lambda rule: rule.priority)
 
         segment_key = format_segment_key(segment.identifier)

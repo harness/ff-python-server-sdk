@@ -259,6 +259,7 @@ def test_multiple_unicode_messages():
                            "üüüüüüüüü"
 
 
+@pytest.mark.skip(reason="Depends on a live Wikimedia stream")
 def test_event_stream():
     """Check whether event.data can be loaded."""
     limit = 50
