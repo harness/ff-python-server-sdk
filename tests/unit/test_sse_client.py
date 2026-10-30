@@ -205,6 +205,19 @@ def test_simple_iteration():
     assert_multiple_messages(m1, m2, m3)
 
 
+def test_stream_closed_by_server_raises_without_reconnecting(monkeypatch):
+    content = "data: message 1\n\n"
+    fake_get = mock.Mock(return_value=FakeResponse(200, content))
+    monkeypatch.setattr(requests, "get", fake_get)
+
+    c = sse_client.SSEClient("http://blah.com")
+    assert next(c).data == "message 1"
+
+    with pytest.raises(EOFError):
+        next(c)
+    assert fake_get.call_count == 1
+
+
 def test_client_sends_cookies(mocker):
     s = requests.Session()
     s.cookies = RequestsCookieJar()

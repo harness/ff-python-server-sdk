@@ -92,18 +92,21 @@ class PollingProcessor(Thread):
                 try:
                     if self.__config.enable_stream and \
                             self.__stream_ready.is_set():
-                        #  Block until ready.set() is called
+                        #  Block until the stream requests a poll on
+                        #  connect or disconnect
                         self.__ready.wait()
-                        # on stream disconnect, make sure flags are in sync
+                        # Clear before polling so a request made during
+                        # the poll is not lost
+                        self.__ready.clear()
                         self.retrieve_flags_and_segments()
                         info_poll_ran_successfully()
                         # Reset the start time so we don't do another poll
                         # immediately
                         start_time = time.time()
                     else:
+                        self.__ready.clear()
                         self.retrieve_flags_and_segments()
                         info_poll_ran_successfully()
-                        self.__ready.set()
                 except RetrievalError as ex:
                     log.error('Polling error: %s',
                               ex)
@@ -120,7 +123,12 @@ class PollingProcessor(Thread):
                                       self.__config.pull_interval -
                                       elapsed).__str__())
                     " seconds"
-                    time.sleep(self.__config.pull_interval - elapsed)
+                    if self.__config.enable_stream:
+                        # Wake early if the stream requests a poll
+                        self.__ready.wait(
+                            self.__config.pull_interval - elapsed)
+                    else:
+                        time.sleep(self.__config.pull_interval - elapsed)
 
     def stop(self):
         self.__running = False
