@@ -1,4 +1,5 @@
 import abc
+import threading
 from typing import List, Optional
 
 from featureflags.evaluations.constants import SEGMENT_MATCH_OPERATOR
@@ -80,6 +81,7 @@ class Repository(DataProviderInterface):
     def __init__(self, cache: Cache, store: Store = None) -> None:
         self.cache = cache
         self.store = store
+        self._lock = threading.Lock()
 
     def get_flag(self, identifier: str,
                  cacheable: bool = None, is_outdated_check=False) -> \
@@ -124,41 +126,43 @@ class Repository(DataProviderInterface):
         return None
 
     def set_flag(self, flag: FeatureConfig) -> None:
-        if self.is_flag_outdated(flag.feature, flag):
-            log.debug("set_flag: '%s' skipped (outdated)", flag.feature)
-            return None
+        with self._lock:
+            if self.is_flag_outdated(flag.feature, flag):
+                log.debug("set_flag: '%s' skipped (outdated)", flag.feature)
+                return None
 
-        flag_key = format_flag_key(flag.feature)
+            flag_key = format_flag_key(flag.feature)
 
-        if self.store:
-            self.store.set(flag_key, flag)
-            self.cache.remove([flag_key])
-            log.debug("set_flag: '%s' stored and cache invalidated",
-                      flag.feature)
-        else:
-            self.cache.set(flag_key, flag)
-            log.debug("set_flag: '%s' cached", flag.feature)
+            if self.store:
+                self.store.set(flag_key, flag)
+                self.cache.remove([flag_key])
+                log.debug("set_flag: '%s' stored and cache invalidated",
+                          flag.feature)
+            else:
+                self.cache.set(flag_key, flag)
+                log.debug("set_flag: '%s' cached", flag.feature)
 
     def set_segment(self, segment: Segment) -> None:
-        if self.is_segment_outdated(segment.identifier, segment):
-            log.debug("set_segment: '%s' skipped (outdated)",
-                      segment.identifier)
-            return None
+        with self._lock:
+            if self.is_segment_outdated(segment.identifier, segment):
+                log.debug("set_segment: '%s' skipped (outdated)",
+                          segment.identifier)
+                return None
 
-        # Sort the serving rules by priority
-        if segment.serving_rules is not UNSET:
-            segment.serving_rules.sort(key=lambda rule: rule.priority)
+            # Sort the serving rules by priority
+            if segment.serving_rules is not UNSET:
+                segment.serving_rules.sort(key=lambda rule: rule.priority)
 
-        segment_key = format_segment_key(segment.identifier)
+            segment_key = format_segment_key(segment.identifier)
 
-        if self.store:
-            self.store.set(segment_key, segment)
-            self.cache.remove([segment_key])
-            log.debug("set_segment: '%s' stored and cache invalidated",
-                      segment.identifier)
-        else:
-            self.cache.set(segment_key, segment)
-            log.debug("set_segment: '%s' cached", segment.identifier)
+            if self.store:
+                self.store.set(segment_key, segment)
+                self.cache.remove([segment_key])
+                log.debug("set_segment: '%s' stored and cache invalidated",
+                          segment.identifier)
+            else:
+                self.cache.set(segment_key, segment)
+                log.debug("set_segment: '%s' cached", segment.identifier)
 
     def find_flags_by_segment(self, segment: str) -> List[str]:
         result = []
@@ -182,23 +186,26 @@ class Repository(DataProviderInterface):
 
     def remove_flag(self, identifier: str) -> None:
         """Remove Flag from the repository"""
-        flag_key = format_flag_key(identifier)
-        if self.store:
-            self.store.remove([flag_key])
-            log.debug("Flag %s successfully deleted from store", identifier)
+        with self._lock:
+            flag_key = format_flag_key(identifier)
+            if self.store:
+                self.store.remove([flag_key])
+                log.debug("Flag %s successfully deleted from store", identifier)
 
-        self.cache.remove([flag_key])
-        log.debug("Flag %s successfully deleted from cache", identifier)
+            self.cache.remove([flag_key])
+            log.debug("Flag %s successfully deleted from cache", identifier)
 
     def remove_segment(self, identifier: str) -> None:
         """Remove Target group from the repository"""
-        segment_key = format_segment_key(identifier)
-        if self.store:
-            self.store.remove([segment_key])
-            log.debug("Segment %s successfully deleted from store", identifier)
+        with self._lock:
+            segment_key = format_segment_key(identifier)
+            if self.store:
+                self.store.remove([segment_key])
+                log.debug("Segment %s successfully deleted from store",
+                          identifier)
 
-        self.cache.remove([segment_key])
-        log.debug("Segment %s successfully deleted from cache", identifier)
+            self.cache.remove([segment_key])
+            log.debug("Segment %s successfully deleted from cache", identifier)
 
     def close(self) -> None:
         if self.store:
