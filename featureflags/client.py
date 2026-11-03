@@ -22,7 +22,7 @@ from .polling import PollingProcessor
 from .streaming import StreamProcessor
 from .util import log
 
-VERSION: str = "1.7.3"
+VERSION: str = "1.7.6"
 
 
 class MissingOrEmptyAPIKeyException(Exception):

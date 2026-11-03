@@ -2,6 +2,12 @@
 History
 =======
 
+1.7.6 (2026-11-03)
+------------------
+
+	fix: [FFM-13211]: Python SDK polls after its stream reconnects so missed updates are fetched in #123
+	fix: Segments without serving rules no longer raise an error when cached in #122
+
 1.7.3 (2021-07-07)
 ------------------
 
