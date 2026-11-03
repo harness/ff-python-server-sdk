@@ -69,9 +69,10 @@ class StreamProcessor(Thread):
                 self._disconnect_notified = False
 
                 info_polling_stopped('streaming mode is active')
-                self.poller.clear()  # were streaming now, so tell any poller
-                # threads calling wait to wait...
                 self._ready.set()
+                # Ask the poller for one catch-up poll, as updates sent while
+                # the stream was down were missed.
+                self.poller.set()
                 retries = 0  # reset the retry counter
                 for msg in messages:
                     if not self._running:

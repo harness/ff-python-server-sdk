@@ -6,7 +6,6 @@ Based on: https://github.com/btubbs/sseclient
 
 import codecs
 import re
-import time
 from typing import Any, Dict, Generator, List, Match, Optional, Pattern
 
 import requests
@@ -109,21 +108,10 @@ class SSEClient(object):
                 self.buf += self.decoder.decode(next_chunk)
 
             except (StopIteration, EOFError) as e:
-
-                if isinstance(e, EOFError):
-                    log.debug("Recieved empty chunk of data from stream, "
-                              "reconnecting")
-
-                log.debug("Streaming stopped abruptly, reconnecting")
-
-                time.sleep(self.retry / 1000.0)
-                self._connect()
-
-                # The SSE spec only supports resuming from a whole message, so
-                # if we have half a message we should throw it out.
-                head, sep, _ = self.buf.rpartition("\n")
-                self.buf = head + sep
-                continue
+                # Let the caller handle the reconnect so it knows the stream
+                # was down and can fetch any updates it missed.
+                log.debug("Stream closed by server")
+                raise EOFError("Stream closed by server") from e
 
         # Split the complete event (up to the end_of_field) into event_string,
         # and retain anything after the current complete event in self.buf
